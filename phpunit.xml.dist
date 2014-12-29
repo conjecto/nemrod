@@ -13,10 +13,10 @@
     </php>
 
     <testsuites>
-        <testsuite name="Symfony Test Suite">
-            <directory>./src/Symfony/Bridge/*/Tests/</directory>
-            <directory>./src/Symfony/Component/*/Tests/</directory>
-            <directory>./src/Symfony/Bundle/*/Tests/</directory>
+        <testsuite name="Devyn Test Suite">
+            <directory>./src/Devyn/Bridge/*/Tests/</directory>
+            <directory>./src/Devyn/Component/*/Tests/</directory>
+            <directory>./src/Devyn/Bundle/*/Tests/</directory>
         </testsuite>
     </testsuites>
 
@@ -29,14 +29,14 @@
 
     <filter>
         <whitelist>
-            <directory>./src/Symfony/</directory>
+            <directory>./src/Devyn/</directory>
             <exclude>
-                <directory>./src/Symfony/Bridge/*/Tests</directory>
-                <directory>./src/Symfony/Component/*/Tests</directory>
-                <directory>./src/Symfony/Bundle/*/Tests</directory>
-                <directory>./src/Symfony/Bundle/*/Resources</directory>
-                <directory>./src/Symfony/Component/*/Resources</directory>
-                <directory>./src/Symfony/Component/*/*/Resources</directory>
+                <directory>./src/Devyn/Bridge/*/Tests</directory>
+                <directory>./src/Devyn/Component/*/Tests</directory>
+                <directory>./src/Devyn/Bundle/*/Tests</directory>
+                <directory>./src/Devyn/Bundle/*/Resources</directory>
+                <directory>./src/Devyn/Component/*/Resources</directory>
+                <directory>./src/Devyn/Component/*/*/Resources</directory>
             </exclude>
         </whitelist>
     </filter>

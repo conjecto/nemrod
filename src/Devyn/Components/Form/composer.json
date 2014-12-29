@@ -1,0 +1,26 @@
+{
+    "name": "conjecto/devyn-form",
+    "type": "library",
+    "description": "Devyn Form Component",
+    "keywords": [],
+    "homepage": "http://conjecto.com",
+    "authors": [
+        {
+            "name": "Blaise de Carné",
+            "email": "blaise@conjecto.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-0": { "Devyn\\Component\\Form\\": "" }
+    },
+    "target-dir": "Devyn/Component/Form",
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
