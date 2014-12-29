@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Validation;
 /**
  * FrameworkExtension.
  */
-class FrameworkExtension extends Extension
+class RdfFrameworkExtension extends Extension
 {
     /**
      * Responds to the app.config configuration parameter.
@@ -53,5 +53,10 @@ class FrameworkExtension extends Extension
         foreach($config as $prefix => $data) {
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }
+    }
+
+    public function getAlias()
+    {
+        return 'rdf_framework';
     }
 }

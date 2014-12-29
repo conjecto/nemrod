@@ -26,6 +26,9 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
     private function addNamespaceSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
