@@ -11,7 +11,8 @@
 
 namespace Devyn\Component\Form\Tests\Extension\Core\DataMapper;
 
-use Symfony\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
+use Devyn\Component\RdfNamespace\RdfNamespaceRegistry;
 use Symfony\Component\Form\FormConfigBuilder;
 use Symfony\Component\Form\FormConfigInterface;
 use Symfony\Component\Form\Extension\Core\DataMapper\PropertyPathMapper;
@@ -23,9 +24,15 @@ class ResourcePropertyPathMapperTest extends \PHPUnit_Framework_TestCase
      */
     private $mapper;
 
+    /**
+     * @var RdfNamespaceRegistry
+     */
+    private $nsRegistry;
+
     protected function setUp()
     {
-        $this->mapper = new ResourcePropertyPathMapper();
+        $this->nsRegistry = $this->getMock('Devyn\Component\RdfNamespace\RdfNamespaceRegistry');
+        $this->mapper = new ResourcePropertyPathMapper($this->nsRegistry);
     }
 
 }

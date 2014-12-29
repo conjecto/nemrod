@@ -12,6 +12,7 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
+use Devyn\Component\RdfNamespace\RdfNamespaceRegistry;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -30,9 +31,17 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  */
 class ResourceFormType extends FormType
 {
-    public function __construct()
-    {
+    /**
+     * @var RdfNamespaceRegistry
+     */
+    private $nsRegistry;
 
+    /**
+     * @param RdfNamespaceRegistry $registry
+     */
+    public function __construct(RdfNamespaceRegistry $nsRegistry)
+    {
+        $this->nsRegistry = $nsRegistry;
     }
 
     /**
@@ -43,7 +52,7 @@ class ResourceFormType extends FormType
         parent::buildForm($builder, $options);
         // custom path mapper
         $builder
-          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper() : null);
+          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper($this->nsRegistry) : null);
     }
 
     /**

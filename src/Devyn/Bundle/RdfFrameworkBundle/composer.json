@@ -20,9 +20,9 @@
 
     },
     "autoload": {
-        "psr-0": { "Devyn\\Bundle\\FrameworkBundle\\": "" }
+        "psr-0": { "Devyn\\Bundle\\RdfFrameworkBundle\\": "" }
     },
-    "target-dir": "Devyn/Bundle/FrameworkBundle",
+    "target-dir": "Devyn/Bundle/RdfFrameworkBundle",
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {

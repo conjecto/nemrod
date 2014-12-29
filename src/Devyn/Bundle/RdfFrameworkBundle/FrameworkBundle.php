@@ -9,8 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Devyn\Bundle\FrameworkBundle;
+namespace Devyn\Bundle\RdfFrameworkBundle;
 
+use Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler\RdfNamespacePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\Scope;
@@ -21,16 +22,8 @@ use Symfony\Component\HttpKernel\DependencyInjection\RegisterListenersPass;
 /**
  * Bundle.
  */
-class FrameworkBundle extends Bundle
+class RdfFrameworkBundle extends Bundle
 {
-    /**
-     *
-     */
-    public function boot()
-    {
-
-    }
-
     /**
      * @param ContainerBuilder $container
      */
