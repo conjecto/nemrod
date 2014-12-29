@@ -24,11 +24,5 @@ use Symfony\Component\HttpKernel\DependencyInjection\RegisterListenersPass;
  */
 class RdfFrameworkBundle extends Bundle
 {
-    /**
-     * @param ContainerBuilder $container
-     */
-    public function build(ContainerBuilder $container)
-    {
-        parent::build($container);
-    }
+
 }
