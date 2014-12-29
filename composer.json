@@ -1,0 +1,34 @@
+{
+    "name": "conjecto/devyn",
+    "type": "library",
+    "description": "The Devyn Semantic framework",
+    "keywords": ["framework"],
+    "homepage": "http://conjecto.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Blaise de Carné",
+            "email": "blaise@conjecto.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "replace": {
+	
+    },
+    "require-dev": {
+        
+    },
+    "autoload": {
+        "psr-0": { "Devyn\\": "src/" },
+        "classmap": [],
+        "files": [ ]
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
