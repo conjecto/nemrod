@@ -24,7 +24,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     private $nsRegistry;
 
     /**
-     * @param RdfNamespaceRegistry $registry
+     * @param RdfNamespaceRegistry $nsRegistry
      */
     public function __construct(RdfNamespaceRegistry $nsRegistry)
     {
