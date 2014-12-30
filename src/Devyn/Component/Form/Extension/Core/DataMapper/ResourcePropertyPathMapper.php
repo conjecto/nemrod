@@ -219,5 +219,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         if ($resource instanceof \EasyRdf_Literal) {
             return $resource->getValue();
         }
+
+        return $resource;
     }
 }

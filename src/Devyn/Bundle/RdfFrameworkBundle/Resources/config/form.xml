@@ -6,12 +6,16 @@
 
     <parameters>
         <parameter key="form.type.resource_form.class">Devyn\Component\Form\Extension\Core\Type\ResourceFormType</parameter>
+        <parameter key="form.type.resource.class">Devyn\Component\Form\Extension\Core\Type\ResourceType</parameter>
     </parameters>
 
     <services>
         <service id="form.type.resource_form" class="%form.type.resource_form.class%">
             <argument type="service" id="rdf_namespace_registry"/>
             <tag name="form.type" alias="resource_form" />
+        </service>
+        <service id="form.type.resource" class="%form.type.resource.class%">
+            <tag name="form.type" alias="resource" />
         </service>
     </services>
 </container>
