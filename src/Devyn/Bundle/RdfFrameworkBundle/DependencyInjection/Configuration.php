@@ -22,7 +22,6 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('rdf_framework');
 
         $this->addNamespaceSection($rootNode);
-        $this->addMappingsection($rootNode);
         return $treeBuilder;
     }
 
@@ -33,6 +32,8 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->children()
+                ->scalarNode('default_resource_directory')
+                    ->end()
                 ->arrayNode('namespaces')
                     ->prototype('array')
                         ->beforeNormalization()
@@ -47,23 +48,5 @@ class Configuration implements ConfigurationInterface
             ->end()
         ;
     }
-
-    /**
-     * @param ArrayNodeDefinition $rootNode
-     */
-    private function addMappingsection(ArrayNodeDefinition $rootNode)
-    {
-        $rootNode
-            ->children()
-                ->arrayNode('mapping')
-                    //->prototype('array')
-                        ->children()
-                            ->scalarNode('default_directory')
-                        ->end()
-                    ->end()
-                ->end();
-
-    }
-
 
 }

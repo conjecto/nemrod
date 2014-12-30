@@ -22,6 +22,8 @@ class RdfResource
 {
     private $uris;
 
+    private $className;
+
     /**
      * Constructor.
      */
@@ -32,6 +34,24 @@ class RdfResource
         }
         $this->uris = $uris;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getClassName()
+    {
+        return $this->className;
+    }
+
+    /**
+     * @param mixed $className
+     */
+    public function setClassName($className)
+    {
+        $this->className = $className;
+    }
+
+
 
     /**
      * @return array
