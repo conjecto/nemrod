@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="rdf.view_response_listener.class">Devyn\Bundle\RdfFrameworkBundle\EventListener\ViewResponseListener</parameter>
+        <parameter key="rdf.request_listener.mimetype.class">Devyn\Bundle\RdfFrameworkBundle\EventListener\MimeTypeRequestListener</parameter>
+    </parameters>
+    <services>
+
+    <!-- view response listener -->
+    <service id="rdf.view_response_listener" class="%rdf.view_response_listener.class%">
+        <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="-10" />
+        <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="100" />
+        <argument type="service" id="service_container" />
+    </service>
+
+    <!-- jsonld mimetype -->
+    <service id="rdf.request_listener.mimetype" class="%rdf.request_listener.mimetype.class%">
+        <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" />
+    </service>
+
+
+    </services>
+</container>

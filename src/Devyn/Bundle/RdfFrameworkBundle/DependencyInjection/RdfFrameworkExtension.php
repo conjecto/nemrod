@@ -33,6 +33,7 @@ class RdfFrameworkExtension extends Extension
         $loader->load('services.xml');
         $loader->load('form.xml');
         $loader->load('serializer.xml');
+        $loader->load('event_listeners.xml');
 
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);

@@ -17,5 +17,7 @@
         <!-- sparql endpoints -->
         <service id="rdf.sparql.connection" class="%rdf.sparql.connection.class%" abstract="true"/>
 
+
+
     </services>
 </container>
