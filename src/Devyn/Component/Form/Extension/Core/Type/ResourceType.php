@@ -34,7 +34,7 @@ class ResourceType extends AbstractType
         };
 
         $resolver->setDefaults(array(
-            'choice_list'       => $choiceList,
+            'choice_list' => $choiceList,
         ));
     }
 

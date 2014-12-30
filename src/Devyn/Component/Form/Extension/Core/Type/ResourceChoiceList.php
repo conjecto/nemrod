@@ -55,6 +55,7 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Loads the list with entities.
      * @throws \EasyRdf_Exception
      * @throws \EasyRdf_Http_Exception
      */
@@ -76,19 +77,26 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the list of resources
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getChoices()
     {
         if (!$this->loaded) {
             $this->load();
         }
-
         return parent::getChoices();
     }
 
     /**
+     * Returns the values for the resources
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getValues()
     {
@@ -100,7 +108,12 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the choice views of the preferred choices as nested array with
+     * the choice groups as top-level keys.
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getPreferredViews()
     {
@@ -112,7 +125,12 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the choice views of the choices that are not preferred as nested
+     * array with the choice groups as top-level keys.
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getRemainingViews()
     {
@@ -124,8 +142,13 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the resources corresponding to the given values.
+     *
      * @param array $values
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getChoicesForValues(array $values)
     {
@@ -138,8 +161,13 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the values corresponding to the given entities.
+     *
      * @param array $resources
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getValuesForChoices(array $resources)
     {
@@ -152,8 +180,13 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the indices corresponding to the given resources.
+     *
      * @param array $resources
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getIndicesForChoices(array $resources)
     {
@@ -165,8 +198,13 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
+     * Returns the resources corresponding to the given values.
+     *
      * @param array $values
+     *
      * @return array
+     *
+     * @see Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceListInterface
      */
     public function getIndicesForValues(array $values)
     {
@@ -178,8 +216,16 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
-     * @param mixed $resource
-     * @return int|mixed|string
+     * Creates a new unique index for this entity.
+     *
+     * If the entity has a single-field identifier, this identifier is used.
+     *
+     * Otherwise a new integer is generated.
+     *
+     * @param mixed $entity The choice to create an index for
+     *
+     * @return integer|string A unique index containing only ASCII letters,
+     *                        digits and underscores.
      */
     protected function createIndex($resource)
     {
@@ -187,8 +233,15 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
-     * @param mixed $resource
-     * @return mixed
+     * Creates a new unique value for this entity.
+     *
+     * If the entity has a single-field identifier, this identifier is used.
+     *
+     * Otherwise a new integer is generated.
+     *
+     * @param mixed $entity The choice to create a value for
+     *
+     * @return integer|string A unique value without character limitations.
      */
     protected function createValue($resource)
     {
@@ -196,8 +249,7 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
-     * @param mixed $index
-     * @return int|mixed|string
+     * {@inheritdoc}
      */
     protected function fixIndex($index)
     {
