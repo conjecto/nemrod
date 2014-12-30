@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
  * Class ViewResponseListener
  * @package Devyn\Bundle\RdfFrameworkBundle\EventListener
  */
-class ViewResponseListener extends TemplateListener
+class ViewResponseListener
 {
     /**
      * @var ContainerInterface
@@ -46,7 +46,6 @@ class ViewResponseListener extends TemplateListener
             $request->attributes->set('_template', $configuration);
         }*/
 
-        parent::onKernelController($event);
     }
 
     /**
@@ -93,7 +92,6 @@ class ViewResponseListener extends TemplateListener
             $event->setResponse($response);
             return;
         }
-        parent::onKernelView($event);
     }
 
 }

@@ -4,20 +4,4 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <parameters>
-        <parameter key="rdf.namespace.registry.class">Devyn\Bridge\EasyRdf\Registry\RdfNamespaceRegistry</parameter>
-        <parameter key="rdf.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
-    </parameters>
-
-    <services>
-        <!-- namespace  -->
-        <service id="rdf.namespace.registry" class="%rdf.namespace.registry.class%" />
-        <service id="namespace.registry" alias="rdf.namespace.registry" />
-
-        <!-- sparql endpoints -->
-        <service id="rdf.sparql.connection" class="%rdf.sparql.connection.class%" abstract="true"/>
-
-
-
-    </services>
 </container>

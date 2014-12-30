@@ -11,8 +11,8 @@ use EasyRdf\RdfNamespace;
  * Class RdfNamespaceRegistry
  * @package Devyn\Bridge\EasyRdf\RdfNamespace
  */
-class RdfNamespaceRegistry {
-
+class RdfNamespaceRegistry
+{
     /**
      * @return array
      */
