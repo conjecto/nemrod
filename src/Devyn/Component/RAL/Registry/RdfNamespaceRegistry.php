@@ -3,7 +3,7 @@
  * Auteur: Blaise de Carné - blaise@concretis.com
  */
 
-namespace Devyn\Bridge\EasyRdf\Registry;
+namespace Devyn\Component\RAL\Registry;
 
 use EasyRdf\RdfNamespace;
 
