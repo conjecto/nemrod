@@ -27,14 +27,24 @@ class ResourceChoiceList extends ObjectChoiceList
      *
      * @var Boolean
      */
-    private $loaded = false;
+    protected $loaded = false;
 
     /**
      * The preferred resources.
      *
      * @var array
      */
-    private $preferredResources = array();
+    protected $preferredResources = array();
+
+    /**
+     * @var string
+     */
+    protected $property;
+
+    /**
+     * @var string
+     */
+    protected $type;
 
     /**
      * @param array|\Traversable $choices
@@ -44,36 +54,17 @@ class ResourceChoiceList extends ObjectChoiceList
      * @param null $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct($choices, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($choices, $type, $property = 'rdfs:label', $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
     {
+        $this->type = $type;
+        $this->property = $property;
+
         if (!$this->loaded) {
             // Make sure the constraints of the parent constructor are fulfilled
             $resources = array();
         }
 
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
-    }
-
-    /**
-     * Loads the list with entities.
-     * @throws \EasyRdf_Exception
-     * @throws \EasyRdf_Http_Exception
-     */
-    private function load()
-    {
-        $resources = [];
-        try {
-            $foaf = new \EasyRdf_Graph("http://njh.me/foaf.rdf");
-            $foaf->load();
-            $me = $foaf->primaryTopic();
-            $resources = $me->all('foaf:account');
-
-            // The second parameter $labels is ignored by ObjectChoiceList
-            parent::initialize($resources, array(), $this->preferredResources);
-        } catch (StringCastException $e) {
-            throw new StringCastException(str_replace('argument $labelPath', 'option "property"', $e->getMessage()), null, $e);
-        }
-        $this->loaded = true;
     }
 
     /**
@@ -172,10 +163,12 @@ class ResourceChoiceList extends ObjectChoiceList
     public function getValuesForChoices(array $resources)
     {
         $values = array();
-        foreach($resources as $resource) {
-            if(!$resource) continue;
+        foreach ($resources as $resource) {
+            if (!$resource)
+                continue;
             $values[] = $resource->getUri();
         }
+
         return $values;
     }
 
@@ -256,5 +249,27 @@ class ResourceChoiceList extends ObjectChoiceList
         $index = parent::fixIndex($index);
         $index = rtrim(base64_encode($index), "=");
         return $index;
+    }
+
+    /**
+     * Loads the list with entities.
+     * @throws \EasyRdf_Exception
+     * @throws \EasyRdf_Http_Exception
+     */
+    private function load()
+    {
+        $resources = [];
+        try {
+            $foaf = new \EasyRdf_Graph("http://njh.me/foaf.rdf");
+            $foaf->load();
+            $me = $foaf->primaryTopic();
+            $resources = $me->all($this->type);
+
+            // The second parameter $labels is ignored by ObjectChoiceList
+            parent::initialize($resources, array(), $this->preferredResources);
+        } catch (StringCastException $e) {
+            throw new StringCastException(str_replace('argument $labelPath', 'option "property"', $e->getMessage()), null, $e);
+        }
+        $this->loaded = true;
     }
 }

@@ -29,13 +29,19 @@ class ResourceType extends AbstractType
     {
         $choiceList = function (Options $options) {
             return new ResourceChoiceList(
-                $options['choices']
+                $options['choices'],
+                $options['type'],
+                $options['property']
             );
         };
 
         $resolver->setDefaults(array(
             'choice_list' => $choiceList,
+            'property' => 'rdfs:label'
         ));
+
+        $resolver->setRequired(array('type'));
+        $resolver->setOptional(array('property'));
     }
 
     /**
