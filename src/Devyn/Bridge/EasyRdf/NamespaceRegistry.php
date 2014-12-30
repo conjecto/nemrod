@@ -3,13 +3,13 @@
  * Auteur: Blaise de Carné - blaise@concretis.com
  */
 
-namespace Devyn\Component\RdfNamespace;
+namespace Devyn\Bridge\EasyRdf;
 
 /**
- * Class RdfNamespaceRegistry
- * @package Devyn\Component\RdfNamespace
+ * Class NamespaceRegistry
+ * @package Devyn\Bridge\EasyRdf\RdfNamespace
  */
-class RdfNamespaceRegistry {
+class NamespaceRegistry {
 
     /**
      * @return array
