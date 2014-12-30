@@ -49,7 +49,7 @@ class RdfFrameworkExtension extends Extension
      */
     private function registerRdfNamespaces(array $config, ContainerBuilder $container)
     {
-        $registry = $container->getDefinition('rdf_namespace_registry');
+        $registry = $container->getDefinition('rdf.namespace.registry');
         foreach($config as $prefix => $data) {
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }

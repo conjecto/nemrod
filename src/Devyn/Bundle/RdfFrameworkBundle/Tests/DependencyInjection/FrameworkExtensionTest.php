@@ -29,7 +29,7 @@ class FrameworkExtensionTest extends TestCase
         $container = new ContainerBuilder();
         $extension = new FrameworkExtension();
         $extension->load($configs, $container);
-        $definition = $container->getDefinition('rdf_namespace_registry');
+        $definition = $container->getDefinition('rdf.namespace.registry');
         $this->assertEquals(array(
               array("set", array("foo", 'http://purl.org/ontology/foo/')),
               array("set", array("bar", 'http://www.w3.org/ns/bar#')),
