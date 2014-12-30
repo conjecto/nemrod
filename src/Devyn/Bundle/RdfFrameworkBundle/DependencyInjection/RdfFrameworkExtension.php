@@ -39,6 +39,8 @@ class RdfFrameworkExtension extends Extension
         if(isset($config['namespaces'])) {
             $this->registerRdfNamespaces($config['namespaces'], $container);
         }
+
+        $this->loadResourceMapping($container);
     }
 
     /**
@@ -54,6 +56,19 @@ class RdfFrameworkExtension extends Extension
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }
     }
+
+
+    /**
+     * Parses active bundles for resources to map
+     *
+     * @param ContainerBuilder $container
+     */
+    private function loadResourceMapping(ContainerBuilder $container){
+        foreach (array_keys($container->getParameter('kernel.bundles')) as $bundle) {
+            var_dump($bundle);
+        }
+    }
+
 
     public function getAlias()
     {

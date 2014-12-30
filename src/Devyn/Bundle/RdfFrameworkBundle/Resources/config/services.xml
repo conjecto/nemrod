@@ -6,11 +6,14 @@
 
     <parameters>
         <parameter key="rdf_namespace_registry.class">Devyn\Bridge\EasyRdf\NamespaceRegistry</parameter>
+        <parameter key="rdf_mapping_driver.class">Devyn\Component\TypeMapper\Driver\NamespaceRegistry</parameter>
     </parameters>
 
     <services>
         <service id="rdf_namespace_registry" class="%rdf_namespace_registry.class%">
-
         </service>
+        <service id="rdf_mapping_driver" class="%rdf_mapping_driver.class%">
+        </service>
+
     </services>
 </container>
