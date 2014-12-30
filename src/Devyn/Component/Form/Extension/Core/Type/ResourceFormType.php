@@ -11,7 +11,7 @@
 
 namespace Devyn\Component\Form\Extension\Core\Type;
 
-use Devyn\Bridge\EasyRdf\RdfNamespaceRegistry;
+use Devyn\Bridge\EasyRdf\Registry\RdfNamespaceRegistry;
 use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;

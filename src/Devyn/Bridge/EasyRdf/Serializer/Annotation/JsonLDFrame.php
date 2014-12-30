@@ -1,13 +1,13 @@
 <?php
 
 /*
- * Copyright 2013 Johannes M. Schmitt <schmittjoh@gmail.com>
+ * Copyright 2011 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-namespace Devyn\Bridge\EasyRdf\Serializer;
+namespace Devyn\Bridge\EasyRdf\Serializer\Annotation;
 
-use JMS\Serializer\Exception\RuntimeException;
-use JMS\Serializer\GenericDeserializationVisitor;
-
-class ResourceDeserializationVisitor extends GenericDeserializationVisitor
+/**
+ * @Annotation
+ * @Target("CLASS")
+ */
+final class JsonLDFrame
 {
-    protected function decode($str)
-    {
-        // TODO: Implement decode() method.
-    }
+    /**
+     * @Required
+     * @var string
+     */
+    public $uri;
 }

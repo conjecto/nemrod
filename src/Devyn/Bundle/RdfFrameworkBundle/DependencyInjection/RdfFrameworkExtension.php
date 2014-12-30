@@ -40,6 +40,10 @@ class RdfFrameworkExtension extends Extension
         if(isset($config['namespaces'])) {
             $this->registerRdfNamespaces($config['namespaces'], $container);
         }
+
+        if(isset($config['endpoints'])) {
+            $this->registerSparqlClients($config, $container);
+        }
     }
 
     /**
@@ -56,6 +60,27 @@ class RdfFrameworkExtension extends Extension
         }
     }
 
+    /**
+     * Register SPARQL clients
+     */
+    public function registerSparqlClients(array $config, ContainerBuilder $container)
+    {
+        foreach($config['endpoints'] as $name => $endpoint) {
+            $container
+              ->setDefinition('rdf.sparql.connection.'.$name, new DefinitionDecorator('rdf.sparql.connection'))
+              ->setArguments(array(
+                  $endpoint['query_uri'],
+                  isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null
+                ));
+            $container->setAlias('sparql.'.$name, 'rdf.sparql.connection.'.$name);
+            if($name == $config["default_endpoint"])
+                $container->setAlias('sparql', 'rdf.sparql.connection.'.$name);
+        }
+    }
+
+    /**
+     * @return string
+     */
     public function getAlias()
     {
         return 'rdf_framework';
