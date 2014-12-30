@@ -76,6 +76,9 @@ class RALExtension extends Extension
         }
     }
 
+    /**
+     * @return string
+     */
     public function getAlias()
     {
         return 'ral';
