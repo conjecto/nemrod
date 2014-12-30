@@ -90,7 +90,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
                 // If the field is of type DateTime and the data is the same skip the update to
                 // keep the original object hash
-                if ($form->getData() instanceof \DateTime && $form->getData() == $this->propertyAccessor->getValue($data, $propertyPath)) {
+                if ($form->getData() instanceof \DateTime && $form->getData() == $this->getValue($data, $propertyPath, $config)) {
                     continue;
                 }
 
