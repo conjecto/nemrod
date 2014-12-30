@@ -6,10 +6,10 @@
 namespace Devyn\Bridge\EasyRdf;
 
 /**
- * Class NamespaceRegistry
+ * Class RdfNamespaceRegistry
  * @package Devyn\Bridge\EasyRdf\RdfNamespace
  */
-class NamespaceRegistry {
+class RdfNamespaceRegistry {
 
     /**
      * @return array
