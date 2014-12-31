@@ -35,4 +35,9 @@ class FrameworkExtensionTest extends TestCase
               array("set", array("bar", 'http://www.w3.org/ns/bar#')),
         ), $definition->getMethodCalls());
     }
+
+    public function testResourceMapping()
+    {
+
+    }
 }

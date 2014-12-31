@@ -21,6 +21,30 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('rdf_framework');
 
+        $this->addNamespaceSection($rootNode);
+
         return $treeBuilder;
+    }
+
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
+    private function addNamespaceSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('namespaces')
+                    ->prototype('array')
+                        ->beforeNormalization()
+                        ->ifString()
+                            ->then(function($v) { return array('uri'=> $v); })
+                        ->end()
+                        ->children()
+                            ->scalarNode('uri')->isRequired()->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
     }
 }

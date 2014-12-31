@@ -1,15 +1,6 @@
 <?php
 
-/*
- * This file is part of the Devyn package.
- *
- * (c) Conjecto
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-namespace Devyn\Component\TypeMapper\Annotation;
+namespace Devyn\Component\RAL\Annotation;
 
 /**
  * Annotation class for @RdfResource().
@@ -20,18 +11,7 @@ namespace Devyn\Component\TypeMapper\Annotation;
 
 class RdfResource
 {
-    private $uris;
-
-    /**
-     * Constructor.
-     */
-    public function __construct($uris)
-    {
-        if(!is_array($uris)) {
-            $uris = array($uris);
-        }
-        $this->uris = $uris;
-    }
+    public $uris;
 
     /**
      * @return array

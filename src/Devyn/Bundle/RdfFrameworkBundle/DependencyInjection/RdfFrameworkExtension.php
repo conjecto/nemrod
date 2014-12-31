@@ -2,6 +2,8 @@
 
 namespace Devyn\Bundle\RdfFrameworkBundle\DependencyInjection;
 
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
@@ -41,6 +43,7 @@ class RdfFrameworkExtension extends Extension
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
 
+        $this->loadResourceMapping($config, $container);
     }
 
     /**
@@ -63,6 +66,37 @@ class RdfFrameworkExtension extends Extension
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
         }
+    }
+
+    /**
+     * Parses active bundles for resources to map
+     *
+     * @param ContainerBuilder $container
+     */
+    private function loadResourceMapping(array $config, ContainerBuilder $container){
+        $resourceDir = 'RdfResource' ;
+        $includedFiles = array();
+        $amd = new AnnotationDriver();
+        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+            //@todo check mapping type (annotation is the only one used for now)
+            //building resource dir path
+            $refl = new \ReflectionClass($class);;
+            $path = pathinfo($refl->getFileName());
+            $resourcePath = $path['dirname'] . "\\" . $resourceDir . "\\";
+            //adding dir path to driver known pathes
+            $amd->addResourcePath($resourcePath);
+        }
+
+        //registering all annotation mappings.
+        $amd->registerMappings();
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return 'rdf_framework';
     }
 
     /**

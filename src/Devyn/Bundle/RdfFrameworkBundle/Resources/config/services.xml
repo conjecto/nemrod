@@ -4,7 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <parameters>
+    <parameters>    
         <parameter key="rdf.serialization_visitor.class">Devyn\Bridge\EasyRdf\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="rdf.jsonld.frame.loader.filesystem.class">Devyn\Bundle\RdfFrameworkBundle\Loader\JsonLdFrameLoader</parameter>
     </parameters>
