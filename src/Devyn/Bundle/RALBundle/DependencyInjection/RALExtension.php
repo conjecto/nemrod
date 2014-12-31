@@ -4,6 +4,7 @@ namespace Devyn\Bundle\RALBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
@@ -88,11 +89,11 @@ class RALExtension extends Extension
 
             //repository factory
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
-                ->addMethodCall('setSparqlCient', array($container->getDefinition('ral.sparql.connection.'.$name)));
+                ->setArguments(array($name));
 
             $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
-                ->addMethodCall('setRepositoryFactory', array($container->getDefinition('ral.repository_factory.'.$name)))
-                ->addMethodCall('setSparqlClient', array($container->getDefinition('ral.sparql.connection.'.$name)));
+                ->setArguments(array(new Reference('ral.repository_factory.'.$name)))
+                ->addMethodCall('setSparqlClient', array(new Reference('ral.sparql.connection.'.$name)));
 
             //setting main alias
             if($name == $config["default_endpoint"]){
