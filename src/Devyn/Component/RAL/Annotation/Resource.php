@@ -8,5 +8,8 @@ namespace Devyn\Component\RAL\Annotation;
  */
 final class Resource
 {
-   public $types;
+    /**
+     * @var array
+     */
+    public $types = array();
 }
