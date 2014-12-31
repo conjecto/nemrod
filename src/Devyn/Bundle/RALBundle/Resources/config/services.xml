@@ -12,7 +12,9 @@
 
     <services>
         <!-- namespace  -->
-        <service id="ral.namespace_registry" class="%ral.namespace_registry.class%" />
+        <service id="ral.namespace_registry" class="%ral.namespace_registry.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
+        </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
 
         <!-- resource mapping-->

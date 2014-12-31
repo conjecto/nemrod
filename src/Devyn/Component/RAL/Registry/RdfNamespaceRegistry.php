@@ -6,6 +6,7 @@
 namespace Devyn\Component\RAL\Registry;
 
 use EasyRdf\RdfNamespace;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
  * Class RdfNamespaceRegistry
@@ -103,5 +104,12 @@ class RdfNamespaceRegistry
      */
     public function expand($shortUri) {
         return RdfNamespace::expand($shortUri);
+    }
+
+    /**
+     * @param GetResponseEvent $request
+     */
+    public function onKernelRequest(GetResponseEvent $request) {
+        // empty method to allow kernel request event in service definition
     }
 }
