@@ -33,19 +33,6 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 class ResourceFormType extends FormType
 {
     /**
-     * @var RdfNamespaceRegistry
-     */
-    private $nsRegistry;
-
-    /**
-     * @param RdfNamespaceRegistry $registry
-     */
-    public function __construct(RdfNamespaceRegistry $nsRegistry)
-    {
-        $this->nsRegistry = $nsRegistry;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -53,7 +40,14 @@ class ResourceFormType extends FormType
         parent::buildForm($builder, $options);
         // custom path mapper
         $builder
-          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper($this->nsRegistry) : null);
+          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper() : null);
+    }
+
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setDefaults(array(
+            'data_class' => 'EasyRdf_Resource',
+        ));
     }
 
     /**

@@ -22,19 +22,6 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class ResourcePropertyPathMapper implements DataMapperInterface
 {
     /**
-     * @var RdfNamespaceRegistry
-     */
-    private $nsRegistry;
-
-    /**
-     * @param RdfNamespaceRegistry $nsRegistry
-     */
-    public function __construct(RdfNamespaceRegistry $nsRegistry)
-    {
-        $this->nsRegistry = $nsRegistry;
-    }
-
-    /**
      * Maps properties of some data to a list of forms.
      *
      * @param mixed $data Structured data.
@@ -54,8 +41,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             $propertyPath = $form->getPropertyPath();
             $config = $form->getConfig();
             if (!$empty && null !== $propertyPath && $config->getMapped()) {
-                $values = $this->getValue($data, $propertyPath, $config);
-                $form->setData($values);
+                $form->setData($this->getValue($data, $propertyPath, $config));
             } else {
                 $form->setData($form->getConfig()->getData());
             }
@@ -123,6 +109,14 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         }
 
         $property = (string)$propertyPath;
+
+        if (strstr($property, 'rdfs')) {
+            $property = str_replace('rdfs', 'rdfs:', $property);
+        }
+        else if (strstr($property, 'foaf')) {
+            $property = str_replace('foaf', 'foaf:', $property);
+        }
+
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
@@ -157,6 +151,12 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         //$objectOrArray = new \EasyRdf_Resource();
         $property = (string)$propertyPath;
+        if (strstr($property, 'rdfs')) {
+            $property = str_replace('rdfs', 'rdfs:', $property);
+        }
+        else if (strstr($property, 'foaf')) {
+            $property = str_replace('foaf', 'foaf:', $property);
+        }
         if(is_array($value) || $value instanceof \Traversable) {
             $itemsToAdd = is_object($value) ? iterator_to_array($value) : $value;
             $itemToRemove = array();
