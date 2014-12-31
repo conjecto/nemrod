@@ -2,7 +2,7 @@
 
 namespace Devyn\Bundle\RdfFrameworkBundle\DependencyInjection;
 
-use Devyn\Component\TypeMapper\Driver\AnnotationMappingDriver;
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -74,9 +74,9 @@ class RdfFrameworkExtension extends Extension
      * @param ContainerBuilder $container
      */
     private function loadResourceMapping(array $config, ContainerBuilder $container){
-        $resourceDir = $config['default_resource_directory'] ;
+        $resourceDir = 'RdfResource' ;
         $includedFiles = array();
-        $amd = new AnnotationMappingDriver();
+        $amd = new AnnotationDriver();
         foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
             //@todo check mapping type (annotation is the only one used for now)
             //building resource dir path
