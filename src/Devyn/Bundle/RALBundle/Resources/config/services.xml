@@ -7,12 +7,17 @@
     <parameters>
         <parameter key="ral.namespace_registry.class">Devyn\Component\RAL\Registry\RdfNamespaceRegistry</parameter>
         <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
+        <parameter key="resource_manager.class">Devyn\Component\Manager\ResourceManager</parameter>
     </parameters>
 
     <services>
         <!-- namespace  -->
         <service id="ral.namespace_registry" class="%ral.namespace_registry.class%" />
         <service id="namespace_registry" alias="ral.namespace_registry" />
+
+        <!-- resource mapping-->
+        <service id="ral.resource_manager" class="%resource_manager.class%">
+        </service>
 
         <!-- sparql endpoints -->
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>

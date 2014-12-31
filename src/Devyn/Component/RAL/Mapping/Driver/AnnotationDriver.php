@@ -1,13 +1,13 @@
 <?php
-namespace Devyn\Component\TypeMapper\Driver;
+namespace Devyn\Component\RAL\Mapping\Driver;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 
 /**
- * Class AnnotationMappingDriver parses a bundle for
+ * Class AnnotationDriver parses a bundle for
  * @package Devyn\Component\TypeMapper\Driver
  */
-class AnnotationMappingDriver
+class AnnotationDriver
 {
 
     private $includedFiles;
@@ -74,7 +74,7 @@ class AnnotationMappingDriver
             $sourceFile = $rc->getFileName();
             if (in_array($sourceFile, $this->includedFiles) ) {
                 $reflection = new \ReflectionClass($className);
-                $RdfResourceAnnotation = $reader->getClassAnnotation($reflection,"Devyn\\Component\\TypeMapper\\Annotation\\RdfResource");
+                $RdfResourceAnnotation = $reader->getClassAnnotation($reflection, "Devyn\\Component\\TypeMapper\\Annotation\\RdfResource");
                 //var_dump($RdfResourceAnnotation);//->getClassName();
                 if (!empty($RdfResourceAnnotation)) {
                     $uris = $RdfResourceAnnotation->getUris();
