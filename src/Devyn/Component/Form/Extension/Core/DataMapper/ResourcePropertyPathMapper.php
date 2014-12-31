@@ -11,26 +11,13 @@
 
 namespace Devyn\Component\Form\Extension\Core\DataMapper;
 
-use Devyn\Component\RdfNamespace\RdfNamespaceRegistry;
+use Devyn\Bridge\EasyRdf\RdfNamespaceRegistry;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\FormInterface;
 
 class ResourcePropertyPathMapper implements DataMapperInterface
 {
-    /**
-     * @var RdfNamespaceRegistry
-     */
-    private $nsRegistry;
-
-    /**
-     * @param RdfNamespaceRegistry $nsRegistry
-     */
-    public function __construct(RdfNamespaceRegistry $nsRegistry)
-    {
-        $this->nsRegistry = $nsRegistry;
-    }
-
     /**
      * Maps properties of some data to a list of forms.
      *

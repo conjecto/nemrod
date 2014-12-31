@@ -3,26 +3,28 @@
  * Auteur: Blaise de Carné - blaise@concretis.com
  */
 
-namespace Devyn\Bridge\EasyRdf;
+namespace Devyn\Component\RAL\Registry;
+
+use EasyRdf\RdfNamespace;
 
 /**
- * Class NamespaceRegistry
+ * Class RdfNamespaceRegistry
  * @package Devyn\Bridge\EasyRdf\RdfNamespace
  */
-class NamespaceRegistry {
-
+class RdfNamespaceRegistry
+{
     /**
      * @return array
      */
     public function namespaces() {
-        return \EasyRdf_Namespace::namespaces();
+        return RdfNamespace::namespaces();
     }
 
     /**
      *
      */
     public function resetNamespaces() {
-        \EasyRdf_Namespace::resetNamespaces();
+        RdfNamespace::resetNamespaces();
     }
 
     /**
@@ -30,7 +32,7 @@ class NamespaceRegistry {
      * @return string
      */
     public function get($prefix) {
-        return \EasyRdf_Namespace::get($prefix);
+        return RdfNamespace::get($prefix);
     }
 
     /**
@@ -38,35 +40,35 @@ class NamespaceRegistry {
      * @param $long
      */
     public function set($prefix, $long) {
-        \EasyRdf_Namespace::set($prefix, $long);
+        RdfNamespace::set($prefix, $long);
     }
 
     /**
      * @return string
      */
     public function getDefault() {
-        return \EasyRdf_Namespace::getDefault();
+        return RdfNamespace::getDefault();
     }
 
     /**
      * @param $namespace
      */
     public function setDefault($namespace) {
-        \EasyRdf_Namespace::setDefault($namespace);
+        RdfNamespace::setDefault($namespace);
     }
 
     /**
      * @param $prefix
      */
     public function delete($prefix) {
-        \EasyRdf_Namespace::delete($prefix);
+        RdfNamespace::delete($prefix);
     }
 
     /**
      *
      */
     public function reset() {
-        \EasyRdf_Namespace::reset();
+        RdfNamespace::reset();
     }
 
     /**
@@ -75,7 +77,7 @@ class NamespaceRegistry {
      * @return array
      */
     public function splitUri($uri, $createNamespace = false) {
-        return \EasyRdf_Namespace::splitUri($uri, $createNamespace);
+        return RdfNamespace::splitUri($uri, $createNamespace);
     }
 
     /**
@@ -83,7 +85,7 @@ class NamespaceRegistry {
      * @return string
      */
     public function prefixOfUri($uri) {
-        return \EasyRdf_Namespace::prefixOfUri($uri);
+        return RdfNamespace::prefixOfUri($uri);
     }
 
     /**
@@ -92,7 +94,7 @@ class NamespaceRegistry {
      * @return string
      */
     public function shorten($uri, $createNamespace = false) {
-        return \EasyRdf_Namespace::shorten($uri, $createNamespace);
+        return RdfNamespace::shorten($uri, $createNamespace);
     }
 
     /**
@@ -100,6 +102,6 @@ class NamespaceRegistry {
      * @return string
      */
     public function expand($shortUri) {
-        return \EasyRdf_Namespace::expand($shortUri);
+        return RdfNamespace::expand($shortUri);
     }
 }

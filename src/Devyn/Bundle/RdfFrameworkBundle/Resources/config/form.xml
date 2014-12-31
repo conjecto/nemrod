@@ -10,8 +10,9 @@
 
     <services>
         <service id="form.type.resource_form" class="%form.type.resource_form.class%">
-            <argument type="service" id="rdf_namespace_registry"/>
+            <argument type="service" id="ral.namespace_registry"/>
             <tag name="form.type" alias="resource_form" />
         </service>
     </services>
+
 </container>

@@ -34,31 +34,39 @@ class RdfFrameworkExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
         $loader->load('form.xml');
+        $loader->load('serializer.xml');
+        $loader->load('event_listeners.xml');
 
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
-        if(isset($config['namespaces'])) {
-            $this->registerRdfNamespaces($config['namespaces'], $container);
-        }
-
+        // register jsonld frames paths
+        $this->registerJsonLdFramePaths($config, $container);
+        
         $this->loadResourceMapping($config, $container);
     }
 
     /**
-     * Load the namespaces in registry
+     * Register jsonld frames paths for each bundle
      *
-     * @param array $config
-     * @param ContainerBuilder $container
+     * @return string
      */
-    private function registerRdfNamespaces(array $config, ContainerBuilder $container)
+    public function registerJsonLdFramePaths($config, ContainerBuilder $container)
     {
-        $registry = $container->getDefinition('rdf_namespace_registry');
-        foreach($config as $prefix => $data) {
-            $registry->addMethodCall('set', array($prefix, $data['uri']));
+        $jsonLdFilesystemLoaderDefinition = $container->getDefinition('rdf.jsonld.frame.loader.filesystem');
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
+            // in app
+            if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
+                $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
+            }
+
+            // in bundle
+            $reflection = new \ReflectionClass($class);
+            if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/frames')) {
+                $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
+            }
         }
     }
-
 
     /**
      * Parses active bundles for resources to map
@@ -83,9 +91,28 @@ class RdfFrameworkExtension extends Extension
         $amd->registerMappings();
     }
 
-
+    /**
+     * @return string
+     */
     public function getAlias()
     {
         return 'rdf_framework';
     }
+
+    /**
+     * Add a jsonld frame path
+     *
+     * @param $jsonLdFilesystemLoaderDefinition
+     * @param $dir
+     * @param $bundle
+     */
+    private function addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle)
+    {
+        $name = $bundle;
+        if ('Bundle' === substr($name, -6)) {
+            $name = substr($name, 0, -6);
+        }
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir, $name));
+    }
+
 }
