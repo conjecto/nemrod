@@ -56,4 +56,4 @@ class ResourceManager
         $this->sparqlClient = $sparqlClient;
     }
 
-} 
+}

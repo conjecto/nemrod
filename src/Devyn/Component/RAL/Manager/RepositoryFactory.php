@@ -18,7 +18,8 @@ class RepositoryFactory
      */
     public function __construct()
     {
-
+        echo "pwet";
+        $this->repositories = array();
     }
 
     /**
@@ -28,7 +29,7 @@ class RepositoryFactory
     {
         // creating and storing repository if not already done
         if (empty($this->repositories[$className])) {
-
+            $this->repositories[$className] = new ResourceRepository($className);
         }
         return $this->repositories[$className];
     }
