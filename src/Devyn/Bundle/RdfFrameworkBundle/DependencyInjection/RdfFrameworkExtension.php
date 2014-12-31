@@ -42,8 +42,6 @@ class RdfFrameworkExtension extends Extension
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
-
-        $this->loadResourceMapping($config, $container);
     }
 
     /**
@@ -66,29 +64,6 @@ class RdfFrameworkExtension extends Extension
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
         }
-    }
-
-    /**
-     * Parses active bundles for resources to map
-     *
-     * @param ContainerBuilder $container
-     */
-    private function loadResourceMapping(array $config, ContainerBuilder $container){
-        $resourceDir = 'RdfResource' ;
-        $includedFiles = array();
-        $amd = new AnnotationDriver();
-        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
-            //@todo check mapping type (annotation is the only one used for now)
-            //building resource dir path
-            $refl = new \ReflectionClass($class);;
-            $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'] . "\\" . $resourceDir . "\\";
-            //adding dir path to driver known pathes
-            $amd->addResourcePath($resourcePath);
-        }
-
-        //registering all annotation mappings.
-        $amd->registerMappings();
     }
 
     /**

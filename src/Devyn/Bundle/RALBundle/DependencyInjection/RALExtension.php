@@ -2,6 +2,8 @@
 
 namespace Devyn\Bundle\RALBundle\DependencyInjection;
 
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
@@ -35,13 +37,18 @@ class RALExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
+        // namespaces
         if(isset($config['namespaces'])) {
             $this->registerRdfNamespaces($config['namespaces'], $container);
         }
 
+        // sparql endpoints
         if(isset($config['endpoints'])) {
             $this->registerSparqlClients($config, $container);
         }
+
+        // rdf resource mapping
+        $this->registerResourceMappings($config, $container);
     }
 
     /**
@@ -73,6 +80,40 @@ class RALExtension extends Extension
             $container->setAlias('sparql.'.$name, 'ral.sparql.connection.'.$name);
             if($name == $config["default_endpoint"])
                 $container->setAlias('sparql', 'ral.sparql.connection.'.$name);
+        }
+    }
+
+    /**
+     * Parses active bundles for resources to map
+     *
+     * @param ContainerBuilder $container
+     */
+    private function registerResourceMappings(array $config, ContainerBuilder $container)
+    {
+        $paths = array();
+
+        // foreach bundle, get the rdf resource path
+        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+            //@todo check mapping type (annotation is the only one used for now)
+            // building resource dir path
+            $refl = new \ReflectionClass($class);
+            $path = pathinfo($refl->getFileName());
+            $resourcePath = $path['dirname'] . '\\RdfResource\\';
+            //adding dir path to driver known pathes
+            if(is_dir($resourcePath)) {
+                $paths[] = $resourcePath;
+            }
+        }
+
+        // registering all annotation mappings.
+        $service = $container->getDefinition('ral.type_mapper');
+        $driver = new AnnotationDriver(new AnnotationReader(), $paths);
+        $classes = $driver->getAllClassNames();
+        foreach($classes as $class) {
+            $metadata = $driver->loadMetadataForClass($class);
+            foreach($metadata->types as $type) {
+                $service->addMethodCall('set', array($type, $class));
+            }
         }
     }
 

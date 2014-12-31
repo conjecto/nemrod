@@ -1,91 +1,57 @@
 <?php
 namespace Devyn\Component\RAL\Mapping\Driver;
 
+use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnotationDriver;
 
 /**
  * Class AnnotationDriver parses a bundle for
- * @package Devyn\Component\TypeMapper\Driver
+ * @package Devyn\Component\RAL\Mapping\Driver
  */
-class AnnotationDriver
+class AnnotationDriver extends AbstractAnnotationDriver
 {
-
-    private $includedFiles;
+    /**
+     * {@inheritDoc}
+     */
+    protected $entityAnnotationClasses = array(
+      'Devyn\Component\RAL\Annotation\Resource' => 1
+    );
 
     /**
+     * Loads the metadata for the specified class into the provided container.
      *
+     * @param string $className
+     * @param ClassMetadata $metadata
+     *
+     * @return void
      */
-    public function __construct()
+    public function loadMetadataForClass($className, \Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata = null)
     {
-        $this->includedFiles = array();
-    }
+        $metadata = new ClassMetadata();
+        $class = new \ReflectionClass($className);
+        $classAnnotations = $this->reader->getClassAnnotations($class);
 
-
-    /**
-     * Seeks all php class file in a given bundle, for a given base directory
-     *
-     * @param $bundleClass
-     * @param $resourceDir
-     */
-    public function addResourcePath($resourcePath){
-
-
-
-        if (is_dir($resourcePath)) {
-
-            $iterator = new \RegexIterator(
-                new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator($resourcePath, \FilesystemIterator::SKIP_DOTS),
-                    \RecursiveIteratorIterator::LEAVES_ONLY
-                ),
-                '/^.+' . preg_quote('php') . '$/i',
-                \RecursiveRegexIterator::GET_MATCH
-            );
-
-            foreach ($iterator as $file) {
-
-                $sourceFile = $file[0];
-
-                if (!preg_match('(^phar:)i', $sourceFile)) {
-                    $sourceFile = realpath($sourceFile);
+        if ($classAnnotations) {
+            foreach ($classAnnotations as $key => $annot) {
+                if ( ! is_numeric($key)) {
+                    continue;
                 }
-
-                require_once $sourceFile;
-
-                $this->includedFiles[] = $sourceFile;
+                $classAnnotations[get_class($annot)] = $annot;
             }
         }
-    }
 
-    /**
-     * registers all resource classes to EasyRdf TypeMapper
-     */
-    public function registerMappings()
-    {
-        //get all declared classes
-        $declared = get_declared_classes();
-
-        $reader = new AnnotationReader();
-
-        //if a class correspond to a previously included file, has proper annotation AND implements resource base class,
-        //it is added to typemapper
-        foreach ($declared as $className) {
-            $rc = new \ReflectionClass($className);
-            $sourceFile = $rc->getFileName();
-            if (in_array($sourceFile, $this->includedFiles) ) {
-                $reflection = new \ReflectionClass($className);
-                $RdfResourceAnnotation = $reader->getClassAnnotation($reflection, "Devyn\\Component\\TypeMapper\\Annotation\\RdfResource");
-                //var_dump($RdfResourceAnnotation);//->getClassName();
-                if (!empty($RdfResourceAnnotation)) {
-                    $uris = $RdfResourceAnnotation->getUris();
-
-                    if (!empty($uris)) {
-                        foreach ($uris as $uri) {
-                            \EasyRdf_TypeMapper::set($uri, $reflection->getName());
-                        }
-                    }
-                }
+        // Evaluate Resource annotation
+        if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Resource'])) {
+            $resourceAnnot = $classAnnotations['Devyn\Component\RAL\Annotation\Resource'];
+            $types = $resourceAnnot->types;
+            if(!is_array($types)) {
+                $types = array($types);
             }
+            $metadata->types = $types;
         }
+
+        // to do : more doctrine style ?
+        return $metadata;
     }
-} 
+}

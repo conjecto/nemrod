@@ -6,6 +6,7 @@
 
     <parameters>
         <parameter key="ral.namespace_registry.class">Devyn\Component\RAL\Registry\RdfNamespaceRegistry</parameter>
+        <parameter key="ral.type_mapper.class">Devyn\Component\RAL\Registry\TypeMapperRegistry</parameter>
         <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
         <parameter key="resource_manager.class">Devyn\Component\Manager\ResourceManager</parameter>
     </parameters>
@@ -17,9 +18,13 @@
         </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
 
-        <!-- resource mapping-->
-        <service id="ral.resource_manager" class="%resource_manager.class%">
+        <!-- type mapper  -->
+        <service id="ral.type_mapper" class="%ral.type_mapper.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
         </service>
+
+        <!-- resource mapping-->
+        <service id="ral.resource_manager" class="%resource_manager.class%" />
 
         <!-- sparql endpoints -->
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>
