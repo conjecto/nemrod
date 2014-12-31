@@ -9,14 +9,11 @@
         <parameter key="rdf.jsonld.frame.loader.filesystem.class">Devyn\Bundle\RdfFrameworkBundle\Loader\JsonLdFrameLoader</parameter>
     </parameters>
 
-
     <services>
-
         <service id="rdf.jsonld.frame.loader.filesystem" class="%rdf.jsonld.frame.loader.filesystem.class%" public="false">
             <argument type="service" id="templating.locator" />
             <argument type="service" id="templating.name_parser" />
         </service>
         <service id="jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
-
     </services>
 </container>

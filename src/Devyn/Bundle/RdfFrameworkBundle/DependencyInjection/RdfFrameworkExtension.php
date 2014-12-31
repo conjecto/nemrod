@@ -40,6 +40,7 @@ class RdfFrameworkExtension extends Extension
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
+
     }
 
     /**

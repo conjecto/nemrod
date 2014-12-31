@@ -45,7 +45,6 @@ class ViewResponseListener
         if ($configuration = $request->attributes->get('_view')) {
             $request->attributes->set('_template', $configuration);
         }*/
-
     }
 
     /**
@@ -76,9 +75,13 @@ class ViewResponseListener
             // set frame (jsonld)
             if($configuration->getFrame()) {
                 $frame = $configuration->getFrame();
-                $loader = $this->container->get('jsonld.frame.loader');
-                $frame = $loader->getSource($frame);
                 $context->setAttribute('frame', $frame);
+            }
+
+            // set compact (jsonld)
+            if($configuration->isCompact()) {
+                $compact = $configuration->isCompact();
+                $context->setAttribute('compact', $compact);
             }
 
             // serialize
