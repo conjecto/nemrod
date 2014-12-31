@@ -92,14 +92,6 @@ class RdfFrameworkExtension extends Extension
     }
 
     /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return 'rdf_framework';
-    }
-
-    /**
      * Add a jsonld frame path
      *
      * @param $jsonLdFilesystemLoaderDefinition
@@ -122,4 +114,5 @@ class RdfFrameworkExtension extends Extension
     {
         return 'rdf_framework';
     }
+
 }
