@@ -20,38 +20,7 @@ namespace Devyn\Component\TypeMapper\Annotation;
 
 class RdfResource
 {
-    private $uris;
-
-    private $className;
-
-    /**
-     * Constructor.
-     */
-    public function __construct($uris)
-    {
-        if(!is_array($uris)) {
-            $uris = array($uris);
-        }
-        $this->uris = $uris;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getClassName()
-    {
-        return $this->className;
-    }
-
-    /**
-     * @param mixed $className
-     */
-    public function setClassName($className)
-    {
-        $this->className = $className;
-    }
-
-
+    public $uris;
 
     /**
      * @return array

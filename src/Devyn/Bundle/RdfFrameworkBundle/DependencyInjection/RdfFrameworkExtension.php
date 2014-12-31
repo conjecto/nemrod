@@ -2,6 +2,7 @@
 
 namespace Devyn\Bundle\RdfFrameworkBundle\DependencyInjection;
 
+use Devyn\Component\TypeMapper\Driver\AnnotationMappingDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -67,59 +68,19 @@ class RdfFrameworkExtension extends Extension
     private function loadResourceMapping(array $config, ContainerBuilder $container){
         $resourceDir = $config['default_resource_directory'] ;
         $includedFiles = array();
+        $amd = new AnnotationMappingDriver();
         foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
-
+            //@todo check mapping type (annotation is the only one used for now)
+            //building resource dir path
             $refl = new \ReflectionClass($class);;
             $path = pathinfo($refl->getFileName());
-
             $resourcePath = $path['dirname'] . "\\" . $resourceDir . "\\";
-
-            if (is_dir($resourcePath)) {
-
-                $iterator = new \RegexIterator(
-                    new \RecursiveIteratorIterator(
-                        new \RecursiveDirectoryIterator($resourcePath, \FilesystemIterator::SKIP_DOTS),
-                        \RecursiveIteratorIterator::LEAVES_ONLY
-                    ),
-                    '/^.+' . preg_quote('php') . '$/i',
-                    \RecursiveRegexIterator::GET_MATCH
-                );
-
-                foreach ($iterator as $file) {
-
-                    $sourceFile = $file[0];
-
-                    if (!preg_match('(^phar:)i', $sourceFile)) {
-                        $sourceFile = realpath($sourceFile);
-                    }
-
-                    require_once $sourceFile;
-
-                    $includedFiles[] = $sourceFile;
-                }
-            }
+            //adding dir path to driver known pathes
+            $amd->addResourcePath($resourcePath);
         }
 
-        $declared = get_declared_classes();
-
-        foreach ($declared as $className) {
-            $rc = new \ReflectionClass($className);
-            $sourceFile = $rc->getFileName();
-            if (in_array($sourceFile, $includedFiles) ) {
-                $classes[] = $className;
-            }
-        }
-
-        //$this->classNames = $classes;
-
-        $reader = new AnnotationReader();
-        foreach ($classes as $classR) {
-            $RdfResourceAnnotation = $reader->getClassAnnotation(new \ReflectionClass($classR),"Devyn\\Component\\TypeMapper\\Annotation\\RdfResource");
-            var_dump($RdfResourceAnnotation);//->getClassName();
-        }
-
-
-        var_dump($classes);
+        //registering all annotation mappings.
+        $amd->registerMappings();
     }
 
 
