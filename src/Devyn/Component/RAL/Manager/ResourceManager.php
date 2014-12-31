@@ -18,18 +18,18 @@ class ResourceManager
     /**
      *
      */
-    public function __construct()
+    public function __construct($repositoryFactory)
     {
-        $this->repositoryFactory;
+        $this->repositoryFactory = $repositoryFactory;
     }
 
     /**
      * @param $className
      * @return mixed
      */
-    public function getRepositoryFactory($className)
+    public function getRepository($className)
     {
-        return $this->repositoryFactory->getRepository($className);
+        return $this->repositoryFactory->getRepository($className, $this);
     }
 
     /**

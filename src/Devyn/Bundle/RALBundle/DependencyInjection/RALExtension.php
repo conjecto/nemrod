@@ -82,6 +82,30 @@ class RALExtension extends Extension
     }
 
     /**
+     * Register resource managers (one per connection)
+     * @param array $config
+     * @param ContainerBuilder $container
+     */
+    public function registerResourceManagers(array $config, ContainerBuilder $container)
+    {
+        foreach($config['endpoints'] as $name => $endpoint) {
+
+            //repository factory
+            $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
+                ->setArguments(array($name));
+
+            $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
+                ->setArguments(array(new Reference('ral.repository_factory.'.$name)))
+                ->addMethodCall('setSparqlClient', array(new Reference('ral.sparql.connection.'.$name)));
+
+            //setting main alias
+            if($name == $config["default_endpoint"]){
+                $container->setAlias('rm', 'ral.resource_manager.'.$name);
+            }
+        }
+    }
+
+    /**
      * @return string
      */
     public function getAlias()
