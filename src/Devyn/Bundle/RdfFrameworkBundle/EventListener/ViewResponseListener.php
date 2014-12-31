@@ -76,6 +76,8 @@ class ViewResponseListener
             // set frame (jsonld)
             if($configuration->getFrame()) {
                 $frame = $configuration->getFrame();
+                $loader = $this->container->get('jsonld.frame.loader');
+                $frame = $loader->getSource($frame);
                 $context->setAttribute('frame', $frame);
             }
 
