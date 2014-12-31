@@ -41,6 +41,7 @@ class RALExtension extends Extension
 
         if(isset($config['endpoints'])) {
             $this->registerSparqlClients($config, $container);
+            $this->registerResourceManagers($config, $container);
         }
     }
 
@@ -73,6 +74,30 @@ class RALExtension extends Extension
             $container->setAlias('sparql.'.$name, 'ral.sparql.connection.'.$name);
             if($name == $config["default_endpoint"])
                 $container->setAlias('sparql', 'ral.sparql.connection.'.$name);
+        }
+    }
+
+    /**
+     * Register resource managers (one per connection)
+     * @param array $config
+     * @param ContainerBuilder $container
+     */
+    public function registerResourceManagers(array $config, ContainerBuilder $container)
+    {
+        foreach($config['endpoints'] as $name => $endpoint) {
+
+            //repository factory
+            $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
+                ->addMethodCall('setSparqlCient', array($container->getDefinition('ral.sparql.connection.'.$name)));
+
+            $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
+                ->addMethodCall('setRepositoryFactory', array($container->getDefinition('ral.repository_factory.'.$name)))
+                ->addMethodCall('setSparqlClient', array($container->getDefinition('ral.sparql.connection.'.$name)));
+
+            //setting main alias
+            if($name == $config["default_endpoint"]){
+                $container->setAlias('rm', 'ral.resource_manager.'.$name);
+            }
         }
     }
 
