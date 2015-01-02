@@ -252,7 +252,8 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
-     * Loads the list with entities.
+     * Loads the list with entities from repository.
+     * @TODO change graph loaded from the foaf:profil by a graph loaded by the repository
      * @throws \EasyRdf_Exception
      * @throws \EasyRdf_Http_Exception
      */
@@ -260,7 +261,7 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $resources = [];
         try {
-            $foaf = new \EasyRdf_Graph("http://njh.me/foaf.rdf");
+            $foaf = new \EasyRdf\Graph("http://njh.me/foaf.rdf");
             $foaf->load();
             $me = $foaf->primaryTopic();
             $resources = $me->all($this->type);

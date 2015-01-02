@@ -90,6 +90,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     }
 
     /**
+     * Get type value from resource
      * @param $objectOrArray
      * @param $propertyPath
      * @param FormBuilder $formConfig
@@ -97,9 +98,9 @@ class ResourcePropertyPathMapper implements DataMapperInterface
      */
     public function getValue($objectOrArray, $propertyPath, FormBuilder $formConfig)
     {
-        if (!is_a($objectOrArray, 'EasyRdf_Resource')) {
+        if (!is_a($objectOrArray, 'EasyRdf\Resource')) {
             return $objectOrArray;
-            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf_Resource');
+            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf\Resource');
         }
 
         if (is_string($propertyPath)) {
@@ -110,6 +111,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         $property = (string)$propertyPath;
 
+        // Add : to prefix
+        // TODO change it
         if (strstr($property, 'rdfs')) {
             $property = str_replace('rdfs', 'rdfs:', $property);
         }
@@ -131,6 +134,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     }
 
     /**
+     * Set type value to resource
      * @param $objectOrArray
      * @param $propertyPath
      * @param $formConfig
@@ -139,8 +143,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
      */
     public function setValue(&$objectOrArray, $propertyPath, $formConfig, $value)
     {
-        if (!is_a($objectOrArray, 'EasyRdf_Resource')) {
-            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf_Resource');
+        if (!is_a($objectOrArray, 'EasyRdf\Resource')) {
+            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf\Resource');
         }
 
         if (is_string($propertyPath)) {
@@ -150,6 +154,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         }
 
         //$objectOrArray = new \EasyRdf_Resource();
+        // Add : to prefix
+        // TODO change it
         $property = (string)$propertyPath;
         if (strstr($property, 'rdfs')) {
             $property = str_replace('rdfs', 'rdfs:', $property);
@@ -192,6 +198,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     }
 
     /**
+     * Replace type values by literal values if the type is a literal
      * @param $resources
      * @return array|string
      */
@@ -216,7 +223,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
      */
     public function getLiteralValue($resource)
     {
-        if ($resource instanceof \EasyRdf_Literal) {
+        if ($resource instanceof \EasyRdf\Literal) {
             return $resource->getValue();
         }
 

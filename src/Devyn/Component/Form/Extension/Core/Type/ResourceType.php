@@ -22,7 +22,9 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  * @package Devyn\Component\Form\Extension\Core\Type
  */
 class ResourceType extends AbstractType
-{    /**
+{
+    /**
+     * Add options type and property used to find resources in repository
      * @param $resolver
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
