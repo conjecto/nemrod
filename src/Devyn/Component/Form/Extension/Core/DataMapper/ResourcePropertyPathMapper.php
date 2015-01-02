@@ -112,7 +112,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         $property = (string)$propertyPath;
 
         // Add : to prefix
-        // TODO change it
+        // Add : to prefix because of twig intolerance to :
         if (strstr($property, 'rdfs')) {
             $property = str_replace('rdfs', 'rdfs:', $property);
         }
@@ -154,7 +154,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         }
 
         //$objectOrArray = new \EasyRdf_Resource();
-        // Add : to prefix
+        // Add : to prefix because of twig intolerance to :
         // TODO change it
         $property = (string)$propertyPath;
         if (strstr($property, 'rdfs')) {
