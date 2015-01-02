@@ -43,10 +43,39 @@ class ResourceFormType extends FormType
           ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper() : null);
     }
 
+    public function findNameInForm($all)
+    {
+        $first = true;
+        $firstName = "";
+
+        foreach ($all as $one) {
+            if ($one->getName() == 'rdfslabel' || $one->getName() == 'foafname') {
+                $parentResourceName = $one->getParent()->getParent()->getName();
+                $parentResourceName = str_replace('foaf', '', $parentResourceName);
+                return $parentResourceName . '-' . $one->getViewData();
+            }
+            else if ($first) {
+                $first = false;
+                $firstName = $one->getName();
+            }
+        }
+
+        return $firstName;
+    }
+
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
             'data_class' => 'EasyRdf_Resource',
+            'empty_data' => function (FormInterface $form) {
+                $parseUri = $form->getRoot()->getData()->parseUri();
+                $newUri = $parseUri->getScheme() . '://' . $parseUri->getAuthority() . '/#';
+
+                $all = $form->all();
+                $resourceName = $this->findNameInForm($all);
+
+                return new \EasyRdf_Resource($newUri . $resourceName, new \EasyRdf_Graph());
+            },
         ));
     }
 
