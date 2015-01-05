@@ -106,13 +106,15 @@ class RALExtension extends Extension
         }
 
         // registering all annotation mappings.
-        $service = $container->getDefinition('ral.type_mapper');
-        $driver = new AnnotationDriver(new AnnotationReader(), $paths);
-        $classes = $driver->getAllClassNames();
-        foreach($classes as $class) {
-            $metadata = $driver->loadMetadataForClass($class);
-            foreach($metadata->types as $type) {
-                $service->addMethodCall('set', array($type, $class));
+        if(count($paths)) {
+            $service = $container->getDefinition('ral.type_mapper');
+            $driver = new AnnotationDriver(new AnnotationReader(), $paths);
+            $classes = $driver->getAllClassNames();
+            foreach($classes as $class) {
+                $metadata = $driver->loadMetadataForClass($class);
+                foreach($metadata->types as $type) {
+                    $service->addMethodCall('set', array($type, $class));
+                }
             }
         }
     }
