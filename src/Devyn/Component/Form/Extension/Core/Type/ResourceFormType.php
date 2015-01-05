@@ -69,7 +69,7 @@ class ResourceFormType extends FormType
         $firstName = "";
 
         foreach ($all as $one) {
-            if ($one->getName() == 'rdfslabel' || $one->getName() == 'foafname') {
+            if ($one->getName() == 'rdfs:label' || $one->getName() == 'foaf:name') {
                 $parentResourceName = $one->getParent()->getParent()->getName();
                 foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
                     if (strcmp($parentResourceName, $key) > 1) {
@@ -81,7 +81,7 @@ class ResourceFormType extends FormType
             }
             else if ($first) {
                 $first = false;
-                $firstName = $one->getName();
+                $firstName = $one->getName() . '-' . $one->getViewData();
             }
         }
 
@@ -92,7 +92,7 @@ class ResourceFormType extends FormType
      * Set default_options
      * Set data_class to EasyRdf\Resource by default
      * If a new item is added to a collection, a new resource is created
-     * @TODO change URI guessing
+     * @todo change URI guessing
      * @param OptionsResolverInterface $resolver
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)

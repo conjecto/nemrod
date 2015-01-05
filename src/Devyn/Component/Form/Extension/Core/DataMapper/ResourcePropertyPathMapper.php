@@ -110,16 +110,6 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         }
 
         $property = (string)$propertyPath;
-
-        // Add : to prefix
-        // Add : to prefix because of twig intolerance to :
-        if (strstr($property, 'rdfs')) {
-            $property = str_replace('rdfs', 'rdfs:', $property);
-        }
-        else if (strstr($property, 'foaf')) {
-            $property = str_replace('foaf', 'foaf:', $property);
-        }
-
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
@@ -154,15 +144,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         }
 
         //$objectOrArray = new \EasyRdf_Resource();
-        // Add : to prefix because of twig intolerance to :
-        // TODO change it
         $property = (string)$propertyPath;
-        if (strstr($property, 'rdfs')) {
-            $property = str_replace('rdfs', 'rdfs:', $property);
-        }
-        else if (strstr($property, 'foaf')) {
-            $property = str_replace('foaf', 'foaf:', $property);
-        }
+
         if(is_array($value) || $value instanceof \Traversable) {
             $itemsToAdd = is_object($value) ? iterator_to_array($value) : $value;
             $itemToRemove = array();
