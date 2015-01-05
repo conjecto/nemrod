@@ -35,14 +35,16 @@ class ResourceFormType extends FormType
     /**
      * @var RdfNamespaceRegistry
      */
-    private $nsRegistry;
+    protected $nsRegistry;
 
     /**
-     * @param RdfNamespaceRegistry $registry
+     * @param RdfNamespaceRegistry $nsRegistry
+     * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct(RdfNamespaceRegistry $nsRegistry)
+    public function __construct(RdfNamespaceRegistry $nsRegistry, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->nsRegistry = $nsRegistry;
+        parent::__construct($propertyAccessor);
     }
 
     /**
@@ -53,7 +55,56 @@ class ResourceFormType extends FormType
         parent::buildForm($builder, $options);
         // custom path mapper
         $builder
-          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper($this->nsRegistry) : null);
+          ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper() : null);
+    }
+
+    /**
+     * Guess the suffix URI for a new Resource with type name and type value
+     * @param $all
+     * @return string
+     */
+    public function findNameInForm($all)
+    {
+        $first = true;
+        $firstName = "";
+
+        foreach ($all as $one) {
+            if ($one->getName() == 'rdfs:label' || $one->getName() == 'foaf:name') {
+                $parentResourceName = $one->getParent()->getParent()->getName();
+                foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
+                    if (strcmp($parentResourceName, $key) > 1) {
+                        $parentResourceName = str_replace($key, '', $parentResourceName);
+                        break;
+                    }
+                }
+                return $parentResourceName . '-' . $one->getViewData();
+            }
+            else if ($first) {
+                $first = false;
+                $firstName = $one->getName() . '-' . $one->getViewData();
+            }
+        }
+
+        return $firstName;
+    }
+
+    /**
+     * Set default_options
+     * Set data_class to EasyRdf\Resource by default
+     * If a new item is added to a collection, a new resource is created
+     * @todo change URI guessing
+     * @param OptionsResolverInterface $resolver
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setDefaults(array(
+            'data_class' => '\EasyRdf\Resource',
+            'empty_data' => function (FormInterface $form) {
+                $parseUri = $form->getRoot()->getData()->parseUri();
+                $newUri = $parseUri->getScheme() . '://' . $parseUri->getAuthority() . '/#' .  $this->findNameInForm($form->all());
+                return new \EasyRdf\Resource($newUri, new \EasyRdf\Graph());
+            },
+        ));
     }
 
     /**
