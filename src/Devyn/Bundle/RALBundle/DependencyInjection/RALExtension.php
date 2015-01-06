@@ -6,6 +6,7 @@ use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
@@ -64,7 +65,6 @@ class RALExtension extends Extension
     {
         $registry = $container->getDefinition('ral.namespace_registry');
         foreach($config as $prefix => $data) {
-
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }
     }
