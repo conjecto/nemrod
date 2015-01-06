@@ -6,7 +6,7 @@ namespace Devyn\Component\RAL\Manager;
  * Class ResourceManager
  * @package Devyn\Component\RAL\Manager
  */
-class ResourceManager
+class Manager
 {
 
     /** @var  RepositoryFactory */
@@ -15,12 +15,15 @@ class ResourceManager
     /** @var \EasyRdf_Sparql_Client */
     private $sparqlClient;
 
+    private $unitOfWork;
+
     /**
      *
      */
     public function __construct($repositoryFactory)
     {
         $this->repositoryFactory = $repositoryFactory;
+        $this->unitOfWork = new UnitOfWork();
     }
 
     /**

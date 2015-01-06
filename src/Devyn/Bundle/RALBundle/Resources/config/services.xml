@@ -6,8 +6,8 @@
 
     <parameters>
         <parameter key="ral.namespace_registry.class">Devyn\Component\RAL\Registry\RdfNamespaceRegistry</parameter>
-        <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
-        <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\ResourceManager</parameter>
+        <parameter key="ral.sparql.connection.class">EasyRdf_Sparql_Client</parameter>
+        <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\Manager</parameter>
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
     </parameters>
 
