@@ -47,6 +47,7 @@ class QueryBuilder
     protected $state = self::STATE_CLEAN;
 
     /**
+     * array if multiple, null if only one with multiples parts
      * @var array
      */
     protected $sparqlParts = array(
@@ -78,6 +79,10 @@ class QueryBuilder
      */
     protected $sparqlRequest;
 
+    /**
+     * namespace registry to add prefix to the request
+     * @var RdfNamespaceRegistry
+     */
     protected $nsRegistry;
 
     function __construct(RdfNamespaceRegistry $nsRegistry)
@@ -87,6 +92,7 @@ class QueryBuilder
     }
 
     /**
+     * declare a new construct request
      * @param null $construct
      * @return $this|QueryBuilder
      */
@@ -120,26 +126,32 @@ class QueryBuilder
         return $this->add('construct', new Expr\Construct($constructs), true);
     }
 
-    public function select()
-    {
-        $this->type = self::SELECT;
-    }
+//    public function select()
+//    {
+//        $this->type = self::SELECT;
+//    }
+//
+//    public function describe()
+//    {
+//        $this->type = self::DESCRIBE;
+//    }
+//
+//    public function update()
+//    {
+//        $this->type = self::UPDATE;
+//    }
+//
+//    public function ask()
+//    {
+//        $this->type = self::ASK;
+//    }
 
-    public function describe()
-    {
-        $this->type = self::DESCRIBE;
-    }
-
-    public function update()
-    {
-        $this->type = self::UPDATE;
-    }
-
-    public function ask()
-    {
-        $this->type = self::ASK;
-    }
-
+    /**
+     * Add where clause
+     * One where only
+     * @param $predicates
+     * @return QueryBuilder
+     */
     public function where($predicates)
     {
         if ( ! (func_num_args() == 1 && $predicates instanceof Composite)) {
@@ -149,6 +161,11 @@ class QueryBuilder
         return $this->add('where', $predicates);
     }
 
+    /**
+     * Add parts to the where
+     * @param $where
+     * @return QueryBuilder
+     */
     public function andWhere($where)
     {
         $args  = func_get_args();
@@ -243,6 +260,12 @@ class QueryBuilder
         }
     }
 
+    /**
+     * @TODO correct this function
+     * @param $leftPredicates
+     * @param $rightPredicates
+     * @return QueryBuilder
+     */
     public function addUnion($leftPredicates, $rightPredicates)
     {
         if (!is_string($leftPredicates)) {
@@ -268,6 +291,7 @@ class QueryBuilder
     }
 
     /**
+     * Add a new expression to the request
      * @param $sparqlPartName
      * @param $sparqlPart
      * @param bool $append
@@ -315,6 +339,7 @@ class QueryBuilder
     }
 
     /**
+     * Return the request as a string
      * @return string
      */
     public function getSparql()
@@ -339,6 +364,7 @@ class QueryBuilder
     }
 
     /**
+     * Return the request as a string for construct request
      * @return string
      */
     protected function getDQLForConstruct()
