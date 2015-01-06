@@ -1,6 +1,10 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Devyn\Bridge\EasyRdf\Resource\Resource;
+use EasyRdf\Graph;
+use EasyRdf\Sparql\Result;
+use EasyRdf\TypeMapper;
 
 /**
  * Class ResourceRepository
@@ -32,13 +36,9 @@ class Repository
     {
 
         /** @var \EasyRdf_Sparql_Result $result */
-        $result = $this->_rm->getSparqlClient()->query("CONSTRUCT {<".$uri."> a <".$this->className.">; ?p ?q.} WHERE {<".$uri."> a <".$this->className.">; ?p ?q.}");
+        $result = $this->_rm->find($this->className, $uri);
 
-        //storing result to unit of work
-
-        //@todo Continue/change this
-        return $this->resultToResource($uri, $result);
-
+        return $result;
     }
 
     /**
@@ -46,42 +46,6 @@ class Repository
      */
     public function findBy(array $criterias)
     {
-
+        //$result =
     }
-
-    /**
-     * Builds and return Resource of the corresponding type with provided uri and result
-     * @param null $uri
-     * @param \EasyRdf_Sparql_Result $result
-     */
-    private function resultToResource($uri = null, \EasyRdf_Sparql_Result $result){
-        $class = \EasyRdf_TypeMapper::get($this->className);
-
-        var_dump($this->className);
-
-        $resource = new $class();
-
-        $resource->setUri($uri);
-        $resource->setGraph($this->resultToGraph($uri, $result));
-
-        return $resource;
-    }
-
-    /**
-     * temp function
-     * @param string|null $uri
-     * @param \EasyRdf_Sparql_Result $result
-     * @return \EasyRdf_Graph
-     */
-    private function resultToGraph($uri = null, \EasyRdf_Sparql_Result $result)
-    {
-        $graph = new \EasyRdf_Graph($uri);
-
-        foreach ($result as $row) {
-            $graph->add($row->s, $row->p, $row->o);
-        }
-
-        return $graph;
-    }
-
 }

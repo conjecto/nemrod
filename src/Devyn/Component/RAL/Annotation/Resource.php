@@ -6,10 +6,10 @@ namespace Devyn\Component\RAL\Annotation;
  * @Annotation
  * @Target("CLASS")
  */
-final class RdfResource
+final class Resource
 {
     /**
      * @var array
      */
-    public $uris = array();
+    public $types = array();
 }

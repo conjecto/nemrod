@@ -19,6 +19,8 @@ class UnitOfWork {
      */
     public $unchangedResources;
 
+    private $persister;
+
     public function __construct()
     {
 
@@ -44,5 +46,24 @@ class UnitOfWork {
     {
 
     }
+
+    /**
+     * @return mixed
+     */
+    public function getPersister()
+    {
+        return $this->persister;
+    }
+
+    /**
+     * @param mixed $persister
+     */
+    public function setPersister($persister)
+    {
+        $this->persister = $persister;
+    }
+
+
+
 
 }

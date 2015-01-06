@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Doctrine\ORM\Repository\RepositoryFactory;
 
 /**
  * Class ResourceManager
@@ -12,13 +13,15 @@ class Manager
     /** @var  RepositoryFactory */
     private $repositoryFactory;
 
-    /** @var \EasyRdf_Sparql_Client */
-    private $sparqlClient;
+    /** @var PersisterIterface */
+    private $persister;
 
+    /** @var UnitOfWork */
     private $unitOfWork;
 
+
     /**
-     *
+     * @param RepositoryFactory $repositoryFactory
      */
     public function __construct($repositoryFactory)
     {
@@ -46,17 +49,27 @@ class Manager
     /**
      * @return \EasyRdf_Sparql_Client
      */
-    public function getSparqlClient()
+    public function getPersister()
     {
         return $this->sparqlClient;
     }
 
     /**
-     * @param \EasyRdf_Sparql_Client $sparqlClient
+     * @param $persister
      */
-    public function setSparqlClient($sparqlClient)
+    public function setPersister($persister)
     {
-        $this->sparqlClient = $sparqlClient;
+        $this->persister = $persister;
+    }
+
+    /**
+     * @param $className
+     * @param $uri
+     * @return mixed
+     */
+    public function find($className, $uri)
+    {
+        return $this->persister->constructUri($className, $uri);
     }
 
 }

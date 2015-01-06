@@ -6,10 +6,11 @@
 
     <parameters>
         <parameter key="ral.namespace_registry.class">Devyn\Component\RAL\Registry\RdfNamespaceRegistry</parameter>
-        <parameter key="ral.sparql.connection.class">EasyRdf_Sparql_Client</parameter>
+        <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
         <parameter key="ral.type_mapper.class">Devyn\Component\RAL\Registry\TypeMapperRegistry</parameter>
         <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\Manager</parameter>
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
+        <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
 
     </parameters>
 
@@ -24,6 +25,7 @@
         <!-- resource manager -->
         <service id="ral.resource_manager" class="%ral.resource_manager.class%" abstract="true"/>
         <service id="ral.repository_factory" class="%ral.repository_factory.class%" abstract="true"/>
+        <service id="ral.persister" class="%ral.persister.class%" abstract="true"/>
 
         <!-- type mapper  -->
         <service id="ral.type_mapper" class="%ral.type_mapper.class%">

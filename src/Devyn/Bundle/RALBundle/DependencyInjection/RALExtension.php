@@ -49,6 +49,9 @@ class RALExtension extends Extension
 
         // rdf resource mapping
         $this->registerResourceMappings($config, $container);
+
+        //
+        $this->registerResourceManagers($config, $container);
     }
 
     /**
@@ -61,6 +64,7 @@ class RALExtension extends Extension
     {
         $registry = $container->getDefinition('ral.namespace_registry');
         foreach($config as $prefix => $data) {
+
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }
     }
@@ -90,15 +94,20 @@ class RALExtension extends Extension
      */
     public function registerResourceManagers(array $config, ContainerBuilder $container)
     {
+
         foreach($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
                 ->setArguments(array($name));
 
+            //repository factory
+            $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
+                ->setArguments(array($endpoint['query_uri']));
+
             $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
                 ->setArguments(array(new Reference('ral.repository_factory.'.$name)))
-                ->addMethodCall('setSparqlClient', array(new Reference('ral.sparql.connection.'.$name)));
+                ->addMethodCall('setPersister', array(new Reference('ral.persister.'.$name)));
 
             //setting main alias
             if($name == $config["default_endpoint"]){
@@ -133,6 +142,7 @@ class RALExtension extends Extension
         $service = $container->getDefinition('ral.type_mapper');
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
         $classes = $driver->getAllClassNames();
+
         foreach($classes as $class) {
             $metadata = $driver->loadMetadataForClass($class);
             foreach($metadata->types as $type) {
