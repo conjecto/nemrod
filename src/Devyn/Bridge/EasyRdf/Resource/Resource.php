@@ -1,6 +1,9 @@
 <?php
 namespace Devyn\Bridge\EasyRdf\Resource;
 
-class Resource extends \EasyRdf_Resource{
+#use EasyRdf\Resource as BaseResource;
+
+class Resource
+{
 
 } 

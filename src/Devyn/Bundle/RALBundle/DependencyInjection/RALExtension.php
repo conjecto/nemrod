@@ -2,6 +2,8 @@
 
 namespace Devyn\Bundle\RALBundle\DependencyInjection;
 
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
@@ -101,6 +103,40 @@ class RALExtension extends Extension
             //setting main alias
             if($name == $config["default_endpoint"]){
                 $container->setAlias('rm', 'ral.resource_manager.'.$name);
+            }
+        }
+    }
+
+    /**
+     * Parses active bundles for resources to map
+     *
+     * @param ContainerBuilder $container
+     */
+    private function registerResourceMappings(array $config, ContainerBuilder $container)
+    {
+        $paths = array();
+
+        // foreach bundle, get the rdf resource path
+        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+            //@todo check mapping type (annotation is the only one used for now)
+            // building resource dir path
+            $refl = new \ReflectionClass($class);
+            $path = pathinfo($refl->getFileName());
+            $resourcePath = $path['dirname'] . '\\RdfResource\\';
+            //adding dir path to driver known pathes
+            if(is_dir($resourcePath)) {
+                $paths[] = $resourcePath;
+            }
+        }
+
+        // registering all annotation mappings.
+        $service = $container->getDefinition('ral.type_mapper');
+        $driver = new AnnotationDriver(new AnnotationReader(), $paths);
+        $classes = $driver->getAllClassNames();
+        foreach($classes as $class) {
+            $metadata = $driver->loadMetadataForClass($class);
+            foreach($metadata->types as $type) {
+                $service->addMethodCall('set', array($type, $class));
             }
         }
     }
