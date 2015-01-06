@@ -42,10 +42,21 @@ class Repository
     }
 
     /**
-     *
+     * find a set of resources according to criterias.
+     * @param array $criterias
+     * @return Collection|void
      */
     public function findBy(array $criterias)
     {
-        //$result =
+        //first add a type criteria if not found
+        if (empty($criterias['rdf:type'])) {
+            $criterias['rdf:type'] = $this->className;
+        } else if (is_array ($criterias['rdfs:Class'])) {
+            $criterias['rdf:type'] []= $this->className;
+        } else {
+            $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
+        }
+
+        return $this->_rm->getUnitOfWork()->findBy($criterias);
     }
 }

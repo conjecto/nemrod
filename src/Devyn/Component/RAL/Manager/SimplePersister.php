@@ -24,9 +24,13 @@ class SimplePersister implements PersisterInterface
     /** @var Client */
     private $sparqlClient;
 
+    /** @var Manager */
+    private $_rm;
+
     /**  */
-    public function __construct($sparqlClientUrl)
+    public function __construct($rm, $sparqlClientUrl)
     {
+        $this->_rm = $rm;
         $this->sparqlClient = new Client($sparqlClientUrl);
     }
 
@@ -49,14 +53,65 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        $result = $this->query("CONSTRUCT {<".$uri."> a <".$className.">; ?p ?q.} WHERE {<".$uri."> a <".$className.">; ?p ?q.}");
+        $result = $this->query("CONSTRUCT {<".$uri."> a ".$className."; ?p ?q.} WHERE {<".$uri."> a ".$className."; ?p ?q.}");
 
         $resourceClass = TypeMapper::get($className);
         if (empty($resourceClass)) {
             throw new Exception("No associated class");
         }
 
-        return $this->resultToResource($uri, $result, $resourceClass);
+        $resource = $this->resultToResource($uri, $result, $resourceClass);
+
+        $this->registerResource($resource);
+
+        return $resource;
+    }
+
+    /**
+     * @todo second param is temporary
+     * @param array $criteria
+     * @param bool $asArray
+     * @return Collection|void
+     */
+    public function constructCollection(array $criteria, $asArray = true)
+    {
+        $body = "?s ?p ?q";
+
+        $criteriaParts = array();
+
+        //translating criteria to simple query terms
+        if (!empty ($criteria)) {
+            foreach ($criteria as $property => $value) {
+                if (is_array($value)) {
+                    if (!empty($value)) {
+                        foreach ($value as $val) {
+                            $criteriaParts [] = $property. " " . $val;
+                        }
+                    }
+                }
+                $criteriaParts [] = $property. " " . $value;
+            }
+        }
+
+        $body .= (count ($criteriaParts)) ? "; ".implode(';', $criteriaParts)."." : ".";
+
+        $query  = "CONSTRUCT {".$body."} WHERE {".$body."}";
+
+        $result = $this->query($query);
+
+        $graph = $this->resultToGraph($result);
+
+        $collect = null;
+
+        if ($asArray) {
+            if (!empty($criteria['rdf:type']) && is_array($criteria['rdf:type'])){
+                $collec = $this->collectionArrayFromGraph($graph, $criteria['rdf:type'][0]);
+            } else if (!empty($criteria['rdf:type'])){
+                $collec = $this->collectionArrayFromGraph($graph, $criteria['rdf:type']);
+            }
+        }
+
+        return $collec;
     }
 
     /**
@@ -87,6 +142,21 @@ class SimplePersister implements PersisterInterface
         }
 
         return $graph;
+    }
+
+    private function collectionArrayFromGraph(Graph $graph, $rdfType)
+    {
+        $res = $graph->allOfType($rdfType);
+        return $res;
+    }
+
+    /**
+     * calls the resource registration process of resource manager's unit of work
+     * @param $resource
+     */
+    private function registerResource($resource)
+    {
+        $this->_rm->getUnitOfWork()->registerResource($resource);
     }
 
 } 

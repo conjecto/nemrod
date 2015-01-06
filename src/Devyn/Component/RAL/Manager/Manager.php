@@ -23,10 +23,10 @@ class Manager
     /**
      * @param RepositoryFactory $repositoryFactory
      */
-    public function __construct($repositoryFactory)
+    public function __construct($repositoryFactory, $sparqlClientUrl)
     {
         $this->repositoryFactory = $repositoryFactory;
-        $this->unitOfWork = new UnitOfWork();
+        $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
     }
 
     /**
@@ -69,7 +69,36 @@ class Manager
      */
     public function find($className, $uri)
     {
-        return $this->persister->constructUri($className, $uri);
+        //trying to find resource if already loaded
+        $resource = $this->unitOfWork->retrieveResource($className, $uri);
+
+        if (!empty($resource)) {
+            return $resource;
+        }
+
+        //empty result from retrieve means we havn't already loaded it. Asking to persister to find it.
+
+        /** @var PersisterInterface $persister */
+        $persister = $this->unitOfWork->getPersister();
+
+        return $persister->constructUri($className, $uri);
+
+    }
+
+    /**
+     * @return UnitOfWork
+     */
+    public function getUnitOfWork()
+    {
+        return $this->unitOfWork;
+    }
+
+    /**
+     * @param UnitOfWork $unitOfWork
+     */
+    public function setUnitOfWork($unitOfWork)
+    {
+        $this->unitOfWork = $unitOfWork;
     }
 
 }

@@ -106,8 +106,8 @@ class RALExtension extends Extension
                 ->setArguments(array($endpoint['query_uri']));
 
             $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
-                ->setArguments(array(new Reference('ral.repository_factory.'.$name)))
-                ->addMethodCall('setPersister', array(new Reference('ral.persister.'.$name)));
+                ->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']));
+                //->addMethodCall('setPersister', array(new Reference('ral.persister.'.$name)));
 
             //setting main alias
             if($name == $config["default_endpoint"]){

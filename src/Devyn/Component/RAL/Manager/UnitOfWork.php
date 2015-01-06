@@ -9,6 +9,7 @@
 namespace Devyn\Component\RAL\Manager;
 
 
+use Devyn\Bridge\EasyRdf\Resource\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 
 class UnitOfWork {
@@ -17,13 +18,25 @@ class UnitOfWork {
      * unchanged version of managed resources
      * @var  ArrayCollection $unchangedResources
      */
-    public $unchangedResources;
+    private $unchangedResources;
 
+    /** @var PersisterInterface */
     private $persister;
 
-    public function __construct()
-    {
+    /**
+     * @var Manager
+     */
+    private $_rm;
 
+    /**
+     * @param $manager
+     * @param $clientUrl
+     */
+    public function __construct($manager, $clientUrl)
+    {
+        $this->_rm = $manager;
+        $this->persister = new SimplePersister($manager, $clientUrl);
+        $this->unchangedResources = array();
     }
 
     /**
@@ -40,11 +53,25 @@ class UnitOfWork {
 
     /**
      * Register a resource to the list of
-     * @param $resource
+     * @param Resource $resource
      */
     public function registerResource($resource)
     {
+        $this->unchangedResources[$resource->getUri()] = $resource ;
+    }
 
+    /**
+     * Register a resource to the list of
+     * @param Resource $resource
+     * @return mixed|null
+     */
+    public function retrieveResource($className, $uri)
+    {
+        if (!isset($this->unchangedResources[$uri])) {
+            return null;
+        }
+
+        return $this->unchangedResources[$uri];
     }
 
     /**
@@ -63,7 +90,21 @@ class UnitOfWork {
         $this->persister = $persister;
     }
 
+    /**
+     *
+     */
+    public function findBy(array $criteria)
+    {
+        return $this->persister->constructCollection($criteria);
+    }
 
+    /**
+     * @param $className
+     * @param $uri
+     * @return
+     */
+    public function find($className, $uri)
+    {
 
-
+    }
 }
