@@ -123,7 +123,7 @@ class UnitOfWork {
     {
         //copying resource
         $this->initialSnapshots->append($resource);
-        $this->graphSnapShot($resource->getGraph());
+        $this->graphSnapshot($resource->getGraph());
     }
 
     public function dumpRegistered()
@@ -139,7 +139,7 @@ class UnitOfWork {
     /**
      * @param Graph $graph
      */
-    public function graphSnapShot(Graph $graph)
+    public function graphSnapshot(Graph $graph)
     {
         foreach ($graph->toRdfPhp() as $resource => $properties) {
             if (!$this->isManagementBlackListed($resource)) {
@@ -175,5 +175,59 @@ class UnitOfWork {
     private function isManagementBlackListed($uri)
     {
         return (in_array($uri, $this->blackListedResources));
+    }
+
+    /**
+     *
+     */
+    private function computeChangeSet($uri)
+    {
+
+    }
+
+    /**
+     * @param $uri
+     */
+    private function getSnapshot($uri) {
+        $this->initialSnapshots->rewind();
+
+    }
+
+    /**
+     * returns
+     * @param $rdfArray1
+     * @param $rdfArray2
+     */
+    private function diff($rdfArray1, $rdfArray2)
+    {
+        $array1MinusArray2 = array();
+        $array2MinusArray1 = array();
+
+    }
+
+    /**
+     * Removes elements of $rdfArray1 that are present in $rdfArray2
+     * @param $rdfArray1
+     * @param $rdfArray2
+     */
+    private function minus($rdfArray1, $rdfArray2)
+    {
+        foreach ($rdfArray1 as $resource => $properties) {
+            $propDelete = array();
+            foreach ($properties as $property => $values) {
+                $unsetArray = array();
+                foreach ($values as $value) {
+                    if (isset($rdfArray2[$resource][$property][$value])) {
+                        $unsetArray []= $value;
+                    }
+                }
+                foreach ($unsetArray as $toUnset) {
+                    unset($rdfArray1[$resource][$property][$toUnset]);
+                }
+                if (count($rdfArray1[$resource][$property]) == 0) {
+                    $propDelete []= $property;
+                }
+            }
+        }
     }
 }

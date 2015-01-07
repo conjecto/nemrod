@@ -73,6 +73,18 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
+     * @param $uri
+     * @param RdfPhp $delete
+     * @param RdfPhp $insert
+     * @param RdfPhp $where
+     */
+    public function update($uri, $delete, $insert, $where)
+    {
+        $result = $this->query("DELETE {".$delete."} INSERT {".$insert."} {".$where."}");
+
+    }
+
+    /**
      * @todo second param is temporary
      * @param array $criteria
      * @param array $options
@@ -176,7 +188,7 @@ class SimplePersister implements PersisterInterface
         $next = $ptr->get('rdf:rest');
 
         //putting all structure collection on a blacklist
-        while ($head) {echo $next->getUri() ;
+        while ($head) {
             $this->_rm->getUnitOfWork()->managementBlackList($next->getUri());
             $head = $next->get('rdf:first');
             $next = $next->get('rdf:rest');
