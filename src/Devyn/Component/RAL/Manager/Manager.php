@@ -101,4 +101,7 @@ class Manager
         $this->unitOfWork = $unitOfWork;
     }
 
+    public function dump(){
+        $this->getUnitOfWork()->dumpRegistered();
+    }
 }

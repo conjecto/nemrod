@@ -30,8 +30,10 @@ interface PersisterInterface
     public function constructUri($className, $uri);
 
     /**
-     * @return Collection
+     * @param array $criteria
+     * @param array $options
+     * @return mixed
      */
-    public function constructCollection(array $criteria);
+    public function constructCollection(array $criteria, array $options);
 
 }

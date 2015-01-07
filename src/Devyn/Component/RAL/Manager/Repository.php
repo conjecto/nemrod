@@ -44,9 +44,10 @@ class Repository
     /**
      * find a set of resources according to criterias.
      * @param array $criterias
+     * @param array $options
      * @return Collection|void
      */
-    public function findBy(array $criterias)
+    public function findBy(array $criterias, array $options = array())
     {
         //first add a type criteria if not found
         if (empty($criterias['rdf:type'])) {
@@ -57,6 +58,6 @@ class Repository
             $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
         }
 
-        return $this->_rm->getUnitOfWork()->findBy($criterias);
+        return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
     }
 }

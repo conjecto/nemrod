@@ -8,6 +8,7 @@
 
 namespace Devyn\Component\RAL\Manager;
 
+use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
 use EasyRdf\Sparql\Client;
@@ -27,11 +28,15 @@ class SimplePersister implements PersisterInterface
     /** @var Manager */
     private $_rm;
 
+    /** @var  a count for setting uri on collection */
+    private $collectionUriCount;
+
     /**  */
     public function __construct($rm, $sparqlClientUrl)
     {
         $this->_rm = $rm;
         $this->sparqlClient = new Client($sparqlClientUrl);
+        $this->collectionUriCount = 0 ;
     }
 
     /**
@@ -70,14 +75,19 @@ class SimplePersister implements PersisterInterface
     /**
      * @todo second param is temporary
      * @param array $criteria
-     * @param bool $asArray
+     * @param array $options
+     * @throws Exception
+     * @internal param bool $asArray
      * @return Collection|void
      */
-    public function constructCollection(array $criteria, $asArray = true)
+    public function constructCollection(array $criteria, array $options)
     {
         $body = "?s ?p ?q";
 
         $criteriaParts = array();
+
+        //end statments for query (order by, etc)
+        $queryFinal = "";
 
         //translating criteria to simple query terms
         if (!empty ($criteria)) {
@@ -93,25 +103,87 @@ class SimplePersister implements PersisterInterface
             }
         }
 
+        if (isset($options['orderBy'])) {
+            //var_dump($options['orderBy']);
+            $criteriaParts []= $options['orderBy']." ?orderingvar";
+            $queryFinal .= "ORDER BY ?orderingvar OFFSET 0";
+        }
+
         $body .= (count ($criteriaParts)) ? "; ".implode(';', $criteriaParts)."." : ".";
 
-        $query  = "CONSTRUCT {".$body."} WHERE {".$body."}";
+        $query  = "CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
 
         $result = $this->query($query);
 
         $graph = $this->resultToGraph($result);
 
-        $collect = null;
+        $collection = null;
 
-        if ($asArray) {
-            if (!empty($criteria['rdf:type']) && is_array($criteria['rdf:type'])){
-                $collec = $this->collectionArrayFromGraph($graph, $criteria['rdf:type'][0]);
-            } else if (!empty($criteria['rdf:type'])){
-                $collec = $this->collectionArrayFromGraph($graph, $criteria['rdf:type']);
+        //echo $query;
+
+        //extraction of collection is done by unit of work
+        if (!empty($criteria['rdf:type'])) {
+            if (is_array($criteria['rdf:type'])) {
+                $collection = $this->extractResources($graph, $criteria['rdf:type'][0]);
+            } else {
+                $collection = $this->extractResources($graph, $criteria['rdf:type']);
+            }
+        } else {
+            throw new Exception("findBy: a type must be set");
+        }
+
+        return $collection;
+    }
+
+    /**
+     * @param $graph
+     * @param $className
+     * @return Collection
+     */
+    private function extractResources($graph, $className)
+    {
+        $res = $graph->allOfType($className);
+        $collUri = $this->nextCollectionUri();
+        $this->_rm->getUnitOfWork()->managementBlackList($collUri);
+        $coll = new Collection($collUri, $graph);
+
+        //building collection
+        foreach ($res as $re) {
+            $coll->append($re);
+        }
+
+        $this->blackListCollection ($coll);
+
+        foreach ($res as $re) {
+            //registering entity if needed
+            if (null == $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri())) {
+                $this->_rm->getUnitOfWork()->registerResource($re);
             }
         }
 
-        return $collec;
+        return $coll;
+    }
+
+    /**
+     * @param Collection $coll
+     */
+    private function blackListCollection(Collection $coll)
+    {
+        //going to first element.
+        $coll->rewind();
+        $ptr = $coll ;
+        $head = $ptr->get('rdf:first');
+        $next = $ptr->get('rdf:rest');
+
+        //putting all structure collection on a blacklist
+        while ($head) {echo $next->getUri() ;
+            $this->_rm->getUnitOfWork()->managementBlackList($next->getUri());
+            $head = $next->get('rdf:first');
+            $next = $next->get('rdf:rest');
+        }
+
+        //and resetting pointer of collection
+        $coll->rewind();
     }
 
     /**
@@ -144,10 +216,32 @@ class SimplePersister implements PersisterInterface
         return $graph;
     }
 
+    /**
+     * @param Graph $graph
+     * @param $rdfType
+     * @return array
+     */
     private function collectionArrayFromGraph(Graph $graph, $rdfType)
     {
         $res = $graph->allOfType($rdfType);
         return $res;
+    }
+
+    /**
+     *
+     * @param Graph $graph
+     * @param $rdfType
+     * @return Collection
+     */
+    private function collectionFromGraph(Graph $graph, $rdfType)
+    {
+        $res = $graph->allOfType($rdfType);
+        $coll = new Collection($this->nextCollectionUri(), $graph);
+        foreach ($res as $re) {
+            $coll->append($re);
+        }
+
+        return $coll;
     }
 
     /**
@@ -157,6 +251,15 @@ class SimplePersister implements PersisterInterface
     private function registerResource($resource)
     {
         $this->_rm->getUnitOfWork()->registerResource($resource);
+    }
+
+    /**
+     * provides a blank node uri for collections
+     * @return string
+     */
+    private function nextCollectionUri()
+    {
+        return "_:internalcollection".(++$this->collectionUriCount);
     }
 
 } 
