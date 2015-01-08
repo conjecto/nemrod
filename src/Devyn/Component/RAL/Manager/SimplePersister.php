@@ -74,13 +74,18 @@ class SimplePersister implements PersisterInterface
 
     /**
      * @param $uri
-     * @param RdfPhp $delete
-     * @param RdfPhp $insert
-     * @param RdfPhp $where
+     * @param array $delete
+     * @param array $insert
+     * @param array $where
      */
     public function update($uri, $delete, $insert, $where)
     {
-        $result = $this->query("DELETE {".$delete."} INSERT {".$insert."} {".$where."}");
+
+        $deleteStr = $this->phpRdfToSparqlBody($delete);
+        $insertStr = $this->phpRdfToSparqlBody($insert);
+        $whereStr = "";
+        //echo "DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}";
+        $result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
     }
 
@@ -96,12 +101,10 @@ class SimplePersister implements PersisterInterface
     {
         $body = "?s ?p ?q";
 
-        $criteriaParts = array();
-
         //end statments for query (order by, etc)
         $queryFinal = "";
 
-        //translating criteria to simple query terms
+        $criteriaParts = array();
         if (!empty ($criteria)) {
             foreach ($criteria as $property => $value) {
                 if (is_array($value)) {
@@ -113,7 +116,9 @@ class SimplePersister implements PersisterInterface
                 }
                 $criteriaParts [] = $property. " " . $value;
             }
+
         }
+
 
         if (isset($options['orderBy'])) {
             //var_dump($options['orderBy']);
@@ -145,6 +150,29 @@ class SimplePersister implements PersisterInterface
         }
 
         return $collection;
+    }
+
+    private function phpRdfToSparqlBody($criteria)
+    {
+        //translating criteria to simple query terms
+
+        $criteriaParts = array();
+        if (!empty ($criteria)) {
+            foreach ($criteria as $uri => $properties) {
+                foreach ($properties as $property => $value) {
+                    if (is_array($value)) {
+                        if (!empty($value)) {
+                            foreach ($value as $val) {
+                                if ($val['type'] == 'literal')
+                                $criteriaParts [] = "<".$uri."> <".$property . "> \"" . $val['value']."\"";
+                            }
+                        }
+                    }
+                    //$criteriaParts [] = $property . " " . $value;
+                }
+            }
+        }
+        return implode(".", $criteriaParts);
     }
 
     /**
@@ -226,34 +254,6 @@ class SimplePersister implements PersisterInterface
         }
 
         return $graph;
-    }
-
-    /**
-     * @param Graph $graph
-     * @param $rdfType
-     * @return array
-     */
-    private function collectionArrayFromGraph(Graph $graph, $rdfType)
-    {
-        $res = $graph->allOfType($rdfType);
-        return $res;
-    }
-
-    /**
-     *
-     * @param Graph $graph
-     * @param $rdfType
-     * @return Collection
-     */
-    private function collectionFromGraph(Graph $graph, $rdfType)
-    {
-        $res = $graph->allOfType($rdfType);
-        $coll = new Collection($this->nextCollectionUri(), $graph);
-        foreach ($res as $re) {
-            $coll->append($re);
-        }
-
-        return $coll;
     }
 
     /**

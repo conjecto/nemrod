@@ -85,6 +85,10 @@ class Manager
 
     }
 
+    public function update($resource) {
+        $this->getUnitOfWork()->update($resource);
+    }
+
     /**
      * @return UnitOfWork
      */

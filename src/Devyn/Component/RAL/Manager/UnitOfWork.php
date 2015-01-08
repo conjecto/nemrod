@@ -11,6 +11,7 @@ namespace Devyn\Component\RAL\Manager;
 
 use Devyn\Bridge\EasyRdf\Resource\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use EasyRdf\Container;
 use EasyRdf\Graph;
 
@@ -75,6 +76,16 @@ class UnitOfWork {
     }
 
     /**
+     * Tells if a resource is managed by current UnitOfWork
+     * @param $resource
+     * @return bool
+     */
+    public function isRegistered($resource)
+    {
+        return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
+    }
+
+    /**
      * Register a resource to the list of
      * @param $className
      * @param $uri
@@ -128,12 +139,23 @@ class UnitOfWork {
 
     public function dumpRegistered()
     {
-        //var_dump($this->registeredResources);
         echo $this->initialSnapshots->dump();
         echo $this->initialSnapshots->getGraph()->dump();
-        //foreach () {
+    }
 
-        //}
+    /**
+     * update a resource
+     * @param $resource
+     */
+    public function update(Resource $resource)
+    {
+        //resource must be an instance of Resource that is already managed
+        if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
+            throw new \InvalidArgumentException("Provided object is not a resource or is not currently managed");
+        }
+        $chgSet=$this->computeChangeSet($resource);
+        $this->persister->update($resource->getUri(), $chgSet[0], $chgSet[1], array());
+        //print_r(, false);
     }
 
     /**
@@ -180,54 +202,126 @@ class UnitOfWork {
     /**
      *
      */
-    private function computeChangeSet($uri)
+    private function computeChangeSet(Resource $resource)
     {
-
+        return $this->diff($this->getSnapshotForResource($resource), $resource->getGraph()->toRdfPhp());
     }
 
     /**
-     * @param $uri
-     */
-    private function getSnapshot($uri) {
-        $this->initialSnapshots->rewind();
-
-    }
-
-    /**
-     * returns
+     * Returns a pair of graphs consisting of (1st argument without content of 2nd argument, 2nd argument without
+     * content of 1st argument)
      * @param $rdfArray1
      * @param $rdfArray2
+     * @return array
      */
     private function diff($rdfArray1, $rdfArray2)
     {
-        $array1MinusArray2 = array();
-        $array2MinusArray1 = array();
-
+        return array($this->minus($rdfArray1, $rdfArray2), $this->minus($rdfArray2, $rdfArray1));
     }
 
     /**
      * Removes elements of $rdfArray1 that are present in $rdfArray2
      * @param $rdfArray1
      * @param $rdfArray2
+     * @return array
      */
     private function minus($rdfArray1, $rdfArray2)
     {
+        $minusArray = array();
+        $bnodesCollector = array();
+        var_dump($rdfArray2);
         foreach ($rdfArray1 as $resource => $properties) {
-            $propDelete = array();
-            foreach ($properties as $property => $values) {
-                $unsetArray = array();
-                foreach ($values as $value) {
-                    if (isset($rdfArray2[$resource][$property][$value])) {
-                        $unsetArray []= $value;
+            //bnodes are taken separately
+            if (!empty($properties) && !$this->isBNode($resource)) {
+                $minusArray[$resource] = array();
+                foreach ($properties as $property => $values) {
+                    if (!empty($values)) {
+                        foreach ($values as $value) {
+                            //@todo manage bnodes
+                            if (empty($rdfArray2[$resource]) ||
+                                empty($rdfArray2[$resource][$property]) ||
+                                ($value['type'] == 'bnode') ||
+                                !$this->containsObject($value, $rdfArray2[$resource][$property])) {
+                                if (!isset($minusArray[$resource][$property])) $minusArray[$resource][$property] = array();
+                                $minusArray[$resource][$property][] = $value ;
+                            }
+                            //content of bnode resource is stored in a separate array and will be merged with final result
+                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']])) {
+                                $bnodesCollector [$value['value']]= array();
+                            }
+                        }
                     }
                 }
-                foreach ($unsetArray as $toUnset) {
-                    unset($rdfArray1[$resource][$property][$toUnset]);
-                }
-                if (count($rdfArray1[$resource][$property]) == 0) {
-                    $propDelete []= $property;
+            }
+        }
+
+        //including blank nodes to final result
+        if (!empty($bnodesCollector)) {
+            foreach ($bnodesCollector as $uri => $content) {
+                $minusArray[$uri] = $content;
+            }
+        }
+
+        return $minusArray;
+    }
+
+    /**
+     * @param $resource
+     * @return bool
+     */
+    private function isResource($resource)
+    {
+        return ($resource instanceof Resource);
+    }
+
+    /**
+     * @param $object
+     * @param $objectsList
+     * @return boolean
+     */
+    private function containsObject($object, $objectsList)
+    {
+        foreach($objectsList as $obj) {
+            if (($obj['type'] == $object['type']) && ($obj['value'] == $object['value'])){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Extracts snapshot for resource
+     * @param $resource
+     * @return array
+     */
+    private function getSnapshotForResource($resource)
+    {
+        $bigSnapshot = $this->initialSnapshots->getGraph()->toRdfPhp();
+
+        $snapshot = array($resource->getUri() => $bigSnapshot[$resource->getUri()]);
+
+        //getting snapshots also for blank nodes
+        foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+            foreach ($values as $value) {
+                if ($value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']]) ) {
+                    $snapshot[$value['value']] = $bigSnapshot[$value['value']];
                 }
             }
+        }
+
+        return $snapshot;
+    }
+
+    /**
+     * @todo move
+     * @param $uri
+     * @return boolean
+     */
+    private function isBNode($uri) {
+        if (substr($uri, 0, 2) == '_:') {
+            return true;
+        } else {
+            return false;
         }
     }
 }
