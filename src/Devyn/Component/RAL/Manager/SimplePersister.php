@@ -29,14 +29,22 @@ class SimplePersister implements PersisterInterface
     private $_rm;
 
     /** @var  a count for setting uri on collection */
-    private $collectionUriCount;
+    private $collectionUriCount = 0;
+
+    /** @var  int $variableCount */
+    private $variableCount = 0;
+
+    /** @var  int $variableCount */
+    private $bnodeCount = 0;
+
+    private $bnodeMap = array();
 
     /**  */
     public function __construct($rm, $sparqlClientUrl)
     {
         $this->_rm = $rm;
         $this->sparqlClient = new Client($sparqlClientUrl);
-        $this->collectionUriCount = 0 ;
+
     }
 
     /**
@@ -81,11 +89,12 @@ class SimplePersister implements PersisterInterface
     public function update($uri, $delete, $insert, $where)
     {
 
-        $deleteStr = $this->phpRdfToSparqlBody($delete);
-        $insertStr = $this->phpRdfToSparqlBody($insert);
-        $whereStr = "";
-        //echo "DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}";
-        $result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
+        list($insertStr) = $this->phpRdfToSparqlBody($insert);
+
+        //$whereStr = "";
+        echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        //$result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
     }
 
@@ -152,27 +161,52 @@ class SimplePersister implements PersisterInterface
         return $collection;
     }
 
-    private function phpRdfToSparqlBody($criteria)
+    private function phpRdfToSparqlBody($criteria, $bNodesAsVariables = false)
     {
         //translating criteria to simple query terms
 
         $criteriaParts = array();
+        $whereParts = array();
         if (!empty ($criteria)) {
             foreach ($criteria as $uri => $properties) {
-                foreach ($properties as $property => $value) {
-                    if (is_array($value)) {
-                        if (!empty($value)) {
-                            foreach ($value as $val) {
-                                if ($val['type'] == 'literal')
-                                $criteriaParts [] = "<".$uri."> <".$property . "> \"" . $val['value']."\"";
+                //depending on the way we want to generate triples for bnodes
+                if (!$this->_rm->getUnitOfWork()->isBNode($uri) // not a bnode
+                    || $bNodesAsVariables) //or a bnode, but we have to treat it as a variable
+                {
+                    if ($this->_rm->getUnitOfWork()->isBNode($uri)) {
+                        $uri = $this->getNewBnode($uri);
+                    }
+                    $uri = (isset($this->bnodeMap[$uri])) ? $this->bnodeMap[$uri] : $uri;
+                    foreach ($properties as $property => $value) {
+                        if (is_array($value)) {
+                            if (!empty($value)) {
+                                foreach ($value as $val) {
+                                    if ($val['type'] == 'literal') {
+                                        $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
+                                    } else if ($val['type'] == 'bnode') {
+                                        if ($bNodesAsVariables) {
+                                            $varBnode = $this->nextVariable();
+                                            $varBnodePred = $this->nextVariable();
+                                            $varBnodeObj = $this->nextVariable();
+                                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                            $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
+                                            $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                        } else {
+                                            $newBNode = $this->getNewBnode($val['value']);
+
+                                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $newBNode . "";
+                                        }
+                                    } else if ($val['type'] == 'uri'){
+                                        $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $val['value'] . "";
+                                    }
+                                }
                             }
                         }
                     }
-                    //$criteriaParts [] = $property . " " . $value;
                 }
             }
         }
-        return implode(".", $criteriaParts);
+        return array(implode(".", $criteriaParts),implode(".", $whereParts));
     }
 
     /**
@@ -196,9 +230,12 @@ class SimplePersister implements PersisterInterface
 
         foreach ($res as $re) {
             //registering entity if needed
-            if (null == $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri())) {
+            //$pr = $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri());
+            //if (null == $pr) {
                 $this->_rm->getUnitOfWork()->registerResource($re);
-            }
+            //} else {//@todo probably done wrong ; should instead switch registered resources' graph to collection graph
+            //    $pr->setGraph($graph);
+            //}
         }
 
         return $coll;
@@ -274,4 +311,32 @@ class SimplePersister implements PersisterInterface
         return "_:internalcollection".(++$this->collectionUriCount);
     }
 
+    /**
+     * provides a blank node uri for collections
+     * @return string
+     */
+    private function nextVariable()
+    {
+        return "?var".(++$this->variableCount);
+    }
+
+    /**
+     * Get existing new bnode or create new bnode for given bnode
+     * @param $bNode
+     */
+    public function getNewBnode($bNode){
+        if (!isset($this->bnodeMap[$bNode])){
+            $this->bnodeMap[$bNode] = $this->nextBNode();
+        }
+        return $this->bnodeMap[$bNode];
+    }
+
+    /**
+     * provides a blank node uri for collections
+     * @return string
+     */
+    private function nextBNode()
+    {
+        return "_:bn".(++$this->bnodeCount);
+    }
 } 

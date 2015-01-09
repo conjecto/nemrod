@@ -9,7 +9,7 @@
 namespace Devyn\Component\RAL\Manager;
 
 
-use Devyn\Bridge\EasyRdf\Resource\Resource;
+use Devyn\Component\RAL\Resource\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use EasyRdf\Container;
@@ -71,7 +71,9 @@ class UnitOfWork {
      */
     public function registerResource($resource)
     {
+        $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
+
         $this->resourceSnapshot($resource);
     }
 
@@ -229,7 +231,7 @@ class UnitOfWork {
     {
         $minusArray = array();
         $bnodesCollector = array();
-        var_dump($rdfArray2);
+
         foreach ($rdfArray1 as $resource => $properties) {
             //bnodes are taken separately
             if (!empty($properties) && !$this->isBNode($resource)) {
@@ -269,7 +271,7 @@ class UnitOfWork {
      * @param $resource
      * @return bool
      */
-    private function isResource($resource)
+    public function isResource($resource)
     {
         return ($resource instanceof Resource);
     }
@@ -313,11 +315,11 @@ class UnitOfWork {
     }
 
     /**
-     * @todo move
+     * @todo move?
      * @param $uri
      * @return boolean
      */
-    private function isBNode($uri) {
+    public function isBNode($uri) {
         if (substr($uri, 0, 2) == '_:') {
             return true;
         } else {

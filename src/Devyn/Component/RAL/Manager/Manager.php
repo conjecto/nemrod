@@ -1,7 +1,8 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
-use Doctrine\ORM\Repository\RepositoryFactory;
+use Devyn\Component\RAL\Resource\Resource;
+
 
 /**
  * Class ResourceManager
@@ -81,8 +82,10 @@ class Manager
         /** @var PersisterInterface $persister */
         $persister = $this->unitOfWork->getPersister();
 
-        return $persister->constructUri($className, $uri);
+        /** @var Resource $res */
+        $res = $persister->constructUri($className, $uri);
 
+        return $res;
     }
 
     public function update($resource) {
@@ -105,7 +108,18 @@ class Manager
         $this->unitOfWork = $unitOfWork;
     }
 
-    public function dump(){
+    public function dump()
+    {
         $this->getUnitOfWork()->dumpRegistered();
+    }
+
+    /**
+     *
+     * @param $resource
+     * @return boolean
+     */
+    public function isResource($resource)
+    {
+        return $this->getUnitOfWork()->isResource($resource);
     }
 }

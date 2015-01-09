@@ -1,10 +1,6 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
-use Devyn\Bridge\EasyRdf\Resource\Resource;
-use EasyRdf\Graph;
-use EasyRdf\Sparql\Result;
-use EasyRdf\TypeMapper;
 
 /**
  * Class ResourceRepository
@@ -30,7 +26,7 @@ class Repository
 
     /**
      * @param $uri
-     * @return \EasyRdf_Resource
+     * @return Resource
      */
     public function find($uri)
     {

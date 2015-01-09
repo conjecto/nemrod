@@ -8,10 +8,6 @@
 
 namespace Devyn\Component\RAL\Manager;
 
-
-use Devyn\Bridge\EasyRdf\Resource\Resource;
-use EasyRdf\Sparql\Result;
-
 /**
  * Interface AbstractPersister
  * @package Devyn\Component\RAL\Manager
