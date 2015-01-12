@@ -10,7 +10,6 @@ namespace Devyn\QueryBuilder;
 
 
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
-use Doctrine\ORM\Query\Expr\OrderBy;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -50,6 +49,7 @@ class QueryBuilder
     protected $sparqlParts = array(
         'construct'  => array(),
         'select'  => array(),
+        'describe'  => array(),
         'where'   => array(),
         'optional' => array(),
         'filter' => array(),
@@ -127,6 +127,16 @@ class QueryBuilder
     }
 
     /**
+     * Adds an triplet to select query
+     * @param null $select
+     * @return $this|QueryBuilder
+     */
+    public function addSelect($select = null)
+    {
+        return $this->addSelectToQuery($select, true);
+    }
+
+    /**
      * Specifies query type to ask
      * @return $this
      */
@@ -137,13 +147,24 @@ class QueryBuilder
     }
 
     /**
-     * Adds an triplet to select query
+     * Specifies object for describe query
+     * Replaces any previously specified describe, if any.
      * @param null $select
      * @return $this|QueryBuilder
      */
-    public function addSelect($select = null)
+    public function describe($select = null)
     {
-        return $this->addSelectToQuery($select, true);
+        return $this->addDescribeToQuery($select, false);
+    }
+
+    /**
+     * Adds an object to describe query
+     * @param null $select
+     * @return $this|QueryBuilder
+     */
+    public function addDescribe($select = null)
+    {
+        return $this->addDescribeToQuery($select, true);
     }
 
     /**
@@ -359,6 +380,9 @@ class QueryBuilder
             case self::ASK:
                 $sparqlQuery = $this->getSparqlQueryForAsk();
                 break;
+            case self::DESCRIBE:
+                $sparqlQuery = $this->getSparqlQueryForDescribe();
+                break;
             default:
                 $sparqlQuery = $this->getSparqlQueryForConstruct();
                 break;
@@ -434,6 +458,24 @@ class QueryBuilder
         $select = is_array($select) ? $select : [$select];
         $select = new Expr\Select($select);
         return $this->add('select', $select, $append);
+    }
+
+    /**
+     * @param $describe
+     * @param bool $append
+     * @return $this|QueryBuilder
+     */
+    protected function addDescribeToQuery($describe, $append = false)
+    {
+        $this->type = self::DESCRIBE;
+
+        if (empty($describe)) {
+            return $this;
+        }
+
+        $describe = is_array($describe) ? $describe : [$describe];
+        $describe = new Expr\Describe($describe);
+        return $this->add('describe', $describe, $append);
     }
 
     /**
@@ -573,6 +615,18 @@ class QueryBuilder
         $sparqlQuery = 'CONSTRUCT'
             . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
             . $this->getReducedSparqlQueryPart('construct', array('pre' => ' { ', 'separator' => ' . ', 'post' => ' } '));
+
+        $sparqlQuery .= $this->getWhereSparqlQueryPart();
+        $sparqlQuery .= $this->getEndSparqlQueryPart();
+
+        return $sparqlQuery;
+    }
+
+    protected function getSparqlQueryForDescribe()
+    {
+        $sparqlQuery = 'DESCRIBE'
+            . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
+            . $this->getReducedSparqlQueryPart('describe', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();

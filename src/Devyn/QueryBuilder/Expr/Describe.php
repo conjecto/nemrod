@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 15:01
+ * Time: 16:09
  */
 
 namespace Devyn\QueryBuilder\Expr;
@@ -11,12 +11,12 @@ namespace Devyn\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Select extends Base
+class Describe extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'SELECT ';
+    protected $preSeparator = 'DESCRIBE ';
 
     /**
      * @var string
