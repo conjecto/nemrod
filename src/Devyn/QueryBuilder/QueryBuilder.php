@@ -12,9 +12,6 @@ namespace Devyn\QueryBuilder;
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Doctrine\ORM\Query\Expr\OrderBy;
 use Doctrine\ORM\Query\Expr\GroupBy;
-use Doctrine\ORM\Query\Expr\Composite;
-use Doctrine\ORM\Query\Expr\Andx;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 /**
@@ -41,7 +38,6 @@ class QueryBuilder
 
     /**
      * The state of the query object. Can be dirty or clean.
-     *
      * @var int
      */
     protected $state = self::STATE_CLEAN;
@@ -86,6 +82,7 @@ class QueryBuilder
     protected $nsRegistry;
 
     /**
+     * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
      * @param RdfNamespaceRegistry $nsRegistry
      */
     function __construct(RdfNamespaceRegistry $nsRegistry)
@@ -96,7 +93,8 @@ class QueryBuilder
     }
 
     /**
-     * declare a new construct query
+     * Specifies triplet for construct query
+     * Replaces any previously specified construct, if any.
      * @param null $construct
      * @return $this|QueryBuilder
      */
@@ -106,6 +104,7 @@ class QueryBuilder
     }
 
     /**
+     * Adds an triplet to construst query
      * @param null $construct
      * @return $this|QueryBuilder
      */
@@ -115,6 +114,8 @@ class QueryBuilder
     }
 
     /**
+     * Specifies one or more restrictions to the query result.
+     * Replaces any previously specified restrictions, if any.
      * @param $where
      * @return QueryBuilder
      */
@@ -124,6 +125,8 @@ class QueryBuilder
     }
 
     /**
+     * Adds one or more restrictions to the query results, forming a logical
+     * conjunction with any previously specified restrictions.
      * @param $where
      * @return QueryBuilder
      */
@@ -133,6 +136,8 @@ class QueryBuilder
     }
 
     /**
+     * Specifies optional for the query
+     * Replaces any previously specified optionals, if any.
      * @param $optional
      * @return QueryBuilder
      */
@@ -142,6 +147,7 @@ class QueryBuilder
     }
 
     /**
+     * Adds an optional to the query
      * @param $optional
      * @return QueryBuilder
      */
@@ -151,6 +157,8 @@ class QueryBuilder
     }
 
     /**
+     * Specifies filter for the query
+     * Replaces any previously specified filters, if any.
      * @param $filter
      * @return QueryBuilder
      */
@@ -160,6 +168,7 @@ class QueryBuilder
     }
 
     /**
+     * Adds a filter to the query
      * @param $filter
      * @return QueryBuilder
      */
@@ -169,6 +178,8 @@ class QueryBuilder
     }
 
     /**
+     * Specifies an ordering for the query results.
+     * Replaces any previously specified orderings, if any.
      * @param $sort
      * @param null $order
      * @return QueryBuilder
@@ -179,6 +190,7 @@ class QueryBuilder
     }
 
     /**
+     * Adds an ordering to the query results.
      * @param $sort
      * @param null $order
      * @return QueryBuilder
@@ -189,6 +201,8 @@ class QueryBuilder
     }
 
     /**
+     * Specifies a grouping over the results of the query.
+     * Replaces any previously specified groupings, if any.
      * @param $groupBy
      * @return QueryBuilder
      */
@@ -198,6 +212,7 @@ class QueryBuilder
     }
 
     /**
+     * Adds a grouping expression to the query.
      * @param $groupBy
      * @return QueryBuilder
      */
@@ -207,6 +222,7 @@ class QueryBuilder
     }
 
     /**
+     * Sets a query parameter for the query being constructed.
      * @param $value
      * @param null $key
      * @return QueryBuilder
@@ -217,6 +233,7 @@ class QueryBuilder
     }
 
     /**
+     * Sets a query parameter for the query being constructed.
      * @param $value
      * @param null $key
      * @return QueryBuilder
@@ -227,6 +244,8 @@ class QueryBuilder
     }
 
     /**
+     * Adds one or more restrictions to the query results, forming a logical
+     * disjunction with any previously specified restrictions.
      * @param $arrayPredicates
      * @return QueryBuilder
      */
@@ -236,6 +255,8 @@ class QueryBuilder
     }
 
     /**
+     * Adds one or more restrictions to the query results, forming a logical
+     * disjunction with any previously specified restrictions.
      * @param $arrayPredicates
      * @return QueryBuilder
      */
@@ -245,7 +266,11 @@ class QueryBuilder
     }
 
     /**
-     * @param $maxResults
+     * Sets the maximum number of results to retrieve (the "limit").
+     *
+     * @param integer $maxResults The maximum number of results to retrieve.
+     *
+     * @return QueryBuilder This QueryBuilder instance.
      */
     public function setMaxResults($maxResults)
     {
@@ -253,7 +278,11 @@ class QueryBuilder
     }
 
     /**
-     * @param $offset
+     * Sets the offset number of results to retrieve (the "offset").
+     *
+     * @param integer $offset
+     *
+     * @return QueryBuilder This QueryBuilder instance.
      */
     public function setOffset($offset)
     {
@@ -261,7 +290,7 @@ class QueryBuilder
     }
 
     /**
-     *
+     *  Constructs a Query instance from the current specifications of the builder.
      */
     public function getQuery()
     {
@@ -274,7 +303,7 @@ class QueryBuilder
     }
 
     /**
-     * Return the query as a string
+     * Gets the complete DQL string formed by the current specifications of this QueryBuilder.
      * @return string
      */
     public function getSparqlQuery()
@@ -308,11 +337,32 @@ class QueryBuilder
     }
 
     /**
+     * Gets a string representation of this QueryBuilder which corresponds to
+     * the final sparql query being constructed.
      * @return string
      */
     function __toString()
     {
-        return $this->getSparql();
+        return $this->getSparqlQuery();
+    }
+
+    /**
+     * Reset query parts
+     * @return $this
+     */
+    public function reset()
+    {
+        $this->offset = 0;
+        $this->limit = 0;
+        $this->type = self::CONSTRUCT;
+
+        foreach ($this->sparqlParts as $key => $part)
+        {
+            $this->sparqlParts[$key] = is_array($this->sparqlParts[$key]) ? array() : null;
+            $this->state = self::STATE_DIRTY;
+        }
+
+        return $this;
     }
 
     /**
@@ -375,7 +425,7 @@ class QueryBuilder
             return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), $append);
         }
         else {
-            return $this->add('bind', new Expr\Bind(is_array($predicates) ? $predicates : func_get_args()), $append);
+            return $this->add('bind', new Expr\Bind(is_array($value) ? $value : func_get_args()), $append);
         }
     }
 
@@ -427,11 +477,11 @@ class QueryBuilder
     }
 
     /**
-     * Add a new expression to the query
+     * Either appends to or replaces a single, generic query part.
      * @param $sparqlPartName
      * @param $sparqlPart
      * @param bool $append
-     * @return $this
+     * @return QueryBuilder This QueryBuilder instance.
      */
     protected function add($sparqlPartName, $sparqlPart, $append = false)
     {
@@ -462,8 +512,8 @@ class QueryBuilder
     }
 
     /**
-     * Return the query as a string for construct query
-     * @return string
+     * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     * @return string The sparql query string.
      */
     protected function getSparqlQueryForConstruct()
     {
