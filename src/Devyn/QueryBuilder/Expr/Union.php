@@ -20,17 +20,21 @@ class Union extends Base
     /**
      * @var string
      */
-    protected $separator = '';
+    protected $separator = ' } UNION { ';
 
     /**
      * @var string
      */
     protected $postSeparator = ' } ';
 
-    public function __construct($left, $right)
+    public function __construct($arrayPredicates)
     {
-
+        return $this->addMultiple($arrayPredicates);
     }
+
+    protected $allowedClasses = array(
+        'Devyn\\QueryBuilder\\Expr\\GroupExpr'
+    );
 
     /**
      * @return array
@@ -38,10 +42,5 @@ class Union extends Base
     public function getParts()
     {
         return $this->parts;
-    }
-
-    public function __toString()
-    {
-        return 'union';
     }
 } 

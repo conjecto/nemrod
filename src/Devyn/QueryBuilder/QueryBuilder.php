@@ -15,6 +15,7 @@ use Doctrine\ORM\Query\Expr\GroupBy;
 use Doctrine\ORM\Query\Expr\Composite;
 use Doctrine\ORM\Query\Expr\Andx;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
+use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 /**
  * Class QueryBuilder
@@ -26,8 +27,7 @@ class QueryBuilder
     const CONSTRUCT = 0;
     const DESCRIBE  = 1;
     const SELECT    = 2;
-    const UPDATE    = 3;
-    const ASK       = 4;
+    const ASK       = 3;
 
     /* The builder states. */
     const STATE_DIRTY = 0;
@@ -52,13 +52,12 @@ class QueryBuilder
      */
     protected $sparqlParts = array(
         'construct'  => array(),
-        'where'   => null,
-        'orderBy' => array(),
-        'groupBy' => array(),
+        'where'   => array(),
         'optional' => array(),
         'filter' => array(),
-        'union' => array(),
         'bind' => array(),
+        'orderBy' => array(),
+        'groupBy' => array(),
         'distinct' => false
     );
 
@@ -89,6 +88,7 @@ class QueryBuilder
     {
         $this->nsRegistry = $nsRegistry;
         $this->limit = 0;
+        $this->offset = 0;
     }
 
     /**
@@ -98,124 +98,48 @@ class QueryBuilder
      */
     public function construct($construct = null)
     {
-        $this->type = self::CONSTRUCT;
-
-        if (empty($construct)) {
-            return $this;
-        }
-
-        $constructs = is_array($construct) ? $construct : func_get_args();
-
-        return $this->add('construct', new Expr\Construct($constructs), false);
+        return $this->addConstructToQuery($construct, false);
     }
 
-    /**
-     * @param null $construct
-     * @return $this|QueryBuilder
-     */
     public function addConstruct($construct = null)
     {
-        $this->type = self::CONSTRUCT;
-
-        if (empty($construct)) {
-            return $this;
-        }
-
-        $constructs = is_array($construct) ? $construct : func_get_args();
-
-        return $this->add('construct', new Expr\Construct($constructs), true);
+        return $this->addConstructToQuery($construct, true);
     }
 
-//    public function select()
-//    {
-//        $this->type = self::SELECT;
-//    }
-//
-//    public function describe()
-//    {
-//        $this->type = self::DESCRIBE;
-//    }
-//
-//    public function update()
-//    {
-//        $this->type = self::UPDATE;
-//    }
-//
-//    public function ask()
-//    {
-//        $this->type = self::ASK;
-//    }
-
-    /**
-     * Add where clause
-     * One where only
-     * @param $predicates
-     * @return QueryBuilder
-     */
-    public function where($predicates)
+    public function where($where)
     {
-        if ( ! (func_num_args() == 1 && $predicates instanceof Composite)) {
-            $predicates = new Andx(func_get_args());
-        }
-
-        return $this->add('where', $predicates);
+        $where = is_array($where) ? $where : [$where];
+        return $this->add('where', new Expr\Where($where), false);
     }
 
-    /**
-     * Add parts to the where
-     * @param $where
-     * @return QueryBuilder
-     */
     public function andWhere($where)
     {
-        $args  = func_get_args();
-        $where = $this->getDQLPart('where');
-
-        if ($where instanceof Andx) {
-            $where->addMultiple($args);
-        } else {
-            array_unshift($args, $where);
-            $where = new Andx($args);
-        }
-
-        return $this->add('where', $where);
+        $where = is_array($where) ? $where : [$where];
+        return $this->add('where', new Expr\Where($where), true);
     }
 
-
-//    public function where($predicates)
-//    {
-//        $predicates = is_array($predicates) ? $predicates : func_get_args();
-//        return $this->add('where', new Expr\Where($predicates), false);
-//    }
-//
-//    public function addWhere($predicates)
-//    {
-//        $predicates = is_array($predicates) ? $predicates : func_get_args();
-//        return $this->add('where',  new Expr\Where($predicates), true);
-//    }
-
-    public function optional($predicates)
+    public function optional($optional)
     {
-        $predicates = is_array($predicates) ? $predicates : func_get_args();
-        return $this->add('optional', new Expr\Optional($predicates), false);
+        $optional = is_array($optional) ? $optional : [$optional];
+        return $this->add('optional', new Expr\Optional($optional), false);
     }
 
-    public function addOptional($predicates)
+    public function addOptional($optional)
     {
-        $predicates = is_array($predicates) ? $predicates : func_get_args();
-        return $this->add('optional', new Expr\Optional($predicates), true);
+        $optional = is_array($optional) ? $optional : [$optional];
+        return $this->add('optional', new Expr\Optional($optional), true);
     }
 
-    public function filter($predicates)
+    public function filter($filter)
     {
-        $predicates = is_array($predicates) ? $predicates : func_get_args();
-        return $this->add('filter', new Expr\Filter($predicates), false);
+        $filter = is_array($filter) ? $filter : [$filter];
+        return $this->add('filter', new Expr\Filter($filter), false);
     }
 
-    public function addFilter($predicates)
+    public function addFilter($filter)
     {
-        $predicates = is_array($predicates) ? $predicates : func_get_args();
-        return $this->add('filter', new Expr\Filter($predicates), true);
+        $filter = is_array($filter) ? $filter : [$filter];
+        return $this->add('filter', new Expr\Filter($filter), true);
     }
 
     public function orderBy($sort, $order = null)
@@ -232,54 +156,34 @@ class QueryBuilder
 
     public function groupBy($groupBy)
     {
-        return $this->add('groupBy', new GroupBy(func_get_args()));
+        return $this->add('groupBy', new GroupBy([$groupBy]), false);
     }
 
     public function addGroupBy($groupBy)
     {
-        return $this->add('groupBy', new GroupBy(func_get_args()), true);
+        return $this->add('groupBy', new GroupBy([$groupBy]), true);
     }
 
-    public function bind($value, $key)
+    public function bind($value, $key = null)
     {
-        if (is_string($value)) {
-            return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), false);
-        }
-        else {
-            return $this->add('bind', new Expr\Bind((string)$value . ' AS ' . $key), false);
-        }
+        return $this->addBindToQuery($value, $key, false);
     }
 
-    public function addBind($value, $key)
+    public function addBind($value, $key = null)
     {
-        if (is_string($value)) {
-            return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), true);
-        }
-        else {
-            return $this->add('bind', new Expr\Bind((string)$value . ' AS ' . $key), true);
-        }
+        return $this->addBindToQuery($value, $key, true);
     }
 
-    /**
-     * @TODO correct this function
-     * @param $leftPredicates
-     * @param $rightPredicates
-     * @return QueryBuilder
-     */
-    public function addUnion($leftPredicates, $rightPredicates)
+    public function union($arrayPredicates)
     {
-        if (!is_string($leftPredicates)) {
-            throw new UnexpectedTypeException($leftPredicates, 'string');
-        }
-        if (!is_string($rightPredicates)) {
-            throw new UnexpectedTypeException($rightPredicates, 'string');
-        }
-        return $this->add('where',  new Expr\Where([new Expr\Union($leftPredicates . ' } UNION { ' . $rightPredicates)]), true);
+        return $this->addUnionToQuery($arrayPredicates, false);
     }
 
-    /**
-     * @param $maxResults
-     */
+    public function addUnion($arrayPredicates)
+    {
+        return $this->addUnionToQuery($arrayPredicates, true);
+    }
+
     public function setMaxResults($maxResults)
     {
         $this->maxResults = $maxResults;
@@ -290,44 +194,6 @@ class QueryBuilder
         $this->offset = $offset;
     }
 
-    /**
-     * Add a new expression to the request
-     * @param $sparqlPartName
-     * @param $sparqlPart
-     * @param bool $append
-     * @return $this
-     */
-    public function add($sparqlPartName, $sparqlPart, $append = false)
-    {
-//        if ($append && ($sparqlPartName === "where" || $sparqlPartName === "having")) {
-//            throw new \InvalidArgumentException(
-//                "Using \$append = true does not have an effect with 'where' or 'having' ".
-//                "parts. See QueryBuilder#andWhere() for an example for correct usage."
-//            );
-//        }
-
-        $isMultiple = is_array($this->sparqlParts[$sparqlPartName]);
-
-        if ($append && $isMultiple) {
-            if (is_array($sparqlPart)) {
-                $key = key($sparqlPart);
-
-                $this->sparqlParts[$sparqlPartName][$key][] = $sparqlPart[$key];
-            } else {
-                $this->sparqlParts[$sparqlPartName][] = $sparqlPart;
-            }
-        } else {
-            $this->sparqlParts[$sparqlPartName] = ($isMultiple) ? array($sparqlPart) : $sparqlPart;
-        }
-
-        $this->_state = self::STATE_DIRTY;
-
-        return $this;
-    }
-
-    /**
-     *
-     */
     public function getQuery()
     {
 //        $parameters = clone $this->parameters;
@@ -364,25 +230,113 @@ class QueryBuilder
     }
 
     /**
+     * @param $queryPartName
+     * @return mixed
+     */
+    public function getDQLPart($queryPartName)
+    {
+        return $this->sparqlParts[$queryPartName];
+    }
+
+    /**
+     * @return string
+     */
+    function __toString()
+    {
+        return $this->getSparql();
+    }
+
+    protected function addConstructToQuery($construct, $append = false)
+    {
+        $this->type = self::CONSTRUCT;
+
+        if (empty($construct)) {
+            return $this;
+        }
+
+        if (!is_object($construct)) {
+            $construct = is_array($construct) ? $construct : [$construct];
+            $construct = new Expr\Construct($construct);
+        }
+
+        return $this->add('construct', $construct, $append);
+    }
+
+    protected function addUnionToQuery($arrayPredicates, $append)
+    {
+        if (!is_array($arrayPredicates)) {
+            throw new \Symfony\Component\Validator\Exception\UnexpectedTypeException('', 'array');
+        }
+
+        if (count($arrayPredicates) < 2) {
+            throw new InvalidArgumentException('The union has to have at least two parts');
+        }
+
+        return $this->add('where', new Expr\Union($arrayPredicates), $append);
+    }
+
+    protected function addBindToQuery($value, $key, $append)
+    {
+        if (is_string($value)) {
+            return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), $append);
+        }
+        else if ($value instanceof Expr\Bind) {
+            return $this->add('bind', $value, $append);
+        }
+        else {
+            return $this->add('bind', new Expr\Bind(is_array($predicates) ? $predicates : func_get_args()), $append);
+        }
+    }
+
+    /**
+     * Add a new expression to the request
+     * @param $sparqlPartName
+     * @param $sparqlPart
+     * @param bool $append
+     * @return $this
+     */
+    protected function add($sparqlPartName, $sparqlPart, $append = false)
+    {
+//        if ($append && ($sparqlPartName === "where" || $sparqlPartName === "having")) {
+//            throw new \InvalidArgumentException(
+//                "Using \$append = true does not have an effect with 'where' or 'having' ".
+//                "parts. See QueryBuilder#andWhere() for an example for correct usage."
+//            );
+//        }
+
+        $isMultiple = is_array($this->sparqlParts[$sparqlPartName]);
+
+        if ($append && $isMultiple) {
+            if (is_array($sparqlPart)) {
+                $key = key($sparqlPart);
+
+                $this->sparqlParts[$sparqlPartName][$key][] = $sparqlPart[$key];
+            } else {
+                $this->sparqlParts[$sparqlPartName][] = $sparqlPart;
+            }
+        } else {
+            $this->sparqlParts[$sparqlPartName] = ($isMultiple) ? array($sparqlPart) : $sparqlPart;
+        }
+
+        $this->_state = self::STATE_DIRTY;
+
+        return $this;
+    }
+
+    /**
      * Return the request as a string for construct request
      * @return string
      */
     protected function getDQLForConstruct()
     {
-        $dql = '';
-//
-//        foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
-//            $dql .= 'PREFIX ' . $key . ': ' . $namespace . '\n';
-//        }
-
-        $dql .= 'CONSTRUCT'
+        $dql = 'CONSTRUCT'
             . ($this->sparqlParts['distinct']===true ? ' DISTINCT' : '')
-            . $this->getReducedDQLQueryPart('construct', array('pre' => ' { ', 'separator' => ' . ', 'post' => ' . } '));
+            . $this->getReducedDQLQueryPart('construct', array('pre' => ' { ', 'separator' => ' . ', 'post' => ' } '));
 
         $dql .= $this->getReducedDQLQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' =>
-            $this->getReducedDQLQueryPart('optional', array('pre' => ' OPTIONAL { ', 'separator' => ' . ', 'post' => ' . }'))
-            . $this->getReducedDQLQueryPart('filter', array('pre' => ' FILTER ( ', 'separator' => ' . ', 'post' => ')'))
-            . $this->getReducedDQLQueryPart('bind', array('pre' => ' BIND ( ', 'separator' => ' . ', 'post' => ')'))
+             $this->getReducedDQLQueryPart('optional', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
+            . $this->getReducedDQLQueryPart('filter', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
+            . $this->getReducedDQLQueryPart('bind', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
             . ' } '
         ));
 
@@ -393,6 +347,14 @@ class QueryBuilder
         if ($this->maxResults > 0)
             $dql .= 'LIMIT ' . strval($this->maxResults) . ' ';
 
+
+        $prefixes = '';
+        foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
+            if (strstr($dql, $key . ':')) {
+                $prefixes .= 'PREFIX ' . $key . ': ' . $namespace . ' ';
+            }
+        }
+
         return $dql;
     }
 
@@ -401,7 +363,7 @@ class QueryBuilder
      * @param array $options
      * @return string
      */
-    private function getReducedDQLQueryPart($queryPartName, $options = array())
+    protected function getReducedDQLQueryPart($queryPartName, $options = array())
     {
         $queryPart = $this->getDQLPart($queryPartName);
 
@@ -412,27 +374,5 @@ class QueryBuilder
         return (isset($options['pre']) ? $options['pre'] : '')
         . (is_array($queryPart) ? implode($options['separator'], $queryPart) : $queryPart)
         . (isset($options['post']) ? $options['post'] : '');
-    }
-
-    /**
-     * @param $queryPartName
-     * @return mixed
-     */
-    public function getDQLPart($queryPartName)
-    {
-        return $this->sparqlParts[$queryPartName];
-    }
-
-    public function execute()
-    {
-
-    }
-
-    /**
-     * @return string
-     */
-    function __toString()
-    {
-        return $this->getSparql();
     }
 }

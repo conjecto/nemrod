@@ -25,7 +25,7 @@ class Optional extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' . } ';
+    protected $postSeparator = ' } ';
 
     /**
      * @return array
@@ -33,5 +33,24 @@ class Optional extends Base
     public function getParts()
     {
         return $this->parts;
+    }
+
+    /**
+     * @var array
+     */
+    protected $allowedClasses = array(
+        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+    );
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        if ($this->count() == 1) {
+            return $this->preSeparator . $this->parts[0] . $this->postSeparator;
+        }
+
+        return $this->preSeparator . implode($this->separator, $this->parts) . $this->postSeparator;
     }
 } 

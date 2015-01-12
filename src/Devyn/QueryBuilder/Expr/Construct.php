@@ -15,7 +15,7 @@ class Construct extends Base
     /**
      * @var string
      */
-    protected $preSeparator = '';
+    protected $preSeparator = 'CONSTRUCT { ';
 
     /**
      * @var string
@@ -25,7 +25,14 @@ class Construct extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' .';
+    protected $postSeparator = ' } ';
+
+    /**
+     * @var array
+     */
+    protected $allowedClasses = array(
+        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+    );
 
     /**
      * @return array

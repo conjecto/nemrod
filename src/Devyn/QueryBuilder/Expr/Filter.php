@@ -34,4 +34,23 @@ class Filter extends Base
     {
         return $this->parts;
     }
+
+    /**
+     * @var array
+     */
+    protected $allowedClasses = array(
+        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+    );
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        if ($this->count() == 1) {
+            return $this->preSeparator . $this->parts[0] . $this->postSeparator;
+        }
+
+        return $this->preSeparator . implode($this->separator, $this->parts) . $this->postSeparator;
+    }
 }

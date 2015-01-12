@@ -2,20 +2,21 @@
 /**
  * Created by PhpStorm.
  * User: Erwan
- * Date: 06/01/2015
- * Time: 11:45
+ * Date: 12/01/2015
+ * Time: 09:37
  */
 
 namespace Devyn\QueryBuilder\Expr;
 
+
 use Doctrine\ORM\Query\Expr\Base;
 
-class Where extends Base
+class GroupExpr extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'WHERE { ';
+    protected $preSeparator = '';
 
     /**
      * @var string
@@ -25,16 +26,15 @@ class Where extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' } ';
+    protected $postSeparator = '';
 
     /**
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\Union',
         'Devyn\\QueryBuilder\\Expr\\Filter',
         'Devyn\\QueryBuilder\\Expr\\Optional',
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\QueryBuilder\\Expr\\Bind',
     );
 
     /**
@@ -44,4 +44,4 @@ class Where extends Base
     {
         return $this->parts;
     }
-}
+} 
