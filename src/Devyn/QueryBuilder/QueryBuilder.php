@@ -25,6 +25,9 @@ class QueryBuilder
     const DESCRIBE  = 1;
     const SELECT    = 2;
     const ASK       = 3;
+    const INSERT    = 4;
+    const DELETE    = 5;
+    const UPDATE    = 6;
 
     /* The builder states. */
     const STATE_DIRTY = 0;
@@ -48,8 +51,8 @@ class QueryBuilder
      */
     protected $sparqlParts = array(
         'construct'  => array(),
-        'select'  => array(),
-        'describe'  => array(),
+        'insert'  => array(),
+        'delete'  => array(),
         'where'   => array(),
         'optional' => array(),
         'filter' => array(),
@@ -165,6 +168,28 @@ class QueryBuilder
     public function addDescribe($select = null)
     {
         return $this->addDescribeToQuery($select, true);
+    }
+
+    /**
+     * Specifies triplet for insert query
+     * Replaces any previously specified insert, if any.
+     * @param null $insert
+     * @return $this|QueryBuilder
+     */
+    public function insert($insert = null)
+    {
+        return $this->addInsertToQuery($insert, false);
+    }
+
+    /**
+     * Specifies triplet for delete query
+     * Replaces any previously specified insert, if any.
+     * @param null $insert
+     * @return $this|QueryBuilder
+     */
+    public function delete($delete = null)
+    {
+        return $this->addDeleteToQuery($delete, false);
     }
 
     /**
@@ -383,13 +408,19 @@ class QueryBuilder
             case self::DESCRIBE:
                 $sparqlQuery = $this->getSparqlQueryForDescribe();
                 break;
+            case self::INSERT:
+                $sparqlQuery = $this->getSparqlQueryForDeleteInsert();
+                break;
+            case self::DELETE:
+                $sparqlQuery = $this->getSparqlQueryForDeleteInsert();
+                break;
             default:
                 $sparqlQuery = $this->getSparqlQueryForConstruct();
                 break;
         }
 
         $this->state = self::STATE_CLEAN;
-        $sparqlQuery = $this->getPrefixesFromQuery($sparqlQuery) . $sparqlQuery;
+//        $sparqlQuery = $this->getPrefixesFromQuery($sparqlQuery) . $sparqlQuery;
         $this->sparqlQuery = $sparqlQuery;
 
         return $sparqlQuery;
@@ -457,7 +488,7 @@ class QueryBuilder
 
         $select = is_array($select) ? $select : [$select];
         $select = new Expr\Select($select);
-        return $this->add('select', $select, $append);
+        return $this->add('construct', $select, $append);
     }
 
     /**
@@ -475,7 +506,33 @@ class QueryBuilder
 
         $describe = is_array($describe) ? $describe : [$describe];
         $describe = new Expr\Describe($describe);
-        return $this->add('describe', $describe, $append);
+        return $this->add('construct', $describe, $append);
+    }
+
+    public function addInsertToQuery($select, $append)
+    {
+        $this->type = self::INSERT;
+
+        if (empty($select)) {
+            return $this;
+        }
+
+        $select = is_array($select) ? $select : [$select];
+        $select = new Expr\Insert($select);
+        return $this->add('insert', $select, $append);
+    }
+
+    public function addDeleteToQuery($delete, $append)
+    {
+        $this->type = self::DELETE;
+
+        if (empty($delete)) {
+            return $this;
+        }
+
+        $delete = is_array($delete) ? $delete : [$delete];
+        $delete = new Expr\Delete($delete);
+        return $this->add('delete', $delete, $append);
     }
 
     /**
@@ -626,7 +683,7 @@ class QueryBuilder
     {
         $sparqlQuery = 'DESCRIBE'
             . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('describe', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            . $this->getReducedSparqlQueryPart('construct', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -641,7 +698,7 @@ class QueryBuilder
     protected function getSparqlQueryForSelect()
     {
         $sparqlQuery = 'SELECT'
-            . $this->getReducedSparqlQueryPart('select', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            . $this->getReducedSparqlQueryPart('construct', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -656,6 +713,14 @@ class QueryBuilder
     protected function getSparqlQueryForAsk()
     {
         $sparqlQuery = 'ASK ';
+        $sparqlQuery .= $this->getWhereSparqlQueryPart();
+        return $sparqlQuery;
+    }
+
+    protected function getSparqlQueryForDeleteInsert()
+    {
+        $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
+        $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         return $sparqlQuery;
     }
@@ -696,7 +761,7 @@ class QueryBuilder
      * @param $sparqlQuery
      * @return string
      */
-    protected function getPrefixesFromQuery($sparqlQuery)
+    public function getPrefixesFromQuery($sparqlQuery)
     {
         $prefixes = '';
         foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
