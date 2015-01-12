@@ -13,6 +13,7 @@ use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Doctrine\ORM\Query\Expr\OrderBy;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
+use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
  * Class QueryBuilder
@@ -403,7 +404,7 @@ class QueryBuilder
     protected function addUnionToQuery($arrayPredicates, $append)
     {
         if (!is_array($arrayPredicates)) {
-            throw new \Symfony\Component\Validator\Exception\UnexpectedTypeException('', 'array');
+            throw new UnexpectedTypeException('', 'array');
         }
 
         if (count($arrayPredicates) < 2) {
