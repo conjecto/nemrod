@@ -424,7 +424,7 @@ class QueryBuilder
     }
 
     /**
-     *  Constructs a Query instance from the current specifications of the builder.
+     *  Execute the query with sparql client
      */
     public function execute()
     {
@@ -797,6 +797,10 @@ class QueryBuilder
         return $sparqlQuery;
     }
 
+    /**
+     * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     * @return string
+     */
     protected function getSparqlQueryForDeleteInsert()
     {
         $sparqlQuery = "";
@@ -815,6 +819,10 @@ class QueryBuilder
         return $sparqlQuery . $this->getWhereSparqlQueryPart();
     }
 
+    /**
+     * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     * @return string
+     */
     protected function getWhereSparqlQueryPart()
     {
         return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' =>
@@ -825,6 +833,10 @@ class QueryBuilder
         ));
     }
 
+    /**
+     * Gets the complete post where sparql query string
+     * @return string
+     */
     protected function getEndSparqlQueryPart()
     {
         $sparqlQuery = '';
