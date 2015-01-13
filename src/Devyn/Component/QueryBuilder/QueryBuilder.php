@@ -829,17 +829,40 @@ class QueryBuilder
     }
 
     /**
-     * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     * Gets the where sparql query part
      * @return string
      */
     protected function getWhereSparqlQueryPart()
     {
-        return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' =>
-            $this->getReducedSparqlQueryPart('optional', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
-            . $this->getReducedSparqlQueryPart('filter', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
-            . $this->getReducedSparqlQueryPart('bind', array('pre' => ' . ', 'separator' => '. ', 'post' => ''))
-            . ' } '
-        ));
+        $array = array();
+        $array['optional'] = $this->getReducedSparqlQueryPart('optional', array('pre' => '', 'separator' => '. ', 'post' => ' '));
+        $array['filter'] = $this->getReducedSparqlQueryPart('filter', array('pre' => '', 'separator' => '. ', 'post' => ' '));
+        $array['bind'] = $this->getReducedSparqlQueryPart('bind', array('pre' => '', 'separator' => '. ', 'post' => ' '));
+
+        $concat = false;
+        $added = "";
+        foreach ($array as $string) {
+            if (!empty($string)) {
+                if ($concat) {
+                    $added .= '. ' . $string;
+                }
+                else {
+                    $added = $string;
+                }
+                $concat = true;
+            }
+        }
+
+        if (!empty($added)) {
+            $added = ' . ' . $added;
+        }
+
+        if (count($this->getSparqlPart('where')) == 0 && !empty($added)) {
+            return 'WHERE { ' . $added . ' }';
+        }
+        else {
+            return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added . ' } '));
+        }
     }
 
     /**

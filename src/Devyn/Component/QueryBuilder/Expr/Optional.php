@@ -25,7 +25,7 @@ class Optional extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' } ';
+    protected $postSeparator = '}';
 
     /**
      * @return array

@@ -15,7 +15,7 @@ class Bind extends Base
     /**
      * @var string
      */
-    protected $preSeparator = 'BIND ( ';
+    protected $preSeparator = 'BIND (';
 
     /**
      * @var string
@@ -25,7 +25,7 @@ class Bind extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' ) ';
+    protected $postSeparator = ')';
 
     /**
      * @return array
