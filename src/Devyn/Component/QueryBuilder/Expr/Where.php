@@ -2,21 +2,20 @@
 /**
  * Created by PhpStorm.
  * User: Erwan
- * Date: 12/01/2015
- * Time: 17:32
+ * Date: 06/01/2015
+ * Time: 11:45
  */
 
-namespace Devyn\QueryBuilder\Expr;
-
+namespace Devyn\Component\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Insert extends Base
+class Where extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'INSERT { ';
+    protected $preSeparator = 'WHERE { ';
 
     /**
      * @var string
@@ -32,7 +31,10 @@ class Insert extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Union',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Filter',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Optional',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

@@ -6,11 +6,10 @@
  * Time: 09:49
  */
 
-namespace Devyn\QueryBuilder;
+namespace Devyn\Component\QueryBuilder;
 
 
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
-use Doctrine\ORM\Query\Expr\GroupBy;
 use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;

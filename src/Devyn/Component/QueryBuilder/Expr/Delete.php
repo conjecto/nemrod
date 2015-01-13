@@ -3,20 +3,20 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 17:33
+ * Time: 17:32
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Update extends Base
+class Delete extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'UPDATE { ';
+    protected $preSeparator = 'DELETE { ';
 
     /**
      * @var string
@@ -32,7 +32,7 @@ class Update extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

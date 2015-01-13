@@ -3,20 +3,20 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 15:01
+ * Time: 16:09
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Select extends Base
+class Describe extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'SELECT ';
+    protected $preSeparator = 'DESCRIBE ';
 
     /**
      * @var string
@@ -32,7 +32,7 @@ class Select extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

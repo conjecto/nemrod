@@ -6,7 +6,7 @@
  * Time: 11:40
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 
 use Doctrine\ORM\Query\Expr\Base;
@@ -32,10 +32,10 @@ class Ask extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
-        'Devyn\\QueryBuilder\\Expr\\Filter',
-        'Devyn\\QueryBuilder\\Expr\\Optional',
-        'Devyn\\QueryBuilder\\Expr\\Bind',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Filter',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Optional',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Bind',
     );
 
     /**

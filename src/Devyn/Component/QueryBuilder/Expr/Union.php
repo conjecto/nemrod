@@ -2,37 +2,38 @@
 /**
  * Created by PhpStorm.
  * User: Erwan
- * Date: 12/01/2015
- * Time: 17:32
+ * Date: 06/01/2015
+ * Time: 15:49
  */
 
-namespace Devyn\QueryBuilder\Expr;
-
+namespace Devyn\Component\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Delete extends Base
+class Union extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'DELETE { ';
+    protected $preSeparator = ' { ';
 
     /**
      * @var string
      */
-    protected $separator = ' . ';
+    protected $separator = ' } UNION { ';
 
     /**
      * @var string
      */
     protected $postSeparator = ' } ';
 
-    /**
-     * @var array
-     */
+    public function __construct($arrayPredicates)
+    {
+        return $this->addMultiple($arrayPredicates);
+    }
+
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr'
     );
 
     /**
@@ -42,4 +43,4 @@ class Delete extends Base
     {
         return $this->parts;
     }
-}
+} 

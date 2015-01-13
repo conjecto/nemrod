@@ -2,36 +2,37 @@
 /**
  * Created by PhpStorm.
  * User: Erwan
- * Date: 06/01/2015
- * Time: 11:24
+ * Date: 12/01/2015
+ * Time: 15:01
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
+
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Construct extends Base
+class Select extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'CONSTRUCT { ';
+    protected $preSeparator = 'SELECT ';
 
     /**
      * @var string
      */
-    protected $separator = ' . ';
+    protected $separator = ' ';
 
     /**
      * @var string
      */
-    protected $postSeparator = ' } ';
+    protected $postSeparator = ' ';
 
     /**
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

@@ -3,19 +3,19 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 12:19
+ * Time: 15:30
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Optional extends Base
+class Bind extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'OPTIONAL {';
+    protected $preSeparator = 'BIND ( ';
 
     /**
      * @var string
@@ -25,7 +25,7 @@ class Optional extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ' } ';
+    protected $postSeparator = ' ) ';
 
     /**
      * @return array
@@ -39,7 +39,7 @@ class Optional extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

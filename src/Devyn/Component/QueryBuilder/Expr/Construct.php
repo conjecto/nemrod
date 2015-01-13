@@ -3,19 +3,19 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 11:45
+ * Time: 11:24
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Where extends Base
+class Construct extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'WHERE { ';
+    protected $preSeparator = 'CONSTRUCT { ';
 
     /**
      * @var string
@@ -31,10 +31,7 @@ class Where extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\Union',
-        'Devyn\\QueryBuilder\\Expr\\Filter',
-        'Devyn\\QueryBuilder\\Expr\\Optional',
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

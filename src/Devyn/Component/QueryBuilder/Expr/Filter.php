@@ -6,7 +6,7 @@
  * Time: 14:22
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 use Doctrine\ORM\Query\Expr\Base;
 
@@ -39,7 +39,7 @@ class Filter extends Base
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**

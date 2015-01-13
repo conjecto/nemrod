@@ -3,36 +3,38 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 16:09
+ * Time: 09:37
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Describe extends Base
+class GroupExpr extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = 'DESCRIBE ';
+    protected $preSeparator = '';
 
     /**
      * @var string
      */
-    protected $separator = ' ';
+    protected $separator = ' . ';
 
     /**
      * @var string
      */
-    protected $postSeparator = ' ';
+    protected $postSeparator = '';
 
     /**
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Filter',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Optional',
+        'Devyn\\Component\\QueryBuilder\\Expr\\Bind',
     );
 
     /**
@@ -42,4 +44,4 @@ class Describe extends Base
     {
         return $this->parts;
     }
-}
+} 

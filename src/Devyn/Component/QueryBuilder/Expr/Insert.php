@@ -3,20 +3,20 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 09:37
+ * Time: 17:32
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
 
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class GroupExpr extends Base
+class Insert extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = '';
+    protected $preSeparator = 'INSERT { ';
 
     /**
      * @var string
@@ -26,15 +26,13 @@ class GroupExpr extends Base
     /**
      * @var string
      */
-    protected $postSeparator = '';
+    protected $postSeparator = ' } ';
 
     /**
      * @var array
      */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\Filter',
-        'Devyn\\QueryBuilder\\Expr\\Optional',
-        'Devyn\\QueryBuilder\\Expr\\Bind',
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**
@@ -44,4 +42,4 @@ class GroupExpr extends Base
     {
         return $this->parts;
     }
-} 
+}

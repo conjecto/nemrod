@@ -2,38 +2,37 @@
 /**
  * Created by PhpStorm.
  * User: Erwan
- * Date: 06/01/2015
- * Time: 15:49
+ * Date: 12/01/2015
+ * Time: 17:33
  */
 
-namespace Devyn\QueryBuilder\Expr;
+namespace Devyn\Component\QueryBuilder\Expr;
+
 
 use Doctrine\ORM\Query\Expr\Base;
 
-class Union extends Base
+class Update extends Base
 {
     /**
      * @var string
      */
-    protected $preSeparator = ' { ';
+    protected $preSeparator = 'UPDATE { ';
 
     /**
      * @var string
      */
-    protected $separator = ' } UNION { ';
+    protected $separator = ' . ';
 
     /**
      * @var string
      */
     protected $postSeparator = ' } ';
 
-    public function __construct($arrayPredicates)
-    {
-        return $this->addMultiple($arrayPredicates);
-    }
-
+    /**
+     * @var array
+     */
     protected $allowedClasses = array(
-        'Devyn\\QueryBuilder\\Expr\\GroupExpr'
+        'Devyn\\Component\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**
@@ -43,4 +42,4 @@ class Union extends Base
     {
         return $this->parts;
     }
-} 
+}
