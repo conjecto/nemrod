@@ -10,6 +10,7 @@ namespace Devyn\Component\QueryBuilder;
 
 
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
+use Doctrine\ORM\Query\Expr\GroupBy;
 use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -157,7 +158,8 @@ class QueryBuilder
 
     /**
      * Specifies query type to ask
-     * @return $this
+     * @param null $ask
+     * @return $this|QueryBuilder
      */
     public function ask($ask = null)
     {
@@ -214,7 +216,7 @@ class QueryBuilder
     /**
      * Specifies triplet for delete query
      * Replaces any previously specified insert, if any.
-     * @param null $insert
+     * @param $delete
      * @return $this|QueryBuilder
      */
     public function delete($delete = null)
@@ -734,7 +736,7 @@ class QueryBuilder
             $this->sparqlParts[$sparqlPartName] = ($isMultiple) ? array($sparqlPart) : $sparqlPart;
         }
 
-        $this->_state = self::STATE_DIRTY;
+        $this->state = self::STATE_DIRTY;
 
         return $this;
     }
