@@ -91,7 +91,7 @@ class QueryBuilder
     protected $nsRegistry;
 
     /**
-     * EasyRdf Client to execute the query
+     * EasyRdf Sparql Client to execute the query
      * @var Client
      */
     protected $client;
@@ -431,7 +431,13 @@ class QueryBuilder
      */
     public function execute()
     {
-        return $this->client->query($this->getSparqlQuery());
+        if ($this->type == self::DELETE || $this->type == self::INSERT ||
+            $this->type == self::DELETE_INSERT) {
+            return $this->client->update($this->getSparqlQuery());
+        }
+        else {
+            return $this->client->query($this->getSparqlQuery());
+        }
     }
 
     /**
