@@ -9,7 +9,6 @@
 namespace Devyn\Component\QueryBuilder;
 
 
-use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
@@ -92,13 +91,14 @@ class QueryBuilder
 
     /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
-     * @param RdfNamespaceRegistry $nsRegistry
+     * @param string $endpointUri
+     * @param string|null $updatedEndPointUri
      */
-    function __construct($endpointUrl)
+    function __construct($endpointUri, $updatedEndPointUri = null)
     {
         $this->limit = 0;
         $this->offset = -1;
-        $this->client = new Client($endpointUrl);
+        $this->client = new Client($endpointUri, $updatedEndPointUri);
     }
 
     /**
@@ -170,7 +170,7 @@ class QueryBuilder
     /**
      * Specifies object for describe query
      * Replaces any previously specified describe, if any.
-     * @param null $select
+     * @param $describe
      * @return $this|QueryBuilder
      */
     public function describe($describe)
@@ -298,7 +298,7 @@ class QueryBuilder
      * Specifies an ordering for the query results.
      * Replaces any previously specified orderings, if any.
      * @param $sort
-     * @param null $order
+     * @param string $order
      * @return QueryBuilder
      */
     public function orderBy($sort, $order = 'ASC')
