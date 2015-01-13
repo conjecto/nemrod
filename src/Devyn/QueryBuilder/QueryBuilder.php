@@ -11,6 +11,7 @@ namespace Devyn\QueryBuilder;
 
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Doctrine\ORM\Query\Expr\GroupBy;
+use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -27,7 +28,7 @@ class QueryBuilder
     const ASK       = 3;
     const INSERT    = 4;
     const DELETE    = 5;
-    const UPDATE    = 6;
+    const DELETE_INSERT = 6;
 
     /* The builder states. */
     const STATE_DIRTY = 0;
@@ -87,6 +88,12 @@ class QueryBuilder
     protected $nsRegistry;
 
     /**
+     * EasyRdf Client to execute the query
+     * @var Client
+     */
+    protected $client;
+
+    /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
      * @param RdfNamespaceRegistry $nsRegistry
      */
@@ -95,6 +102,7 @@ class QueryBuilder
         $this->nsRegistry = $nsRegistry;
         $this->limit = 0;
         $this->offset = 0;
+        $this->client = new Client('http://dbpedia-live.openlinksw.com/sparql/');
     }
 
     /**
@@ -119,7 +127,7 @@ class QueryBuilder
     }
 
     /**
-     * Specifies triplet for select query
+     * Specifies objects for select query
      * Replaces any previously specified construct, if any.
      * @param null $select
      * @return $this|QueryBuilder
@@ -127,6 +135,15 @@ class QueryBuilder
     public function select($select = null)
     {
         return $this->addSelectToQuery($select, false);
+    }
+
+    /**
+     * Shortcut to add a select('*') to the query
+     * @return $this|QueryBuilder
+     */
+    public function selectAll()
+    {
+        return $this->addSelectToQuery('*', false);
     }
 
     /**
@@ -143,10 +160,14 @@ class QueryBuilder
      * Specifies query type to ask
      * @return $this
      */
-    public function ask()
+    public function ask($ask = null)
     {
-        $this->type = self::ASK;
-        return $this;
+        return $this->addAskToQuery($ask, false);
+    }
+
+    public function addAsk($ask = null)
+    {
+        return $this->addAskToQuery($ask, true);
     }
 
     /**
@@ -182,6 +203,16 @@ class QueryBuilder
     }
 
     /**
+     * Adds an object to insert query
+     * @param null $insert
+     * @return $this|QueryBuilder
+     */
+    public function addInsert($insert = null)
+    {
+        return $this->addInsertToQuery($insert, true);
+    }
+
+    /**
      * Specifies triplet for delete query
      * Replaces any previously specified insert, if any.
      * @param null $insert
@@ -190,6 +221,16 @@ class QueryBuilder
     public function delete($delete = null)
     {
         return $this->addDeleteToQuery($delete, false);
+    }
+
+    /**
+     * Adds an object to delete query
+     * @param null $delete
+     * @return QueryBuilder
+     */
+    public function addDelete($delete = null)
+    {
+        return $this->addDeleteToQuery($delete, true);
     }
 
     /**
@@ -359,6 +400,15 @@ class QueryBuilder
     }
 
     /**
+     * Set distinct value
+     * @param boolean $distinct
+     */
+    public function setDistinct($distinct)
+    {
+        $this->sparqlParts['distinct'] = $distinct;
+    }
+
+    /**
      * Sets the offset number of results to retrieve (the "offset").
      *
      * @param integer $offset
@@ -375,14 +425,9 @@ class QueryBuilder
     /**
      *  Constructs a Query instance from the current specifications of the builder.
      */
-    public function getQuery()
+    public function execute()
     {
-//        $parameters = clone $this->parameters;
-//
-//        return $this->_em->createQuery($this->getDQL())
-//            ->setParameters($parameters)
-//            ->setFirstResult($this->_firstResult)
-//            ->setMaxResults($this->_maxResults);
+        return $this->client->query($this->getSparqlQuery());
     }
 
     /**
@@ -414,13 +459,15 @@ class QueryBuilder
             case self::DELETE:
                 $sparqlQuery = $this->getSparqlQueryForDeleteInsert();
                 break;
+            case self::DELETE_INSERT:
+                $sparqlQuery = $this->getSparqlQueryForDeleteInsert();
+                break;
             default:
                 $sparqlQuery = $this->getSparqlQueryForConstruct();
                 break;
         }
 
         $this->state = self::STATE_CLEAN;
-//        $sparqlQuery = $this->getPrefixesFromQuery($sparqlQuery) . $sparqlQuery;
         $this->sparqlQuery = $sparqlQuery;
 
         return $sparqlQuery;
@@ -509,12 +556,35 @@ class QueryBuilder
         return $this->add('construct', $describe, $append);
     }
 
+    protected function addAskToQuery($ask, $append = false)
+    {
+        $this->type = self::ASK;
+
+        if (empty($ask)) {
+            return $this;
+        }
+
+        $ask = is_array($ask) ? $ask : [$ask];
+        $ask = new Expr\Ask($ask);
+        return $this->add('construct', $ask, $append);
+    }
+
+    /**
+     * @param $select
+     * @param $append
+     * @return QueryBuilder
+     */
     public function addInsertToQuery($select, $append)
     {
-        $this->type = self::INSERT;
-
         if (empty($select)) {
-            return $this;
+            throw new InvalidArgumentException('You have to fill-in a triplet in insertion');
+        }
+
+        if ($this->type == self::DELETE) {
+            $this->type = self::DELETE_INSERT;
+        }
+        else {
+            $this->type = self::INSERT;
         }
 
         $select = is_array($select) ? $select : [$select];
@@ -522,12 +592,26 @@ class QueryBuilder
         return $this->add('insert', $select, $append);
     }
 
+    /**
+     * @param $delete
+     * @param $append
+     * @return QueryBuilder
+     */
     public function addDeleteToQuery($delete, $append)
     {
-        $this->type = self::DELETE;
+        if ($this->type == self::INSERT) {
+            $this->type = self::DELETE_INSERT;
+        }
+        else {
+            $this->type = self::DELETE;
+        }
 
         if (empty($delete)) {
             return $this;
+        }
+
+        if (strstr($delete, '[') || strstr($delete, ']') || strstr($delete, '_:')) {
+            throw new InvalidArgumentException('You can not use a blank node in deletion');
         }
 
         $delete = is_array($delete) ? $delete : [$delete];
@@ -637,13 +721,6 @@ class QueryBuilder
      */
     protected function add($sparqlPartName, $sparqlPart, $append = false)
     {
-//        if ($append && ($sparqlPartName === "where" || $sparqlPartName === "having")) {
-//            throw new \InvalidArgumentException(
-//                "Using \$append = true does not have an effect with 'where' or 'having' ".
-//                "parts. See QueryBuilder#andWhere() for an example for correct usage."
-//            );
-//        }
-
         $isMultiple = is_array($this->sparqlParts[$sparqlPartName]);
 
         if ($append && $isMultiple) {
@@ -698,6 +775,7 @@ class QueryBuilder
     protected function getSparqlQueryForSelect()
     {
         $sparqlQuery = 'SELECT'
+            . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
             . $this->getReducedSparqlQueryPart('construct', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
@@ -713,16 +791,27 @@ class QueryBuilder
     protected function getSparqlQueryForAsk()
     {
         $sparqlQuery = 'ASK ';
+        $sparqlQuery .= $this->getReducedSparqlQueryPart('construct', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' . } '));
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         return $sparqlQuery;
     }
 
     protected function getSparqlQueryForDeleteInsert()
     {
-        $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
-        $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
-        $sparqlQuery .= $this->getWhereSparqlQueryPart();
-        return $sparqlQuery;
+        $sparqlQuery = "";
+
+        if (($this->type == self::DELETE || $this->type == self::DELETE_INSERT) && count($this->getSparqlPart('delete')) == 0) {
+            $sparqlQuery .= "DELETE ";
+        }
+        else {
+            $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
+        }
+
+        if ($this->type == self::INSERT || $this->type == self::DELETE_INSERT) {
+            $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
+        }
+
+        return $sparqlQuery . $this->getWhereSparqlQueryPart();
     }
 
     protected function getWhereSparqlQueryPart()
@@ -738,8 +827,8 @@ class QueryBuilder
     protected function getEndSparqlQueryPart()
     {
         $sparqlQuery = '';
-        $sparqlQuery .= $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ' '));
         $sparqlQuery .= $this->getReducedSparqlQueryPart('groupBy', array('pre' => 'GROUP BY ', 'separator' => ' . ', 'post' => ' '));
+        $sparqlQuery .= $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ' '));
         if ($this->offset > 0)
             $sparqlQuery .= 'OFFSET ' . strval($this->offset) . ' ';
         if ($this->maxResults > 0)
@@ -755,22 +844,6 @@ class QueryBuilder
     protected function getSparqlPart($queryPartName)
     {
         return $this->sparqlParts[$queryPartName];
-    }
-
-    /**
-     * @param $sparqlQuery
-     * @return string
-     */
-    public function getPrefixesFromQuery($sparqlQuery)
-    {
-        $prefixes = '';
-        foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
-            if (strstr($sparqlQuery, $key . ':')) {
-                $prefixes .= 'PREFIX ' . $key . ': <' . $namespace . '> ';
-            }
-        }
-
-        return $prefixes;
     }
 
     /**

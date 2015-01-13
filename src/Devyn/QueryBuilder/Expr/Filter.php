@@ -25,7 +25,7 @@ class Filter extends Base
     /**
      * @var string
      */
-    protected $postSeparator = ') ';
+    protected $postSeparator = ')';
 
     /**
      * @return array
