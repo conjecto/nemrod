@@ -47,7 +47,7 @@ class OrderBy extends Base
      */
     public function add($sort, $order = null)
     {
-        if ($order == 'ASC') {
+        if (strtoupper($order) != 'DESC') {
             $this->parts[] = $sort;
         }
         else {
