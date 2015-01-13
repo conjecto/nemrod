@@ -52,6 +52,9 @@ class QueryBuilder
      */
     protected $sparqlParts = array(
         'construct'  => array(),
+        'describe'  => array(),
+        'select'  => array(),
+        'ask'  => array(),
         'insert'  => array(),
         'delete'  => array(),
         'where'   => array(),
@@ -536,7 +539,7 @@ class QueryBuilder
 
         $select = is_array($select) ? $select : [$select];
         $select = new Expr\Select($select);
-        return $this->add('construct', $select, $append);
+        return $this->add('select', $select, $append);
     }
 
     /**
@@ -554,7 +557,7 @@ class QueryBuilder
 
         $describe = is_array($describe) ? $describe : [$describe];
         $describe = new Expr\Describe($describe);
-        return $this->add('construct', $describe, $append);
+        return $this->add('describe', $describe, $append);
     }
 
     protected function addAskToQuery($ask, $append = false)
@@ -567,7 +570,7 @@ class QueryBuilder
 
         $ask = is_array($ask) ? $ask : [$ask];
         $ask = new Expr\Ask($ask);
-        return $this->add('construct', $ask, $append);
+        return $this->add('ask', $ask, $append);
     }
 
     /**
@@ -761,7 +764,7 @@ class QueryBuilder
     {
         $sparqlQuery = 'DESCRIBE'
             . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('construct', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            . $this->getReducedSparqlQueryPart('describe', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -777,7 +780,7 @@ class QueryBuilder
     {
         $sparqlQuery = 'SELECT'
             . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('construct', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            . $this->getReducedSparqlQueryPart('select', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -792,7 +795,7 @@ class QueryBuilder
     protected function getSparqlQueryForAsk()
     {
         $sparqlQuery = 'ASK ';
-        $sparqlQuery .= $this->getReducedSparqlQueryPart('construct', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' . } '));
+        $sparqlQuery .= $this->getReducedSparqlQueryPart('ask', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' } '));
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         return $sparqlQuery;
     }
