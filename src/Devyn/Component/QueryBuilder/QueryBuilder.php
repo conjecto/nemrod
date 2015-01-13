@@ -9,7 +9,6 @@
 namespace Devyn\Component\QueryBuilder;
 
 
-use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
@@ -85,12 +84,6 @@ class QueryBuilder
     protected $sparqlQuery;
 
     /**
-     * namespace registry to add prefix to the query
-     * @var RdfNamespaceRegistry
-     */
-    protected $nsRegistry;
-
-    /**
      * EasyRdf Sparql Client to execute the query
      * @var Client
      */
@@ -98,14 +91,14 @@ class QueryBuilder
 
     /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
-     * @param RdfNamespaceRegistry $nsRegistry
+     * @param string $endpointUri
+     * @param string|null $updatedEndPointUri
      */
-    function __construct(RdfNamespaceRegistry $nsRegistry)
+    function __construct($endpointUri, $updatedEndPointUri = null)
     {
-        $this->nsRegistry = $nsRegistry;
         $this->limit = 0;
-        $this->offset = 0;
-        $this->client = new Client('http://dbpedia-live.openlinksw.com/sparql/');
+        $this->offset = -1;
+        $this->client = new Client($endpointUri, $updatedEndPointUri);
     }
 
     /**
@@ -114,7 +107,7 @@ class QueryBuilder
      * @param null $construct
      * @return $this|QueryBuilder
      */
-    public function construct($construct = null)
+    public function construct($construct)
     {
         return $this->addConstructToQuery($construct, false);
     }
@@ -124,7 +117,7 @@ class QueryBuilder
      * @param null $construct
      * @return $this|QueryBuilder
      */
-    public function addConstruct($construct = null)
+    public function addConstruct($construct)
     {
         return $this->addConstructToQuery($construct, true);
     }
@@ -135,7 +128,7 @@ class QueryBuilder
      * @param null $select
      * @return $this|QueryBuilder
      */
-    public function select($select = null)
+    public function select($select)
     {
         return $this->addSelectToQuery($select, false);
     }
@@ -154,7 +147,7 @@ class QueryBuilder
      * @param null $select
      * @return $this|QueryBuilder
      */
-    public function addSelect($select = null)
+    public function addSelect($select)
     {
         return $this->addSelectToQuery($select, true);
     }
@@ -169,7 +162,7 @@ class QueryBuilder
         return $this->addAskToQuery($ask, false);
     }
 
-    public function addAsk($ask = null)
+    public function addAsk($ask)
     {
         return $this->addAskToQuery($ask, true);
     }
@@ -177,12 +170,12 @@ class QueryBuilder
     /**
      * Specifies object for describe query
      * Replaces any previously specified describe, if any.
-     * @param null $select
+     * @param $describe
      * @return $this|QueryBuilder
      */
-    public function describe($select = null)
+    public function describe($describe)
     {
-        return $this->addDescribeToQuery($select, false);
+        return $this->addDescribeToQuery($describe, false);
     }
 
     /**
@@ -190,7 +183,7 @@ class QueryBuilder
      * @param null $select
      * @return $this|QueryBuilder
      */
-    public function addDescribe($select = null)
+    public function addDescribe($select)
     {
         return $this->addDescribeToQuery($select, true);
     }
@@ -201,7 +194,7 @@ class QueryBuilder
      * @param null $insert
      * @return $this|QueryBuilder
      */
-    public function insert($insert = null)
+    public function insert($insert)
     {
         return $this->addInsertToQuery($insert, false);
     }
@@ -211,7 +204,7 @@ class QueryBuilder
      * @param null $insert
      * @return $this|QueryBuilder
      */
-    public function addInsert($insert = null)
+    public function addInsert($insert)
     {
         return $this->addInsertToQuery($insert, true);
     }
@@ -232,7 +225,7 @@ class QueryBuilder
      * @param null $delete
      * @return QueryBuilder
      */
-    public function addDelete($delete = null)
+    public function addDelete($delete)
     {
         return $this->addDeleteToQuery($delete, true);
     }
@@ -305,10 +298,10 @@ class QueryBuilder
      * Specifies an ordering for the query results.
      * Replaces any previously specified orderings, if any.
      * @param $sort
-     * @param null $order
+     * @param string $order
      * @return QueryBuilder
      */
-    public function orderBy($sort, $order = null)
+    public function orderBy($sort, $order = 'ASC')
     {
         return $this->addOrderByToQuery($sort, $order, false);
     }
@@ -478,6 +471,7 @@ class QueryBuilder
         }
 
         $this->state = self::STATE_CLEAN;
+        $sparqlQuery = addslashes($sparqlQuery);
         $this->sparqlQuery = $sparqlQuery;
 
         return $sparqlQuery;
@@ -522,7 +516,7 @@ class QueryBuilder
         $this->type = self::CONSTRUCT;
 
         if (empty($construct)) {
-            return $this;
+            throw new InvalidArgumentException('You must specify what you want to construct');
         }
 
         $construct = is_array($construct) ? $construct : [$construct];
@@ -540,7 +534,7 @@ class QueryBuilder
         $this->type = self::SELECT;
 
         if (empty($select)) {
-            return $this;
+            throw new InvalidArgumentException('You must specify what you want to select');
         }
 
         $select = is_array($select) ? $select : [$select];
@@ -558,7 +552,7 @@ class QueryBuilder
         $this->type = self::DESCRIBE;
 
         if (empty($describe)) {
-            return $this;
+            throw new InvalidArgumentException('You must specify what you want to describe');
         }
 
         $describe = is_array($describe) ? $describe : [$describe];
@@ -584,10 +578,10 @@ class QueryBuilder
      * @param $append
      * @return QueryBuilder
      */
-    public function addInsertToQuery($select, $append)
+    protected function addInsertToQuery($select, $append)
     {
         if (empty($select)) {
-            throw new InvalidArgumentException('You have to fill-in a triplet in insertion');
+            throw new InvalidArgumentException('You must specify what you want to select');
         }
 
         if ($this->type == self::DELETE) {
@@ -607,7 +601,7 @@ class QueryBuilder
      * @param $append
      * @return QueryBuilder
      */
-    public function addDeleteToQuery($delete, $append)
+    protected function addDeleteToQuery($delete, $append)
     {
         if ($this->type == self::INSERT) {
             $this->type = self::DELETE_INSERT;
@@ -636,6 +630,10 @@ class QueryBuilder
      */
     protected function addWhereToQuery($where, $append)
     {
+        if (empty($where)) {
+            throw new InvalidArgumentException('You must specify with which property you want to filter');
+        }
+
         $where = is_array($where) ? $where : [$where];
         $where = new Expr\Where($where);
         return $this->add('where', $where, $append);
@@ -667,6 +665,10 @@ class QueryBuilder
      */
     protected function addBindToQuery($value, $key, $append)
     {
+        if (empty($value)) {
+            throw new InvalidArgumentException('You must specify what you want to bind');
+        }
+
         if (is_string($value)) {
             return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), $append);
         }
@@ -682,6 +684,9 @@ class QueryBuilder
      */
     protected function addOptionalToQuery($optional, $append)
     {
+        if (empty($optional)) {
+            throw new InvalidArgumentException('You must specify what you want to render optional');
+        }
         $optional = is_array($optional) ? $optional : [$optional];
         $optional = new Expr\Optional($optional);
         return $this->add('optional', $optional, $append);
@@ -694,6 +699,10 @@ class QueryBuilder
      */
     protected function addFilterToQuery($filter, $append)
     {
+        if (empty($filter)) {
+            throw new InvalidArgumentException('You must specify what you want to filter');
+        }
+
         $filter = is_array($filter) ? $filter : [$filter];
         $filter = new Expr\Filter($filter);
         return $this->add('filter', $filter, $append);
@@ -707,6 +716,10 @@ class QueryBuilder
      */
     protected function addOrderByToQuery($sort, $order, $append)
     {
+        if (empty($sort)) {
+            throw new InvalidArgumentException('You must specify which property you want to sort with');
+        }
+
         $orderBy = ($sort instanceof Expr\OrderBy) ? $sort : new Expr\OrderBy($sort, $order);
         return $this->add('orderBy', $orderBy, $append);
     }
@@ -718,6 +731,10 @@ class QueryBuilder
      */
     protected function addGroupByToQuery($groupBy, $append)
     {
+        if (empty($groupBy)) {
+            throw new InvalidArgumentException('You must specify which property you want to group by');
+        }
+
         $groupBy = new GroupBy([$groupBy]);
         return $this->add('groupBy', $groupBy, $append);
     }
@@ -874,7 +891,7 @@ class QueryBuilder
         $sparqlQuery = '';
         $sparqlQuery .= $this->getReducedSparqlQueryPart('groupBy', array('pre' => 'GROUP BY ', 'separator' => ' . ', 'post' => ' '));
         $sparqlQuery .= $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ' '));
-        if ($this->offset > 0)
+        if ($this->offset >= 0)
             $sparqlQuery .= 'OFFSET ' . strval($this->offset) . ' ';
         if ($this->maxResults > 0)
             $sparqlQuery .= 'LIMIT ' . strval($this->maxResults) . ' ';
