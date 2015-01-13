@@ -59,6 +59,7 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
+     * @todo should be renamed
      * @param $className
      * @param $uri
      * @return Resource
@@ -81,6 +82,21 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
+     *
+     */
+    public function constructBNode($owningUri, $property)
+    {
+        $result = $this->query("CONSTRUCT {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}");
+
+        echo "CONSTRUCT {?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}";
+        $graph = $this->resultToGraph($result);
+
+        $this->_rm->getUnitOfWork()->setBNodes($owningUri, $property, $graph);
+
+        return $graph;
+    }
+
+    /**
      * @param $uri
      * @param array $delete
      * @param array $insert
@@ -95,6 +111,17 @@ class SimplePersister implements PersisterInterface
         //$whereStr = "";
         echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
         //$result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+
+    }
+
+    /**
+     * @param Resource $resource
+     */
+    public function save($uri, $insert)
+    {
+        //var_dump($insert);
+        list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
+        $this->sparqlClient->update("INSERT DATA{".implode(".", $insertArr)."}");
 
     }
 
@@ -119,19 +146,19 @@ class SimplePersister implements PersisterInterface
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            $criteriaParts [] = $property. " " . $val;
+                            $criteriaParts[] = $property. " " . $val;
                         }
                     }
                 }
-                $criteriaParts [] = $property. " " . $value;
+                $criteriaParts[] = $property. " " . $value;
             }
 
         }
 
 
         if (isset($options['orderBy'])) {
-            //var_dump($options['orderBy']);
-            $criteriaParts []= $options['orderBy']." ?orderingvar";
+
+            $criteriaParts[] = $options['orderBy']." ?orderingvar";
             $queryFinal .= "ORDER BY ?orderingvar OFFSET 0";
         }
 
@@ -161,6 +188,11 @@ class SimplePersister implements PersisterInterface
         return $collection;
     }
 
+    /**
+     * @param $criteria
+     * @param bool $bNodesAsVariables
+     * @return array
+     */
     private function phpRdfToSparqlBody($criteria, $bNodesAsVariables = false)
     {
         //translating criteria to simple query terms
@@ -173,40 +205,65 @@ class SimplePersister implements PersisterInterface
                 if (!$this->_rm->getUnitOfWork()->isBNode($uri) // not a bnode
                     || $bNodesAsVariables) //or a bnode, but we have to treat it as a variable
                 {
-                    if ($this->_rm->getUnitOfWork()->isBNode($uri)) {
-                        $uri = $this->getNewBnode($uri);
-                    }
-                    $uri = (isset($this->bnodeMap[$uri])) ? $this->bnodeMap[$uri] : $uri;
-                    foreach ($properties as $property => $value) {
-                        if (is_array($value)) {
-                            if (!empty($value)) {
-                                foreach ($value as $val) {
-                                    if ($val['type'] == 'literal') {
-                                        $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
-                                    } else if ($val['type'] == 'bnode') {
-                                        if ($bNodesAsVariables) {
-                                            $varBnode = $this->nextVariable();
-                                            $varBnodePred = $this->nextVariable();
-                                            $varBnodeObj = $this->nextVariable();
-                                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
-                                            $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
-                                            $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
-                                        } else {
-                                            $newBNode = $this->getNewBnode($val['value']);
+                    list($a,$b) = $this->getTriplesForUri($criteria, $uri, $bNodesAsVariables, true);
+                    $criteriaParts = array_merge($criteriaParts, $a);
+                    $whereParts = array_merge($whereParts, $b);
+                }
+            }
+        }
+        return array(implode(".", $criteriaParts),implode(".", $whereParts));
+    }
 
-                                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $newBNode . "";
-                                        }
-                                    } else if ($val['type'] == 'uri'){
-                                        $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $val['value'] . "";
-                                    }
+    /**
+     * get an array of triples as strings for a given URI
+     */
+    private function getTriplesForUri($array, $uri, $bNodesAsVariables, $followBNodes = false)
+    {
+        $criteriaParts = array();
+        $whereParts = array();
+
+        if ($this->_rm->getUnitOfWork()->isBNode($uri)) {
+            $oldUri = $uri;
+            $uri = $this->getNewBnode($uri);
+            if (isset($array[$oldUri])) {
+                $array[$uri] = $array[$oldUri];
+                unset($array[$oldUri]);
+            }
+        }
+
+        foreach ($array[$uri] as $property => $value) {
+            if (is_array($value)) {
+                if (!empty($value)) {
+                    foreach ($value as $val) {
+                        if ($val['type'] == 'literal') {
+                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
+                        } else if ($val['type'] == 'bnode') {
+                            if ($bNodesAsVariables) {
+                                $varBnode = $this->nextVariable();
+                                $varBnodePred = $this->nextVariable();
+                                $varBnodeObj = $this->nextVariable();
+                                $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
+                                $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                            } else {
+                                $newBNode = $this->getNewBnode($val['value']);
+
+                                $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $newBNode . "";
+                                if ($followBNodes) {
+                                    list ($a, $b) = $this->getTriplesForUri($array, $val['value'], $bNodesAsVariables, false);
+                                    $criteriaParts = array_merge($criteriaParts, $a);
+                                    $whereParts = array_merge($whereParts, $b);
                                 }
                             }
+                        } else if ($val['type'] == 'uri'){
+                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $val['value'] . "";
                         }
                     }
                 }
             }
         }
-        return array(implode(".", $criteriaParts),implode(".", $whereParts));
+
+        return array($criteriaParts, $whereParts);
     }
 
     /**
@@ -232,7 +289,7 @@ class SimplePersister implements PersisterInterface
             //registering entity if needed
             //$pr = $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri());
             //if (null == $pr) {
-                $this->_rm->getUnitOfWork()->registerResource($re);
+            $this->_rm->getUnitOfWork()->registerResource($re);
             //} else {//@todo probably done wrong ; should instead switch registered resources' graph to collection graph
             //    $pr->setGraph($graph);
             //}
@@ -291,6 +348,9 @@ class SimplePersister implements PersisterInterface
         }
 
         return $graph;
+
+
+
     }
 
     /**
@@ -325,6 +385,9 @@ class SimplePersister implements PersisterInterface
      * @param $bNode
      */
     public function getNewBnode($bNode){
+        if (in_array($bNode, $this->bnodeMap)) {
+            return $bNode;
+        }
         if (!isset($this->bnodeMap[$bNode])){
             $this->bnodeMap[$bNode] = $this->nextBNode();
         }

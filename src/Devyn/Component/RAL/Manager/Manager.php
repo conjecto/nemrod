@@ -2,6 +2,7 @@
 
 namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\RAL\Resource\Resource;
+use EasyRdf\TypeMapper;
 
 
 /**
@@ -52,7 +53,7 @@ class Manager
      */
     public function getPersister()
     {
-        return $this->sparqlClient;
+        return $this->persister;
     }
 
     /**
@@ -86,6 +87,15 @@ class Manager
         $res = $persister->constructUri($className, $uri);
 
         return $res;
+    }
+
+    /**
+     * @param Resource $resource
+     */
+    public function save(Resource $resource)
+    {
+
+        //$this->getRepository($resource->)
     }
 
     public function update($resource) {

@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Devyn\Component\RAL\Resource\Resource;
 
 /**
  * Class ResourceRepository
@@ -49,11 +50,28 @@ class Repository
         if (empty($criterias['rdf:type'])) {
             $criterias['rdf:type'] = $this->className;
         } else if (is_array ($criterias['rdfs:Class'])) {
-            $criterias['rdf:type'] []= $this->className;
+            $criterias['rdf:type'][] = $this->className;
         } else {
             $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
         }
 
         return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
+    }
+
+    /**
+     * Create a new entity.
+     */
+    public function create()
+    {
+        return $this->_rm->getUnitOfWork()->create($this->className);
+    }
+
+    /**
+     * Save a newly created resource
+     * @param Resource $resource
+     */
+    public function save(Resource $resource)
+    {
+        return $this->_rm->getUnitOfWork()->save($this->className, $resource);
     }
 }

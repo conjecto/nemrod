@@ -13,7 +13,9 @@ use Devyn\Component\RAL\Resource\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use EasyRdf\Container;
+use EasyRdf\Exception;
 use EasyRdf\Graph;
+use EasyRdf\TypeMapper;
 
 class UnitOfWork {
 
@@ -62,7 +64,7 @@ class UnitOfWork {
      */
     public function completeLoad($uri, $type, $properties)
     {
-
+        //not implemented
     }
 
     /**
@@ -75,6 +77,42 @@ class UnitOfWork {
         $this->registeredResources[$resource->getUri()] = $resource ;
 
         $this->resourceSnapshot($resource);
+    }
+
+    /**
+     *
+     */
+    public function setBNodes($uri, $property, $graph)
+    {
+        if (empty($this->registeredResources[$uri])) {
+            throw new Exception("no parent resource");
+        }
+        /** @var \EasyRdf\Resource $owningResource */
+        $owningResource = $this->registeredResources[$uri];
+
+        /** @var Graph $graph */
+        $owningGraph = $owningResource->getGraph();
+
+        $owningGraph->delete($uri, $property);
+        /** @var Resource $res */
+        foreach ($graph->allResources($uri, $property) as $res) {
+
+            //var_dump($res);
+            $bnode = $owningGraph->newBNode();
+
+            $owningGraph->add($uri, $property, $bnode);
+            $rdfPhp = $res->getGraph()->toRdfPhp();
+
+            //
+            if (!empty($rdfPhp[$res->getUri()])) {
+                foreach ($rdfPhp[$res->getUri()] as $prop => $vals) {
+                    foreach ($vals as $val) {
+                        //echo $prop;
+                        $bnode->set($prop, $val['value']);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -161,6 +199,30 @@ class UnitOfWork {
     }
 
     /**
+     * @param Resource $resource
+     */
+    public function save($className, Resource $resource)
+    {
+        if (!empty($this->registeredResources[$resource->getUri()])) {
+            //@todo perform "ask" on db to check if resource is already there
+            throw new Exception("Resource already exist");
+        }
+        $this->registerResource($resource);
+        $this->persister->save($resource->getUri(),$resource->getGraph()->toRdfPhp());
+    }
+
+    /**
+     * @param $className
+     */
+    public function create($className)
+    {
+        $classN = TypeMapper::get($className);
+        $resource = new $classN($this->generateURI(),new Graph());
+        $resource->set('rdf:type', $className);
+        return $resource;
+    }
+
+    /**
      * @param Graph $graph
      */
     public function graphSnapshot(Graph $graph)
@@ -188,7 +250,7 @@ class UnitOfWork {
     public function managementBlackList($uri)
     {
         if (!in_array($uri, $this->blackListedResources)) {
-            $this->blackListedResources []= $uri;
+            $this->blackListedResources[] = $uri;
         }
     }
 
@@ -239,17 +301,19 @@ class UnitOfWork {
                 foreach ($properties as $property => $values) {
                     if (!empty($values)) {
                         foreach ($values as $value) {
-                            //@todo manage bnodes
-                            if (empty($rdfArray2[$resource]) ||
+
+                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']]) && !empty($rdfArray1[$value['value']])) {
+                                $minusArray[$resource][$property][] = $value ;
+                                $bnodesCollector [$value['value']]= $rdfArray1[$value['value']];
+                            }else if (empty($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource][$property]) ||
-                                ($value['type'] == 'bnode') ||
                                 !$this->containsObject($value, $rdfArray2[$resource][$property])) {
                                 if (!isset($minusArray[$resource][$property])) $minusArray[$resource][$property] = array();
                                 $minusArray[$resource][$property][] = $value ;
                             }
                             //content of bnode resource is stored in a separate array and will be merged with final result
-                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']])) {
-                                $bnodesCollector [$value['value']]= array();
+                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']]) && !empty($rdfArray1[$value['value']])) {
+
                             }
                         }
                     }
@@ -264,6 +328,7 @@ class UnitOfWork {
             }
         }
 
+        //print_r($minusArray); echo "<br/>";
         return $minusArray;
     }
 
@@ -273,7 +338,7 @@ class UnitOfWork {
      */
     public function isResource($resource)
     {
-        return ($resource instanceof Resource);
+        return ($resource instanceof \EasyRdf\Resource);
     }
 
     /**
@@ -325,5 +390,10 @@ class UnitOfWork {
         } else {
             return false;
         }
+    }
+
+    private function generateURI()
+    {
+        return uniqid("ogbd:");
     }
 }
