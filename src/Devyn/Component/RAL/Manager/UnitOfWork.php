@@ -142,7 +142,7 @@ class UnitOfWork {
     }
 
     /**
-     * @return mixed
+     * @return PersisterInterface
      */
     public function getPersister()
     {
@@ -212,13 +212,23 @@ class UnitOfWork {
     }
 
     /**
+     * @param Resource $resource
+     */
+    public function delete(Resource $resource)
+    {
+        $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
+    }
+
+    /**
      * @param $className
      */
     public function create($className)
     {
         $classN = TypeMapper::get($className);
+        /** @var Resource $resource */
         $resource = new $classN($this->generateURI(),new Graph());
-        $resource->set('rdf:type', $className);
+        $resource->setType( $className);
+        $resource->setRm($this->_rm);
         return $resource;
     }
 
@@ -313,7 +323,7 @@ class UnitOfWork {
                             }
                             //content of bnode resource is stored in a separate array and will be merged with final result
                             if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']]) && !empty($rdfArray1[$value['value']])) {
-
+                                //@todo nothing for now but try a similarity test between blanknodes.
                             }
                         }
                     }

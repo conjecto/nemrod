@@ -101,13 +101,18 @@ class RALExtension extends Extension
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
                 ->setArguments(array($name));
 
+            //query builder
+            //repository factory
+            $container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
+                ->setArguments(array($endpoint['query_uri']));
+
             //repository factory
             $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
                 ->setArguments(array($endpoint['query_uri']));
 
             $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
-                ->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']));
-                //->addMethodCall('setPersister', array(new Reference('ral.persister.'.$name)));
+                ->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
+                ->addMethodCall('setQueryBuilder', array(new Reference('ral.query_builder.'.$name)));
 
             //setting main alias
             if($name == $config["default_endpoint"]){

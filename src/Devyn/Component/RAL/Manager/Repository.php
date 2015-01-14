@@ -2,6 +2,7 @@
 
 namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\RAL\Resource\Resource;
+use EasyRdf\Exception;
 
 /**
  * Class ResourceRepository
@@ -35,6 +36,10 @@ class Repository
         /** @var \EasyRdf_Sparql_Result $result */
         $result = $this->_rm->find($this->className, $uri);
 
+        if(empty($result)) {
+            throw new Exception("Resource was not found");
+        }
+
         return $result;
     }
 
@@ -64,6 +69,14 @@ class Repository
     public function create()
     {
         return $this->_rm->getUnitOfWork()->create($this->className);
+    }
+
+    /**
+     * Create a new entity.
+     */
+    public function delete(Resource $resource)
+    {
+        return $this->_rm->getUnitOfWork()->delete($resource);
     }
 
     /**

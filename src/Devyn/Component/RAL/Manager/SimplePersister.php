@@ -44,7 +44,6 @@ class SimplePersister implements PersisterInterface
     {
         $this->_rm = $rm;
         $this->sparqlClient = new Client($sparqlClientUrl);
-
     }
 
     /**
@@ -67,18 +66,26 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        $result = $this->query("CONSTRUCT {<".$uri."> a ".$className."; ?p ?q.} WHERE {<".$uri."> a ".$className."; ?p ?q.}");
+        $body = "<".$uri. "> a ".(( $className == null ) ? $this->nextVariable() : $className)."; ?p ?q";
+        $query = $this->_rm->getQueryBuilder()->construct($body)->where($body);
 
-        $resourceClass = TypeMapper::get($className);
-        if (empty($resourceClass)) {
-            throw new Exception("No associated class");
+        $result = $this->query($query->getSparqlQuery());
+
+        if (!$this->isEmpty($result)) {
+            $resourceClass = TypeMapper::get($className);
+            if (empty($resourceClass)) {
+                throw new Exception("No associated class");
+            }
+
+            $resource = $this->resultToResource($uri, $result, $resourceClass);
+
+            if ($resource) {
+                $this->registerResource($resource);
+            }
+
+            return $resource;
         }
-
-        $resource = $this->resultToResource($uri, $result, $resourceClass);
-
-        $this->registerResource($resource);
-
-        return $resource;
+        return null;
     }
 
     /**
@@ -88,12 +95,11 @@ class SimplePersister implements PersisterInterface
     {
         $result = $this->query("CONSTRUCT {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}");
 
-        echo "CONSTRUCT {?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}";
         $graph = $this->resultToGraph($result);
 
         $this->_rm->getUnitOfWork()->setBNodes($owningUri, $property, $graph);
 
-        return $graph;
+        return $graph->get($owningUri, $property);
     }
 
     /**
@@ -104,14 +110,12 @@ class SimplePersister implements PersisterInterface
      */
     public function update($uri, $delete, $insert, $where)
     {
-
         list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
         list($insertStr) = $this->phpRdfToSparqlBody($insert);
 
         //$whereStr = "";
-        echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
-        //$result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
-
+        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        $result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
     }
 
     /**
@@ -121,8 +125,22 @@ class SimplePersister implements PersisterInterface
     {
         //var_dump($insert);
         list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
+        //foreach ($insertArr as $tr) {
+        //    $tr = $this->_rm->getQueryBuilder()->addInsert();
+        //}
+        //$this->_rm->getQueryBuilder()->addInsert();
+        //echo htmlspecialchars("INSERT DATA{".implode(".", $insertArr)."}");
         $this->sparqlClient->update("INSERT DATA{".implode(".", $insertArr)."}");
+    }
 
+    /**
+     *
+     */
+    public function delete($uri, $graph)
+    {
+        list($deleteArr, $whereArr)= $this->getTriplesForUri($graph, $uri, true);
+        //echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
+        $this->sparqlClient->update("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
     /**
@@ -135,7 +153,7 @@ class SimplePersister implements PersisterInterface
      */
     public function constructCollection(array $criteria, array $options)
     {
-        $body = "?s ?p ?q";
+        //$body = "?s ?p ?q";
 
         //end statments for query (order by, etc)
         $queryFinal = "";
@@ -157,16 +175,28 @@ class SimplePersister implements PersisterInterface
 
 
         if (isset($options['orderBy'])) {
-
             $criteriaParts[] = $options['orderBy']." ?orderingvar";
-            $queryFinal .= "ORDER BY ?orderingvar OFFSET 0";
+            $queryFinal .= "?orderingvar";
         }
 
-        $body .= (count ($criteriaParts)) ? "; ".implode(';', $criteriaParts)."." : ".";
+        $this->_rm->getQueryBuilder()->construct("?s ?p ?q");
+        $this->_rm->getQueryBuilder()->where("?s ?p ?q");
 
-        $query  = "CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
+        foreach ($criteriaParts as $triple) {
+            $this->_rm->getQueryBuilder()->addConstruct(mysql_real_escape_string("?s ".$triple));
+            $this->_rm->getQueryBuilder()->andWhere(mysql_real_escape_string("?s ".$triple));
+        }
 
-        $result = $this->query($query);
+
+        $query  = $this->_rm->getQueryBuilder()->orderBy($queryFinal)->setOffset(0);
+        //"CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
+
+        //echo htmlspecialchars($query->getSparqlQuery());
+        $result = $this->query($query->getSparqlQuery());
+
+        if ($this->isEmpty($result)){
+            return null;
+        }
 
         $graph = $this->resultToGraph($result);
 
@@ -216,6 +246,11 @@ class SimplePersister implements PersisterInterface
 
     /**
      * get an array of triples as strings for a given URI
+     * @param $array
+     * @param $uri
+     * @param $bNodesAsVariables
+     * @param bool $followBNodes
+     * @return array
      */
     private function getTriplesForUri($array, $uri, $bNodesAsVariables, $followBNodes = false)
     {
@@ -235,9 +270,13 @@ class SimplePersister implements PersisterInterface
             if (is_array($value)) {
                 if (!empty($value)) {
                     foreach ($value as $val) {
+                        var_dump($val);
                         if ($val['type'] == 'literal') {
                             $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
+                        } else if($val['type'] == 'uri') {
+                            $criteriaParts[] = "<" . $uri . "> <" . $property . "> <" . $val['value'] . ">";
                         } else if ($val['type'] == 'bnode') {
+
                             if ($bNodesAsVariables) {
                                 $varBnode = $this->nextVariable();
                                 $varBnodePred = $this->nextVariable();
@@ -401,5 +440,14 @@ class SimplePersister implements PersisterInterface
     private function nextBNode()
     {
         return "_:bn".(++$this->bnodeCount);
+    }
+
+    private function isEmpty($result) {
+        if ($result instanceof Graph) {
+            return $result->isEmpty();
+        } else if ($result instanceof Result) {
+            $cnt = count($result) ;
+            return ( $cnt == 0 );
+        }
     }
 } 

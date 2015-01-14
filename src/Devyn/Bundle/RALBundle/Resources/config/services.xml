@@ -11,7 +11,7 @@
         <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\Manager</parameter>
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
         <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
-
+        <parameter key="query_manager.class">Devyn\Component\QueryBuilder\QueryBuilder</parameter>
     </parameters>
 
     <services>
@@ -21,6 +21,9 @@
             <tag name="kernel.event_listener" event="kernel.request" />
         </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
+
+        <!-- query builder -->
+        <service id="ral.query_builder" class="%query_manager.class%" abstract="true"/>
 
         <!-- resource manager -->
         <service id="ral.resource_manager" class="%ral.resource_manager.class%" abstract="true"/>

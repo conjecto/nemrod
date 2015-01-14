@@ -32,4 +32,6 @@ interface PersisterInterface
      */
     public function constructCollection(array $criteria, array $options);
 
+    public function constructBNode($owningUri, $property);
+
 }

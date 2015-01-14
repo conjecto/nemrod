@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\TypeMapper;
 
@@ -21,6 +22,8 @@ class Manager
     /** @var UnitOfWork */
     private $unitOfWork;
 
+    /** @var  QueryBuilder */
+    private $qb;
 
     /**
      * @param RepositoryFactory $repositoryFactory
@@ -49,6 +52,22 @@ class Manager
     }
 
     /**
+     * @return QueryBuilder
+     */
+    public function getQueryBuilder()
+    {
+        return $this->qb;
+    }
+
+    /**
+     * @param mixed $qb
+     */
+    public function setQueryBuilder($qb)
+    {
+        $this->qb = $qb;
+    }
+
+    /**
      * @return \EasyRdf_Sparql_Client
      */
     public function getPersister()
@@ -73,7 +92,7 @@ class Manager
     {
         //trying to find resource if already loaded
         $resource = $this->unitOfWork->retrieveResource($className, $uri);
-
+        //var_dump($resource);
         if (!empty($resource)) {
             return $resource;
         }

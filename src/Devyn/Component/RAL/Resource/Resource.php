@@ -4,6 +4,7 @@ namespace Devyn\Component\RAL\Resource;
 use Devyn\Component\RAL\Manager\Manager;
 use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Resource extends BaseResource
 {
@@ -30,25 +31,44 @@ class Resource extends BaseResource
      */
     public function get($property, $type = null, $lang = null)
     {
-        $result = parent::get($property, $type, $lang);
-        //echo $this->getUri();
-        //echo "::".$property."::";
-        //var_dump($result);
-        //var_dump($this);
-        //echo 'uu';
-        //var_dump($result);//die();
+
+        $pathParts = explode(".",$property);
+        $first = $property;
+        $rest = "";
+        $firstSep = strpos($property, ".");
+        //echo $property;
+        //echo "length".$firstSep;
+        if ($firstSep) {
+            $first = substr($property, 0, $firstSep);
+            $rest = substr($property, $firstSep+1);
+            //echo $first.";".$rest;
+        }
+        //echo "<br/>";
+
+        $result = parent::get($first, $type, $lang);
+
+
         if (is_array($result)) {
 
         } else if ($this->_rm->isResource($result)) {
-            //echo "00";
-            if($result->isBNode())
-            {
-                //echo 'pw';
-                $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $property);
-                //loading resource
-            } else {
-                //$this->_rm->find(get_class($this));
-            }
+
+                try {
+                    if ($result->isBNode()) {
+                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                    }else {
+                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri($this->uri, $first);
+                    }
+                     if (!empty($re)){
+                     return $re->get($rest, $type, $lang);
+                    }
+                    return null;
+                } catch (Exception $e) {
+                    return null;
+                }
+
+        } else {
+            //echo "{".$first."|".$result."}";
+            return $result;
         }
 
         return $result;

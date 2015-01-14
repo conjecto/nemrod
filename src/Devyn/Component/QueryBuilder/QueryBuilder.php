@@ -471,7 +471,6 @@ class QueryBuilder
         }
 
         $this->state = self::STATE_CLEAN;
-        $sparqlQuery = addslashes($sparqlQuery);
         $this->sparqlQuery = $sparqlQuery;
 
         return $sparqlQuery;
