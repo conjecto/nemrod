@@ -35,7 +35,7 @@ class Resource extends BaseResource
         $pathParts = explode(".",$property);
         $first = $property;
         $rest = "";
-        $firstSep = strpos($property, ".");
+        $firstSep = strpos($property, "/");
         //echo $property;
         //echo "length".$firstSep;
         if ($firstSep) {

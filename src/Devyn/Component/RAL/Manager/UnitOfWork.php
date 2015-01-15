@@ -221,6 +221,7 @@ class UnitOfWork {
 
     /**
      * @param $className
+     * @return Resource
      */
     public function create($className)
     {
@@ -402,6 +403,10 @@ class UnitOfWork {
         }
     }
 
+    /**
+     * Uri generation.
+     * @return string
+     */
     private function generateURI()
     {
         return uniqid("ogbd:");

@@ -183,14 +183,15 @@ class SimplePersister implements PersisterInterface
         $this->_rm->getQueryBuilder()->where("?s ?p ?q");
 
         foreach ($criteriaParts as $triple) {
-            $this->_rm->getQueryBuilder()->addConstruct(mysql_real_escape_string("?s ".$triple));
-            $this->_rm->getQueryBuilder()->andWhere(mysql_real_escape_string("?s ".$triple));
+            $this->_rm->getQueryBuilder()->addConstruct("?s ".$triple);
+            $this->_rm->getQueryBuilder()->andWhere("?s ".$triple);
         }
 
 
         $query  = $this->_rm->getQueryBuilder()->orderBy($queryFinal)->setOffset(0);
         //"CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
 
+        $this->_rm->getLogger()->info($query->getSparqlQuery());
         //echo htmlspecialchars($query->getSparqlQuery());
         $result = $this->query($query->getSparqlQuery());
 

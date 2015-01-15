@@ -106,13 +106,25 @@ class RALExtension extends Extension
             $container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
                 ->setArguments(array($endpoint['query_uri']));
 
-            //repository factory
+            //persister
             $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
                 ->setArguments(array($endpoint['query_uri']));
 
-            $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
-                ->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
+            $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
+            $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
+                //adding query builder
                 ->addMethodCall('setQueryBuilder', array(new Reference('ral.query_builder.'.$name)));
+
+            //adding logging service (if present
+            $a = new Reference('logger');
+            $b = new Reference('loggerrr');
+            //var_dump($a);
+            //var_dump($b);
+            //die();
+            //if ($container->has('logger')) {
+            //    echo 'haslogger';die();
+                $rm->addMethodCall('setLogger', array(new Reference('logger')));
+            //}
 
             //setting main alias
             if($name == $config["default_endpoint"]){

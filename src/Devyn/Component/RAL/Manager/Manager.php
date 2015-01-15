@@ -4,6 +4,7 @@ namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\TypeMapper;
+use Symfony\Bridge\Monolog\Logger;
 
 
 /**
@@ -25,6 +26,9 @@ class Manager
     /** @var  QueryBuilder */
     private $qb;
 
+    /** @var  Logger */
+    private $logger;
+
     /**
      * @param RepositoryFactory $repositoryFactory
      */
@@ -32,6 +36,22 @@ class Manager
     {
         $this->repositoryFactory = $repositoryFactory;
         $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
+    }
+
+    /**
+     * @return Logger
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
+
+    /**
+     * @param Logger $logger
+     */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
     }
 
     /**
