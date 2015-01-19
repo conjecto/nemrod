@@ -96,7 +96,7 @@ class QueryBuilder
      */
     function __construct($endpointUri, $updatedEndPointUri = null)
     {
-        $this->limit = 0;
+        $this->maxResults = 0;
         $this->offset = -1;
         $this->client = new Client($endpointUri, $updatedEndPointUri);
     }
@@ -419,6 +419,22 @@ class QueryBuilder
         return $this;
     }
 
+    public function getOrderBy()
+    {
+        return $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ''));
+    }
+
+    public function getQuery()
+    {
+        $query = new Query();
+        $query->setSparqlQuery($this->getSparqlQuery());
+        $query->setOffset($this->offset);
+        $query->setMaxResults($this->maxResults);
+        $query->setOrderBy($this->getOrderBy());
+
+        return $query;
+    }
+
     /**
      *  Execute the query with sparql client
      */
@@ -494,7 +510,7 @@ class QueryBuilder
     public function reset()
     {
         $this->offset = 0;
-        $this->limit = 0;
+        $this->maxResults = 0;
         $this->type = self::CONSTRUCT;
 
         foreach ($this->sparqlParts as $key => $part)
@@ -890,11 +906,6 @@ class QueryBuilder
     {
         $sparqlQuery = '';
         $sparqlQuery .= $this->getReducedSparqlQueryPart('groupBy', array('pre' => 'GROUP BY ', 'separator' => ' . ', 'post' => ' '));
-        $sparqlQuery .= $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ' '));
-        if ($this->offset >= 0)
-            $sparqlQuery .= 'OFFSET ' . strval($this->offset) . ' ';
-        if ($this->maxResults > 0)
-            $sparqlQuery .= 'LIMIT ' . strval($this->maxResults) . ' ';
 
         return $sparqlQuery;
     }
