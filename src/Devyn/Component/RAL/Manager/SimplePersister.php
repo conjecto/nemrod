@@ -193,8 +193,11 @@ class SimplePersister implements PersisterInterface
             $this->_rm->getQueryBuilder()->andWhere("?s ".$triple);
         }
 
+        $query = $this->_rm->getQueryBuilder()->setOffset(0);
+        if ($queryFinal != "") {
+            $query->orderBy($queryFinal);
+        }
 
-        $query  = $this->_rm->getQueryBuilder()->orderBy($queryFinal)->setOffset(0);
         //"CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
 
         $this->_rm->getLogger()->info($query->getSparqlQuery());
