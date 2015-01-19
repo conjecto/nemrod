@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\TypeMapper;
@@ -79,6 +80,9 @@ class Manager
      */
     public function getQueryBuilder()
     {
+        if($this->qb == null) {
+            $this->qb = $this->createQueryBuilder();
+        }
         return $this->qb;
     }
 

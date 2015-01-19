@@ -9,6 +9,7 @@
 namespace Devyn\Component\QueryBuilder;
 
 
+use Devyn\Component\RAL\Manager\Manager;
 use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;
 
@@ -191,7 +192,7 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
-        $this->result = $this->rm->getConnection()->query($this->completeSparqlQuery);
+        $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
         return $this->result;
     }

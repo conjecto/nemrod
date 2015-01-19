@@ -103,8 +103,8 @@ class RALExtension extends Extension
 
             //query builder
             //repository factory
-            $container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
-                ->setArguments(array($endpoint['query_uri']));
+            //$container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
+            //    ->setArguments(array($endpoint['query_uri']));
 
             //persister
             $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
@@ -113,14 +113,8 @@ class RALExtension extends Extension
             $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
             $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
                 //adding query builder
-                ->addMethodCall('setQueryBuilder', array(new Reference('ral.query_builder.'.$name)));
+                ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)));
 
-            //adding logging service (if present
-            $a = new Reference('logger');
-            $b = new Reference('loggerrr');
-            //var_dump($a);
-            //var_dump($b);
-            //die();
             //if ($container->has('logger')) {
             //    echo 'haslogger';die();
                 $rm->addMethodCall('setLogger', array(new Reference('logger')));

@@ -9,6 +9,7 @@
 namespace Devyn\Component\QueryBuilder;
 
 
+use Devyn\Component\RAL\Manager\Manager;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -418,20 +419,23 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getOrderBy()
     {
         return $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ''));
     }
 
+    /**
+     * @return mixed
+     */
     public function getQuery()
     {
-        $query = new Query($this->rm);
-        $query->setSparqlQuery($this->getSparqlQuery());
-        $query->setOffset($this->offset);
-        $query->setMaxResults($this->maxResults);
-        $query->setOrderBy($this->getOrderBy());
-
-        return $query;
+        return $this->rm->createQuery($this->getSparqlQuery())
+            ->setOffset($this->offset)
+            ->setMaxResults($this->maxResults)
+            ->setOrderBy($this->getOrderBy());
     }
 
     /**
