@@ -107,7 +107,7 @@ class QueryBuilder
      * @param null $construct
      * @return $this|QueryBuilder
      */
-    public function construct($construct)
+    public function construct($construct = null)
     {
         return $this->addConstructToQuery($construct, false);
     }
@@ -521,7 +521,7 @@ class QueryBuilder
         $this->type = self::CONSTRUCT;
 
         if (empty($construct)) {
-            throw new InvalidArgumentException('You must specify what you want to construct');
+            return $this;
         }
 
         $construct = is_array($construct) ? $construct : [$construct];
@@ -778,9 +778,9 @@ class QueryBuilder
      */
     protected function getSparqlQueryForConstruct()
     {
-        $sparqlQuery = 'CONSTRUCT'
+        $sparqlQuery = 'CONSTRUCT '
             . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('construct', array('pre' => ' { ', 'separator' => ' . ', 'post' => ' } '));
+            . $this->getReducedSparqlQueryPart('construct', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' } '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
