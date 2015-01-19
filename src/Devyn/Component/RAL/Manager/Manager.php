@@ -83,6 +83,7 @@ class Manager
         if($this->qb == null) {
             $this->qb = $this->createQueryBuilder();
         }
+        $this->qb->reset();
         return $this->qb;
     }
 
