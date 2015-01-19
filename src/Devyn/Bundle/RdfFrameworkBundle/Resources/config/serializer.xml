@@ -7,29 +7,29 @@
     <parameters>
         <parameter key="rdf.serialization_visitor.class">Devyn\Bridge\EasyRdf\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="rdf.deserialization_visitor.class">Devyn\Bridge\EasyRdf\Serializer\RdfDeserializationVisitor</parameter>
+        <parameter key="rdf.serialization_visitor.jsonld.class">Devyn\Bridge\EasyRdf\Serializer\JsonLdSerializationVisitor</parameter>
     </parameters>
 
     <services>
         <!-- JsonLD -->
-        <service id="rdf.serialization_visitor.jsonld" class="%rdf.serialization_visitor.class%">
-            <argument type="string">jsonld</argument>
-            <!--argument type="collection">
-                <argument key="compact">0</argument>
-            </argument-->
+        <service id="rdf.serialization_visitor.jsonld" class="%rdf.serialization_visitor.jsonld.class%">
+            <argument type="service" id="namespace_registry" />
+            <argument type="service" id="jsonld.frame.loader" />
             <tag name="jms_serializer.serialization_visitor" format="jsonld" />
         </service>
-
-        <!--service id="rdf.deserialization_visitor.jsonld" class="%rdf.deserialization_visitor.class%">
-            <argument type="service" id="jms_serializer.naming_strategy" />
-            <argument type="service" id="jms_serializer.object_constructor" />
-            <tag name="jms_serializer.deserialization_visitor" format="jsonld" />
-        </service-->
 
         <!-- Ntriples -->
         <service id="rdf.serialization_visitor.n3" class="%rdf.serialization_visitor.class%">
             <argument type="string">ntriples</argument>
             <tag name="jms_serializer.serialization_visitor" format="n3" />
         </service>
+
+        <!-- Turtle -->
+        <service id="rdf.serialization_visitor.ttl" class="%rdf.serialization_visitor.class%">
+            <argument type="string">turtle</argument>
+            <tag name="jms_serializer.serialization_visitor" format="ttl" />
+        </service>
+
     </services>
 </container>
 

@@ -42,8 +42,6 @@ class RdfFrameworkExtension extends Extension
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
-        
-        $this->loadResourceMapping($config, $container);
     }
 
     /**
@@ -69,37 +67,6 @@ class RdfFrameworkExtension extends Extension
     }
 
     /**
-     * Parses active bundles for resources to map
-     *
-     * @param ContainerBuilder $container
-     */
-    private function loadResourceMapping(array $config, ContainerBuilder $container){
-        $resourceDir = 'RdfResource' ;
-        $includedFiles = array();
-        $amd = new AnnotationDriver();
-        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
-            //@todo check mapping type (annotation is the only one used for now)
-            //building resource dir path
-            $refl = new \ReflectionClass($class);;
-            $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'] . "\\" . $resourceDir . "\\";
-            //adding dir path to driver known pathes
-            $amd->addResourcePath($resourcePath);
-        }
-
-        //registering all annotation mappings.
-        $amd->registerMappings();
-    }
-
-    /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return 'rdf_framework';
-    }
-
-    /**
      * Add a jsonld frame path
      *
      * @param $jsonLdFilesystemLoaderDefinition
@@ -113,6 +80,14 @@ class RdfFrameworkExtension extends Extension
             $name = substr($name, 0, -6);
         }
         $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir, $name));
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return 'rdf_framework';
     }
 
 }

@@ -46,22 +46,13 @@ class RdfSerializationVisitor extends AbstractVisitor
     protected $graph;
 
     /**
-     * @param string $format
+     * @param PropertyNamingStrategyInterface $format
+     * @param array $options
      */
     public function __construct($format, $options = array())
     {
         $this->format = $format;
         $this->options = $options;
-
-        /*$frame = (object) array(
-          '@context' => (object) array(
-            'foaf' => 'http://xmlns.com/foaf/0.1/'
-          ),
-          '@type' => 'foaf:Person',
-          '@id' => "http://barkingiguana.com/~craig/foaf.rdf#me"
-        );
-        $this->options['frame'] = $frame;*/
-
     }
 
     /**
@@ -80,11 +71,6 @@ class RdfSerializationVisitor extends AbstractVisitor
      */
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-        $frame = $context->attributes->get('frame')->getOrElse(null);
-        if($frame) {
-            $this->options['frame'] = $frame;
-        }
-
         if($data instanceof \EasyRdf\Graph) {
             $this->graph = $data;
         } elseif($data instanceof \EasyRdf\Resource) {

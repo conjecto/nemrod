@@ -11,7 +11,8 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
  * Class MimeTypeRequestListener
  * @package Devyn\Bundle\RdfFrameworkBundle\EventListener
  */
-class MimeTypeRequestListener {
+class MimeTypeRequestListener
+{
     /**
      * @param GetResponseEvent $event
      */

@@ -2,6 +2,8 @@
 
 namespace Devyn\Bundle\RALBundle\DependencyInjection;
 
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -36,14 +38,21 @@ class RALExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
+        // namespaces
         if(isset($config['namespaces'])) {
             $this->registerRdfNamespaces($config['namespaces'], $container);
         }
 
+        // sparql endpoints
         if(isset($config['endpoints'])) {
             $this->registerSparqlClients($config, $container);
-            $this->registerResourceManagers($config, $container);
         }
+
+        // rdf resource mapping
+        $this->registerResourceMappings($config, $container);
+
+        //
+        $this->registerResourceManagers($config, $container);
     }
 
     /**
@@ -85,19 +94,70 @@ class RALExtension extends Extension
      */
     public function registerResourceManagers(array $config, ContainerBuilder $container)
     {
+
         foreach($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
                 ->setArguments(array($name));
 
-            $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'))
-                ->setArguments(array(new Reference('ral.repository_factory.'.$name)))
-                ->addMethodCall('setSparqlClient', array(new Reference('ral.sparql.connection.'.$name)));
+            //query builder
+            //repository factory
+            //$container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
+            //    ->setArguments(array($endpoint['query_uri']));
+
+            //persister
+            $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
+                ->setArguments(array($endpoint['query_uri']));
+
+            $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
+            $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
+                //adding query builder
+                ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)));
+
+            //if ($container->has('logger')) {
+            //    echo 'haslogger';die();
+                $rm->addMethodCall('setLogger', array(new Reference('logger')));
+            //}
 
             //setting main alias
             if($name == $config["default_endpoint"]){
                 $container->setAlias('rm', 'ral.resource_manager.'.$name);
+            }
+        }
+    }
+
+    /**
+     * Parses active bundles for resources to map
+     *
+     * @param ContainerBuilder $container
+     */
+    private function registerResourceMappings(array $config, ContainerBuilder $container)
+    {
+        $paths = array();
+
+        // foreach bundle, get the rdf resource path
+        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+            //@todo check mapping type (annotation is the only one used for now)
+            // building resource dir path
+            $refl = new \ReflectionClass($class);
+            $path = pathinfo($refl->getFileName());
+            $resourcePath = $path['dirname'] . '\\RdfResource\\';
+            //adding dir path to driver known pathes
+            if(is_dir($resourcePath)) {
+                $paths[] = $resourcePath;
+            }
+        }
+
+        // registering all annotation mappings.
+        $service = $container->getDefinition('ral.type_mapper');
+        $driver = new AnnotationDriver(new AnnotationReader(), $paths);
+        $classes = $driver->getAllClassNames();
+
+        foreach($classes as $class) {
+            $metadata = $driver->loadMetadataForClass($class);
+            foreach($metadata->types as $type) {
+                $service->addMethodCall('set', array($type, $class));
             }
         }
     }

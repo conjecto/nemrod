@@ -27,6 +27,14 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
     }
 
     /**
+     * Return the decoded frame
+     */
+    public function load($name)
+    {
+        return json_decode($this->getSource($name));
+    }
+
+    /**
      * Returns the path to the template file.
      *
      * The file locator is used to locate the template when the naming convention
@@ -61,4 +69,5 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
         return $this->cache[$logicalName] = $file;
     }
+
 }

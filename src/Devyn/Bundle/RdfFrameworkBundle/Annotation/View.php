@@ -1,20 +1,13 @@
 <?php
 
-/*
- * This file is part of the FOSRestBundle package.
- *
- * (c) FriendsOfSymfony <http://friendsofsymfony.github.com/>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Devyn\Bundle\RdfFrameworkBundle\Annotation;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 /**
- * View annotation class.
+ * Controller annotation to configure rdf view mode
+ * @see Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationInterface
+ *
  * @Annotation
  * @Target({"METHOD","CLASS"})
  */
@@ -29,6 +22,11 @@ class View extends Template
      * @var string
      */
     protected $frame;
+
+    /**
+     * @var boolean
+     */
+    protected $compact = true;
 
     /**
      * @return string
@@ -60,6 +58,22 @@ class View extends Template
     public function setFrame($frame)
     {
         $this->frame = $frame;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isCompact()
+    {
+        return $this->compact;
+    }
+
+    /**
+     * @param boolean $compact
+     */
+    public function setCompact($compact)
+    {
+        $this->compact = $compact;
     }
 
     /**

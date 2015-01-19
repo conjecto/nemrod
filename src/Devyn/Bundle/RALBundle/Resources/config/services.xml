@@ -6,19 +6,37 @@
 
     <parameters>
         <parameter key="ral.namespace_registry.class">Devyn\Component\RAL\Registry\RdfNamespaceRegistry</parameter>
-        <parameter key="ral.sparql.connection.class">EasyRdf_Sparql_Client</parameter>
-        <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\ResourceManager</parameter>
+        <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
+        <parameter key="ral.type_mapper.class">Devyn\Component\RAL\Registry\TypeMapperRegistry</parameter>
+        <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\Manager</parameter>
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
+        <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
+        <parameter key="query_manager.class">Devyn\Component\QueryBuilder\QueryBuilder</parameter>
     </parameters>
 
     <services>
-        <!-- namespace -->
-        <service id="ral.namespace_registry" class="%ral.namespace_registry.class%" />
+
+        <!-- namespace  -->
+        <service id="ral.namespace_registry" class="%ral.namespace_registry.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
+        </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
+
+        <!-- query builder -->
+        <service id="ral.query_builder" class="%query_manager.class%" abstract="true"/>
 
         <!-- resource manager -->
         <service id="ral.resource_manager" class="%ral.resource_manager.class%" abstract="true"/>
         <service id="ral.repository_factory" class="%ral.repository_factory.class%" abstract="true"/>
+        <service id="ral.persister" class="%ral.persister.class%" abstract="true"/>
+
+        <!-- type mapper  -->
+        <service id="ral.type_mapper" class="%ral.type_mapper.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
+        </service>
+
+        <!--service id="ral.repository_factory" class="%ral.repository_factory.class%" public="false">
+        </service-->
 
         <!-- sparql endpoints -->
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>

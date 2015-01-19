@@ -12,6 +12,7 @@
 namespace Devyn\Bundle\RdfFrameworkBundle;
 
 use Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler\RdfNamespacePass;
+use Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler\SerializerMappingDriverPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\Scope;
@@ -20,9 +21,16 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\HttpKernel\DependencyInjection\RegisterListenersPass;
 
 /**
- * Bundle.
+ * RdfFrameworkBundle.
  */
 class RdfFrameworkBundle extends Bundle
 {
-
+    /**
+     * @param ContainerBuilder $container
+     */
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+        $container->addCompilerPass(new SerializerMappingDriverPass());
+    }
 }
