@@ -68,9 +68,11 @@ class SimplePersister implements PersisterInterface
     public function constructUri($className, $uri)
     {
         $body = "<".$uri. "> a ".(( $className == null ) ? $this->nextVariable() : $className)."; ?p ?q";
-        $query = $this->_rm->getQueryBuilder()->construct($body)->where($body);
 
-        $result = $this->query($query->getSparqlQuery());
+        /** @var QueryBuilder $qb */
+        $qb = $this->_rm->getQueryBuilder();
+        $qb->construct($body)->where($body);
+        $result = $qb->getQuery()->execute();
 
         if (!$this->isEmpty($result)) {
             $resourceClass = TypeMapper::get($className);
@@ -131,11 +133,7 @@ class SimplePersister implements PersisterInterface
     {
         //var_dump($insert);
         list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
-        //foreach ($insertArr as $tr) {
-        //    $tr = $this->_rm->getQueryBuilder()->addInsert();
-        //}
-        //$this->_rm->getQueryBuilder()->addInsert();
-        //echo htmlspecialchars("INSERT DATA{".implode(".", $insertArr)."}");
+
         $this->updateQuery("INSERT DATA{".implode(".", $insertArr)."}");
     }
 
@@ -176,7 +174,6 @@ class SimplePersister implements PersisterInterface
                 }
                 $criteriaParts[] = $property. " " . $value;
             }
-
         }
 
 
@@ -215,8 +212,6 @@ class SimplePersister implements PersisterInterface
         $graph = $this->resultToGraph($graph);
 
         $collection = null;
-
-        //echo $query;
 
         //extraction of collection is done by unit of work
         if (!empty($criteria['rdf:type'])) {
@@ -340,13 +335,7 @@ class SimplePersister implements PersisterInterface
         $this->blackListCollection ($coll);
 
         foreach ($res as $re) {
-            //registering entity if needed
-            //$pr = $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri());
-            //if (null == $pr) {
             $this->_rm->getUnitOfWork()->registerResource($re);
-            //} else {//@todo probably done wrong ; should instead switch registered resources' graph to collection graph
-            //    $pr->setGraph($graph);
-            //}
         }
 
         return $coll;
@@ -389,6 +378,7 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
+     * //@todo not used anymore
      * temp function : converting a result to a graph.
      * @param Result $result
      * @return Graph
