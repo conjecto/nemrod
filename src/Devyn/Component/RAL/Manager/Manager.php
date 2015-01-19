@@ -14,6 +14,9 @@ use Symfony\Bridge\Monolog\Logger;
 class Manager
 {
 
+    /** @var Client */
+    private $sparqlClient;
+
     /** @var  RepositoryFactory */
     private $repositoryFactory;
 
@@ -155,6 +158,46 @@ class Manager
     public function setUnitOfWork($unitOfWork)
     {
         $this->unitOfWork = $unitOfWork;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->sparqlClient;
+    }
+
+    /**
+     * @param Client $sparqlClient
+     */
+    public function setClient($sparqlClient)
+    {
+        $this->sparqlClient = $sparqlClient;
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    public function createQueryBuilder()
+    {
+        return new QueryBuilder($this);
+    }
+
+    /**
+     * @param string $sparqlQuery
+     * @internal param string $dql
+     * @return Query
+     */
+    public function createQuery($sparqlQuery = '')
+    {
+        $query = new Query($this);
+
+        if ( ! empty($sparqlQuery)) {
+            $query->setSparqlQuery($sparqlQuery);
+        }
+
+        return $query;
     }
 
     public function dump()

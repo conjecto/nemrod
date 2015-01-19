@@ -36,14 +36,12 @@ class Resource extends BaseResource
         $first = $property;
         $rest = "";
         $firstSep = strpos($property, "/");
-        //echo $property;
-        //echo "length".$firstSep;
+
         if ($firstSep) {
             $first = substr($property, 0, $firstSep);
             $rest = substr($property, $firstSep+1);
             //echo $first.";".$rest;
         }
-        //echo "<br/>";
 
         $result = parent::get($first, $type, $lang);
 
@@ -52,19 +50,19 @@ class Resource extends BaseResource
 
         } else if ($this->_rm->isResource($result)) {
 
-                try {
-                    if ($result->isBNode()) {
-                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                    }else {
-                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri($this->uri, $first);
-                    }
-                     if (!empty($re)){
-                     return $re->get($rest, $type, $lang);
-                    }
-                    return null;
-                } catch (Exception $e) {
-                    return null;
+            try {
+                if ($result->isBNode()) {
+                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                }else {
+                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri($this->uri, $first);
                 }
+                 if (!empty($re)){
+                 return $re->get($rest, $type, $lang);
+                }
+                return null;
+            } catch (Exception $e) {
+                return null;
+            }
 
         } else {
             //echo "{".$first."|".$result."}";
@@ -87,10 +85,6 @@ class Resource extends BaseResource
      */
     public function setRm($rm)
     {
-        //echo "set for --->".$this->getUri()."<br/>";
-        //var_dump($rm);
         $this->_rm = $rm;
     }
-
-    //public function
 } 

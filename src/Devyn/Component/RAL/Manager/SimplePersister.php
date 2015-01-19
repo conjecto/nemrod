@@ -8,6 +8,7 @@
 
 namespace Devyn\Component\RAL\Manager;
 
+use Devyn\Component\QueryBuilder\QueryBuilder;
 use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
@@ -21,10 +22,6 @@ use EasyRdf\TypeMapper;
  */
 class SimplePersister implements PersisterInterface
 {
-
-    /** @var Client */
-    private $sparqlClient;
-
     /** @var Manager */
     private $_rm;
 
@@ -40,22 +37,25 @@ class SimplePersister implements PersisterInterface
     private $bnodeMap = array();
 
     /**  */
-    public function __construct($rm, $sparqlClientUrl)
+    public function __construct($rm)
     {
         $this->_rm = $rm;
-        $this->sparqlClient = new Client($sparqlClientUrl);
     }
 
     /**
      * @param $string
      * @return $this|\EasyRdf\Sparql\Result
      */
-    public function query($string)
+    protected function query($string)
     {
-
-        $result = $this->sparqlClient->query($string);
+        $result = $this->_rm->getClient()->query($string);
 
         return $result;
+    }
+
+    protected function updateQuery($string)
+    {
+        $this->_rm->getClient()->update($string);
     }
 
     /**
@@ -119,7 +119,8 @@ class SimplePersister implements PersisterInterface
 
         //$whereStr = "";
         //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
-        $result = $this->sparqlClient->update("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+
     }
 
     /**
@@ -134,7 +135,7 @@ class SimplePersister implements PersisterInterface
         //}
         //$this->_rm->getQueryBuilder()->addInsert();
         //echo htmlspecialchars("INSERT DATA{".implode(".", $insertArr)."}");
-        $this->sparqlClient->update("INSERT DATA{".implode(".", $insertArr)."}");
+        $this->updateQuery("INSERT DATA{".implode(".", $insertArr)."}");
     }
 
     /**
@@ -144,7 +145,7 @@ class SimplePersister implements PersisterInterface
     {
         list($deleteArr, $whereArr)= $this->getTriplesForUri($graph, $uri, true);
         //echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
-        $this->sparqlClient->update("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
+        $this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
     /**
@@ -226,6 +227,7 @@ class SimplePersister implements PersisterInterface
 
         return $collection;
     }
+
 
     /**
      * @param $criteria

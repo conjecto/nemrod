@@ -217,6 +217,8 @@ class UnitOfWork {
     public function delete(Resource $resource)
     {
         $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
+        $this->deleteSnapshotForResource($resource);
+        //@todo unregister from uow.
     }
 
     /**
@@ -228,7 +230,7 @@ class UnitOfWork {
         $classN = TypeMapper::get($className);
         /** @var Resource $resource */
         $resource = new $classN($this->generateURI(),new Graph());
-        $resource->setType( $className);
+        $resource->setType($className);
         $resource->setRm($this->_rm);
         return $resource;
     }
@@ -388,6 +390,24 @@ class UnitOfWork {
         }
 
         return $snapshot;
+    }
+
+    /**
+     * Deletes resource from managed and snapshot
+     * @param $resource
+     */
+    private function deleteSnapshotForResource($resource)
+    {
+        //iterating through graph
+        $i = 1;
+        $sRes = null;
+        foreach ($this->initialSnapshots as $res) {
+            if ($res->getUri() == $resource->getUri()) {
+                $this->initialSnapshots->offsetUnset($i);
+                break;
+            }
+            $i++;
+        }
     }
 
     /**

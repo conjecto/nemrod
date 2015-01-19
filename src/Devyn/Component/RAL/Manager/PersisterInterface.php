@@ -14,12 +14,6 @@ namespace Devyn\Component\RAL\Manager;
  */
 interface PersisterInterface
 {
-
-    /**
-     * @return Result
-     */
-    public function query($queryString);
-
     /**
      * @return Resource
      */
