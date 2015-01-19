@@ -10,7 +10,6 @@ namespace Devyn\Component\QueryBuilder;
 
 
 use Doctrine\ORM\Query\Expr\GroupBy;
-use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -84,21 +83,21 @@ class QueryBuilder
     protected $sparqlQuery;
 
     /**
-     * EasyRdf Sparql Client to execute the query
-     * @var Client
+     * Resource Manager for easyrdf resources
+     * @var Manager
      */
-    protected $client;
+    protected $rm;
 
     /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
      * @param string $endpointUri
      * @param string|null $updatedEndPointUri
      */
-    function __construct($endpointUri, $updatedEndPointUri = null)
+    function __construct(Manager $rm)
     {
-        $this->limit = 0;
+        $this->rm = $rm;
+        $this->maxResults = 0;
         $this->offset = -1;
-        $this->client = new Client($endpointUri, $updatedEndPointUri);
     }
 
     /**
@@ -419,18 +418,20 @@ class QueryBuilder
         return $this;
     }
 
-    /**
-     *  Execute the query with sparql client
-     */
-    public function execute()
+    public function getOrderBy()
     {
-        if ($this->type == self::DELETE || $this->type == self::INSERT ||
-            $this->type == self::DELETE_INSERT) {
-            return $this->client->update($this->getSparqlQuery());
-        }
-        else {
-            return $this->client->query($this->getSparqlQuery());
-        }
+        return $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ''));
+    }
+
+    public function getQuery()
+    {
+        $query = new Query($this->rm);
+        $query->setSparqlQuery($this->getSparqlQuery());
+        $query->setOffset($this->offset);
+        $query->setMaxResults($this->maxResults);
+        $query->setOrderBy($this->getOrderBy());
+
+        return $query;
     }
 
     /**
@@ -493,7 +494,7 @@ class QueryBuilder
     public function reset()
     {
         $this->offset = 0;
-        $this->limit = 0;
+        $this->maxResults = 0;
         $this->type = self::CONSTRUCT;
 
         foreach ($this->sparqlParts as $key => $part)
@@ -889,11 +890,6 @@ class QueryBuilder
     {
         $sparqlQuery = '';
         $sparqlQuery .= $this->getReducedSparqlQueryPart('groupBy', array('pre' => 'GROUP BY ', 'separator' => ' . ', 'post' => ' '));
-        $sparqlQuery .= $this->getReducedSparqlQueryPart('orderBy', array('pre' => 'ORDER BY ', 'separator' => ' ', 'post' => ' '));
-        if ($this->offset >= 0)
-            $sparqlQuery .= 'OFFSET ' . strval($this->offset) . ' ';
-        if ($this->maxResults > 0)
-            $sparqlQuery .= 'LIMIT ' . strval($this->maxResults) . ' ';
 
         return $sparqlQuery;
     }
