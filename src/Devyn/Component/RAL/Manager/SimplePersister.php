@@ -52,6 +52,7 @@ class SimplePersister implements PersisterInterface
      */
     public function query($string)
     {
+
         $result = $this->sparqlClient->query($string);
 
         return $result;
@@ -93,9 +94,12 @@ class SimplePersister implements PersisterInterface
      */
     public function constructBNode($owningUri, $property)
     {
-        $result = $this->query("CONSTRUCT {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}");
+        $graph = $this->query("CONSTRUCT {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}");
 
-        $graph = $this->resultToGraph($result);
+        if($graph instanceof Graph) {
+            $graph = $this->resultToGraph($graph);
+        }
+
 
         $this->_rm->getUnitOfWork()->setBNodes($owningUri, $property, $graph);
 
@@ -193,13 +197,17 @@ class SimplePersister implements PersisterInterface
 
         $this->_rm->getLogger()->info($query->getSparqlQuery());
         //echo htmlspecialchars($query->getSparqlQuery());
-        $result = $this->query($query->getSparqlQuery());
+        $graph = $this->query($query->getSparqlQuery());
 
-        if ($this->isEmpty($result)){
+        if ($graph instanceof Result) {
+            $graph = $this->resultToGraph($graph);
+        }
+
+        if ($this->isEmpty($graph)){
             return null;
         }
 
-        $graph = $this->resultToGraph($result);
+        $graph = $this->resultToGraph($graph);
 
         $collection = null;
 
@@ -363,13 +371,13 @@ class SimplePersister implements PersisterInterface
     /**
      * Builds and return Resource of the corresponding type with provided uri and result
      * @param null $uri
-     * @param Result $result
+     * @param Graph $graph
      * @param string $resourceClass
      * @return Resource
      */
-    private function resultToResource($uri = null, Result $result, $resourceClass)
+    private function resultToResource($uri = null, Graph $graph, $resourceClass)
     {
-        $resource = new $resourceClass($uri, $this->resultToGraph($result));
+        $resource = new $resourceClass($uri, $graph);
 
         return $resource;
     }
@@ -379,8 +387,13 @@ class SimplePersister implements PersisterInterface
      * @param Result $result
      * @return Graph
      */
-    private function resultToGraph(Result $result)
+    private function resultToGraph($result)
     {
+        //@todo
+        if ($result instanceof Graph) {
+            return $result;
+        }
+
         $graph = new Graph(null);
 
         foreach ($result as $row) {
