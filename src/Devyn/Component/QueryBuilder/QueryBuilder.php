@@ -725,6 +725,10 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify which property you want to sort with');
         }
 
+        if ($this->offset == -1) {
+            $this->offset = 0;
+        }
+
         $orderBy = ($sort instanceof Expr\OrderBy) ? $sort : new Expr\OrderBy($sort, $order);
         return $this->add('orderBy', $orderBy, $append);
     }
