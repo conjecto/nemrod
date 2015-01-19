@@ -108,12 +108,15 @@ class Query
     }
 
     /**
-     * @param int $maxResults
+     * @param $maxResults
+     * @return Query $this
      */
     public function setMaxResults($maxResults)
     {
         $this->maxResults = $maxResults;
         $this->state = self::STATE_DIRTY;
+
+        return $this;
     }
 
     /**
@@ -126,11 +129,14 @@ class Query
 
     /**
      * @param int $offset
+     * @return Query
      */
     public function setOffset($offset)
     {
         $this->offset = $offset;
         $this->state = self::STATE_DIRTY;
+
+        return $this;
     }
 
     /**
@@ -142,12 +148,15 @@ class Query
     }
 
     /**
-     * @param mixed $orderBy
+     * @param $orderBy
+     * @return Query $this
      */
     public function setOrderBy($orderBy)
     {
         $this->orderBy = $orderBy;
         $this->state = self::STATE_DIRTY;
+
+        return $this;
     }
 
     /**
@@ -192,6 +201,7 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
+        echo $this->completeSparqlQuery;
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
         return $this->result;

@@ -428,7 +428,8 @@ class QueryBuilder
     }
 
     /**
-     * @return mixed
+     *
+     * @return Query
      */
     public function getQuery()
     {
