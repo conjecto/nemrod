@@ -9,31 +9,38 @@
 namespace Devyn\Component\QueryBuilder;
 
 
+use EasyRdf\Sparql\Result;
+use EasyRdf\Graph;
+
+/**
+ * Class Query
+ * @package Devyn\Component\QueryBuilder
+ */
 class Query
 {
-    /**
-     *
-     */
     const STATE_CLEAN = 1;
     const STATE_DIRTY = 2;
 
     /**
-     * @var int
+     * The current state of this query.
+     *
+     * @var integer
      */
     protected $state = self::STATE_DIRTY;
 
     /**
-     * @var
+     * Resource manager for easyrdf resources
+     * @var Manager
      */
     protected $rm;
 
     /**
-     * @var array
+     * @var array of hints
      */
     protected $hints = array();
 
     /**
-     * Cached DQL query.
+     * Cached sparql query.
      *
      * @var string
      */
@@ -54,30 +61,39 @@ class Query
     protected $maxResults = null;
 
     /**
-     * @var
+     * Specifies an ordering for the query results
      *
      * @var string
      */
     protected $orderBy = null;
 
     /**
+     * Parser used to verify the sparql query syntaxe
+     *
      * @var Parser
      */
     protected $parser;
 
     /**
+     * Sparql query with limit, offset and orderBy
+     *
      * @var string
      */
     protected $completeSparqlQuery;
 
     /**
-     * @var null
+     * Query result
+     *
+     * @var Result|Graph
      */
     protected $result;
 
-    public function __construct(/*ResourceManager $rm*/)
+    /**
+     * @param Manager $rm
+     */
+    public function __construct(Manager $rm)
     {
-//        $this->rm = $rm;
+        $this->rm = $rm;
         $this->parser = new Parser($this);
         $this->result = null;
     }
@@ -163,7 +179,12 @@ class Query
         return $this;
     }
 
-    public function execute(/*$hydrationMode = null*/)
+    /**
+     * Execute the query
+     *
+     * @return Graph|Result
+     */
+    public function execute()
     {
         if ($this->state == self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
@@ -172,9 +193,14 @@ class Query
 
         $this->result = $this->rm->getConnection()->query($this->completeSparqlQuery);
 
-        return $this;
+        return $this->result;
     }
 
+    /**
+     * Complete the query with orderBy, limit and offset
+     *
+     * @return string
+     */
     protected function getCompleteSparqlQuery()
     {
         $sparqlQuery = $this->getSparqlQuery();
@@ -195,8 +221,15 @@ class Query
     }
 
 
+    /**
+     * Reset the query
+     */
     public function free()
     {
+        $this->sparqlQuery = '';
+        $this->orderBy = '';
+        $this->offset = -1;
+        $this->maxResults = 0;
         $this->hints = array();
     }
 

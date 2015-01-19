@@ -10,7 +10,6 @@ namespace Devyn\Component\QueryBuilder;
 
 
 use Doctrine\ORM\Query\Expr\GroupBy;
-use EasyRdf\Sparql\Client;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -84,21 +83,21 @@ class QueryBuilder
     protected $sparqlQuery;
 
     /**
-     * EasyRdf Sparql Client to execute the query
-     * @var Client
+     * Resource Manager for easyrdf resources
+     * @var Manager
      */
-    protected $client;
+    protected $rm;
 
     /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
      * @param string $endpointUri
      * @param string|null $updatedEndPointUri
      */
-    function __construct($endpointUri, $updatedEndPointUri = null)
+    function __construct(Manager $rm)
     {
+        $this->rm = $rm;
         $this->maxResults = 0;
         $this->offset = -1;
-        $this->client = new Client($endpointUri, $updatedEndPointUri);
     }
 
     /**
@@ -426,27 +425,13 @@ class QueryBuilder
 
     public function getQuery()
     {
-        $query = new Query();
+        $query = new Query($this->rm);
         $query->setSparqlQuery($this->getSparqlQuery());
         $query->setOffset($this->offset);
         $query->setMaxResults($this->maxResults);
         $query->setOrderBy($this->getOrderBy());
 
         return $query;
-    }
-
-    /**
-     *  Execute the query with sparql client
-     */
-    public function execute()
-    {
-        if ($this->type == self::DELETE || $this->type == self::INSERT ||
-            $this->type == self::DELETE_INSERT) {
-            return $this->client->update($this->getSparqlQuery());
-        }
-        else {
-            return $this->client->query($this->getSparqlQuery());
-        }
     }
 
     /**
