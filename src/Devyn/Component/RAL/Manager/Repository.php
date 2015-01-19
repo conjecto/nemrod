@@ -64,6 +64,15 @@ class Repository
     }
 
     /**
+     * Returns all entities
+     * @return Collection
+     */
+    public function findAll()
+    {
+        return $this->findBy(array(), array());
+    }
+
+    /**
      * Create a new entity.
      */
     public function create()

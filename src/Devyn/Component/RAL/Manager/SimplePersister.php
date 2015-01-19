@@ -46,14 +46,14 @@ class SimplePersister implements PersisterInterface
      * @param $string
      * @return $this|\EasyRdf\Sparql\Result
      */
-    protected function query($string)
+    private function query($string)
     {
         $result = $this->_rm->getClient()->query($string);
 
         return $result;
     }
 
-    protected function updateQuery($string)
+    private function updateQuery($string)
     {
         $this->_rm->getClient()->update($string);
     }
@@ -68,9 +68,11 @@ class SimplePersister implements PersisterInterface
     public function constructUri($className, $uri)
     {
         $body = "<".$uri. "> a ".(( $className == null ) ? $this->nextVariable() : $className)."; ?p ?q";
-        $query = $this->_rm->getQueryBuilder()->construct($body)->where($body);
 
-        $result = $this->query($query->getSparqlQuery());
+        /** @var QueryBuilder $qb */
+        $qb = $this->_rm->getQueryBuilder();
+        $qb->construct($body)->where($body);
+        $result = $qb->getQuery()->execute();
 
         if (!$this->isEmpty($result)) {
             $resourceClass = TypeMapper::get($className);
@@ -94,13 +96,16 @@ class SimplePersister implements PersisterInterface
      */
     public function constructBNode($owningUri, $property)
     {
+        $body = "<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.";
 
-        $graph = $this->query("CONSTRUCT {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.} WHERE {<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.}");
+        $qb = $this->_rm->getQueryBuilder();
+        $qb->construct($body)->where($body);
+
+        $graph = $qb->getQuery()->execute();
 
         if($graph instanceof Graph) {
             $graph = $this->resultToGraph($graph);
         }
-
 
         $this->_rm->getUnitOfWork()->setBNodes($owningUri, $property, $graph);
 
@@ -122,6 +127,7 @@ class SimplePersister implements PersisterInterface
         //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
         $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
+        return $result;
     }
 
     /**
@@ -131,11 +137,7 @@ class SimplePersister implements PersisterInterface
     {
         //var_dump($insert);
         list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
-        //foreach ($insertArr as $tr) {
-        //    $tr = $this->_rm->getQueryBuilder()->addInsert();
-        //}
-        //$this->_rm->getQueryBuilder()->addInsert();
-        //echo htmlspecialchars("INSERT DATA{".implode(".", $insertArr)."}");
+
         $this->updateQuery("INSERT DATA{".implode(".", $insertArr)."}");
     }
 
@@ -146,6 +148,9 @@ class SimplePersister implements PersisterInterface
     {
         list($deleteArr, $whereArr)= $this->getTriplesForUri($graph, $uri, true);
         //echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
+
+        $qb = $this->_rm->getQueryBuilder()->delete(implode(".", $deleteArr))->where(implode(".", $whereArr));
+        $qb->getQuery()->execute();
         $this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
@@ -176,7 +181,6 @@ class SimplePersister implements PersisterInterface
                 }
                 $criteriaParts[] = $property. " " . $value;
             }
-
         }
 
 
@@ -185,21 +189,27 @@ class SimplePersister implements PersisterInterface
             $queryFinal .= "?orderingvar";
         }
 
-        $this->_rm->getQueryBuilder()->construct("?s ?p ?q");
-        $this->_rm->getQueryBuilder()->where("?s ?p ?q");
+        $qb = $this->_rm->getQueryBuilder();
+        $qb->construct("?s ?p ?q");
+        $qb->where("?s ?p ?q");
 
         foreach ($criteriaParts as $triple) {
-            $this->_rm->getQueryBuilder()->addConstruct("?s ".$triple);
-            $this->_rm->getQueryBuilder()->andWhere("?s ".$triple);
+            $qb->addConstruct("?s ".$triple);
+            $qb->andWhere("?s ".$triple);
         }
 
+        $qb->setOffset(0);
+        if ($queryFinal != "") {
+            $qb->orderBy($queryFinal);
+        }
 
-        $query  = $this->_rm->getQueryBuilder()->orderBy($queryFinal)->setOffset(0);
+        $graph = $qb->getQuery()->execute();
+
         //"CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
 
-        $this->_rm->getLogger()->info($query->getSparqlQuery());
+        $this->_rm->getLogger()->info($qb->getSparqlQuery());
         //echo htmlspecialchars($query->getSparqlQuery());
-        $graph = $this->query($query->getSparqlQuery());
+        //$graph = $this->query($query->getSparqlQuery());
 
         if ($graph instanceof Result) {
             $graph = $this->resultToGraph($graph);
@@ -212,8 +222,6 @@ class SimplePersister implements PersisterInterface
         $graph = $this->resultToGraph($graph);
 
         $collection = null;
-
-        //echo $query;
 
         //extraction of collection is done by unit of work
         if (!empty($criteria['rdf:type'])) {
@@ -337,13 +345,7 @@ class SimplePersister implements PersisterInterface
         $this->blackListCollection ($coll);
 
         foreach ($res as $re) {
-            //registering entity if needed
-            //$pr = $this->_rm->getUnitOfWork()->retrieveResource($className, $re->getUri());
-            //if (null == $pr) {
             $this->_rm->getUnitOfWork()->registerResource($re);
-            //} else {//@todo probably done wrong ; should instead switch registered resources' graph to collection graph
-            //    $pr->setGraph($graph);
-            //}
         }
 
         return $coll;
@@ -386,6 +388,7 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
+     * //@todo not used anymore
      * temp function : converting a result to a graph.
      * @param Result $result
      * @return Graph
