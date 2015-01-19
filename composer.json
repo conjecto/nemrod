@@ -14,8 +14,9 @@
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
-        "easyrdf/easyrdf": "~0.9",
-		"ml/json-ld": "1.0.3"
+        "easyrdf/easyrdf": "dev-master",
+		"ml/json-ld": "~1.0",
+        "jms/serializer": "~0.11"
     },
     "replace": {
 

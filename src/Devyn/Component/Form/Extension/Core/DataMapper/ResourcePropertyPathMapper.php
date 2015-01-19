@@ -11,7 +11,7 @@
 
 namespace Devyn\Component\Form\Extension\Core\DataMapper;
 
-use Devyn\Component\RdfNamespace\RdfNamespaceRegistry;
+use Devyn\Bridge\EasyRdf\RdfNamespaceRegistry;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\FormBuilder;

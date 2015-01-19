@@ -2,6 +2,8 @@
 
 namespace Devyn\Bundle\RdfFrameworkBundle\DependencyInjection;
 
+use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
@@ -32,31 +34,85 @@ class RdfFrameworkExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
         $loader->load('form.xml');
+        $loader->load('serializer.xml');
+        $loader->load('event_listeners.xml');
 
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
-        if(isset($config['namespaces'])) {
-            $this->registerRdfNamespaces($config['namespaces'], $container);
+        // register jsonld frames paths
+        $this->registerJsonLdFramePaths($config, $container);
+        
+        $this->loadResourceMapping($config, $container);
+    }
+
+    /**
+     * Register jsonld frames paths for each bundle
+     *
+     * @return string
+     */
+    public function registerJsonLdFramePaths($config, ContainerBuilder $container)
+    {
+        $jsonLdFilesystemLoaderDefinition = $container->getDefinition('rdf.jsonld.frame.loader.filesystem');
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
+            // in app
+            if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
+                $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
+            }
+
+            // in bundle
+            $reflection = new \ReflectionClass($class);
+            if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/frames')) {
+                $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
+            }
         }
     }
 
     /**
-     * Load the namespaces in registry
+     * Parses active bundles for resources to map
      *
-     * @param array $config
      * @param ContainerBuilder $container
      */
-    private function registerRdfNamespaces(array $config, ContainerBuilder $container)
-    {
-        $registry = $container->getDefinition('rdf_namespace_registry');
-        foreach($config as $prefix => $data) {
-            $registry->addMethodCall('set', array($prefix, $data['uri']));
+    private function loadResourceMapping(array $config, ContainerBuilder $container){
+        $resourceDir = 'RdfResource' ;
+        $includedFiles = array();
+        $amd = new AnnotationDriver();
+        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+            //@todo check mapping type (annotation is the only one used for now)
+            //building resource dir path
+            $refl = new \ReflectionClass($class);;
+            $path = pathinfo($refl->getFileName());
+            $resourcePath = $path['dirname'] . "\\" . $resourceDir . "\\";
+            //adding dir path to driver known pathes
+            $amd->addResourcePath($resourcePath);
         }
+
+        //registering all annotation mappings.
+        $amd->registerMappings();
     }
 
+    /**
+     * @return string
+     */
     public function getAlias()
     {
         return 'rdf_framework';
     }
+
+    /**
+     * Add a jsonld frame path
+     *
+     * @param $jsonLdFilesystemLoaderDefinition
+     * @param $dir
+     * @param $bundle
+     */
+    private function addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle)
+    {
+        $name = $bundle;
+        if ('Bundle' === substr($name, -6)) {
+            $name = substr($name, 0, -6);
+        }
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir, $name));
+    }
+
 }
