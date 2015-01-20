@@ -8,6 +8,8 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Resource extends BaseResource
 {
+    const PROPERTY_PATH_SEPARATOR = "/";
+
     /**
      * @var Manager
      */
@@ -35,7 +37,7 @@ class Resource extends BaseResource
         $pathParts = explode(".",$property);
         $first = $property;
         $rest = "";
-        $firstSep = strpos($property, "/");
+        $firstSep = strpos($property, $this::PROPERTY_PATH_SEPARATOR);
 
         if ($firstSep) {
             $first = substr($property, 0, $firstSep);
@@ -45,7 +47,6 @@ class Resource extends BaseResource
 
         $result = parent::get($first, $type, $lang);
 
-
         if (is_array($result)) {
 
         } else if ($this->_rm->isResource($result)) {
@@ -54,7 +55,7 @@ class Resource extends BaseResource
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
                 }else {
-                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri($this->uri, $first);
+                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri(null, $result->getUri());
                 }
                  if (!empty($re)){
                  return $re->get($rest, $type, $lang);
