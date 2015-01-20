@@ -236,7 +236,7 @@ class Query
      *
      * @return string
      */
-    public function getCompleteSparqlQuery()
+    protected function getCompleteSparqlQuery()
     {
         $sparqlQuery = $this->getSparqlQuery();
 
