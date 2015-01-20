@@ -98,7 +98,7 @@ class Resource extends BaseResource
             try {
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                }else {
+                } else {
                     $re = $this->_rm->find(null, $result->getUri());
                 }
                 if (!empty($re)){
