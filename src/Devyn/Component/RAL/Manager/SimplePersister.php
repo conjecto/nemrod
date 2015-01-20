@@ -72,10 +72,19 @@ class SimplePersister implements PersisterInterface
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
         $qb->construct($body)->where($body);
+
         $result = $qb->getQuery()->execute();
 
         if (!$this->isEmpty($result)) {
-            $resourceClass = TypeMapper::get($className);
+
+            $resourceClass = null;
+            foreach ($result->all($uri,'rdf:type') as $type) {
+                $resourceClass = TypeMapper::get($type->getUri());
+                if ($resourceClass != null) {
+                    break;
+                }
+            }
+
             if (empty($resourceClass)) {
                 throw new Exception("No associated class");
             }
@@ -276,6 +285,7 @@ class SimplePersister implements PersisterInterface
     {
         $criteriaParts = array();
         $whereParts = array();
+        $bNodeVariablesGroupByProperty = array();
 
         if ($this->_rm->getUnitOfWork()->isBNode($uri)) {
             $oldUri = $uri;
@@ -298,12 +308,16 @@ class SimplePersister implements PersisterInterface
                         } else if ($val['type'] == 'bnode') {
 
                             if ($bNodesAsVariables) {
-                                $varBnode = $this->nextVariable();
-                                $varBnodePred = $this->nextVariable();
-                                $varBnodeObj = $this->nextVariable();
-                                $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
-                                $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
-                                $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                if (!isset ($bNodeVariablesGroupByProperty[$property]) ) {
+                                    $bNodeVariablesGroupByProperty[$property] = true ;
+                                    $varBnode = $this->nextVariable();
+                                    $varBnodePred = $this->nextVariable();
+                                    $varBnodeObj = $this->nextVariable();
+                                    $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                    $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
+                                    $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
+                                }
+
                             } else {
                                 $newBNode = $this->getNewBnode($val['value']);
 

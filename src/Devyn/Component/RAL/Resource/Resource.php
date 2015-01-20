@@ -57,8 +57,11 @@ class Resource extends BaseResource
                 }else {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructUri(null, $result->getUri());
                 }
-                 if (!empty($re)){
-                 return $re->get($rest, $type, $lang);
+                if (!empty($re)){
+                     if ($rest == ''){
+                         return $re;
+                     }
+                     return $re->get($rest, $type, $lang);
                 }
                 return null;
             } catch (Exception $e) {
