@@ -8,11 +8,11 @@
 
 namespace Devyn\Component\Form\Extension\Core\Type;
 
-use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
-use Symfony\Component\Form\Exception\Exception;
+use Devyn\Component\RAL\Manager\Manager;
+use EasyRdf\Exception;
+use EasyRdf\Resource;
 use Symfony\Component\Form\Exception\StringCastException;
 use Symfony\Component\Form\Extension\Core\ChoiceList\ObjectChoiceList;
-use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
@@ -44,26 +44,29 @@ class ResourceChoiceList extends ObjectChoiceList
     /**
      * @var string
      */
-    protected $type;
+    protected $class;
 
     /**
-     * @param array|\Traversable $choices
+     * @var Manager
+     */
+    protected $rm;
+
+    /**
+     * @param Manager $rm
+     * @param null|string $choices
+     * @param string $class
+     * @param string $property
      * @param null $labelPath
      * @param array $preferredChoices
      * @param null $groupPath
      * @param null $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct($choices, $type, $property = 'rdfs:label', $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($rm, $choices, $class, $property = 'rdfs:label', $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
     {
-        $this->type = $type;
+        $this->rm = $rm;
+        $this->class = $class;
         $this->property = $property;
-
-        if (!$this->loaded) {
-            // Make sure the constraints of the parent constructor are fulfilled
-            $resources = array();
-        }
-
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -146,7 +149,7 @@ class ResourceChoiceList extends ObjectChoiceList
         $resources = array();
         foreach($values as $uri) {
             if (!empty($uri))
-                $resources[] = new \EasyRdf_Resource($uri, null);
+                $resources[] = new Resource($uri, null);
         }
         return $resources;
     }
@@ -154,7 +157,7 @@ class ResourceChoiceList extends ObjectChoiceList
     /**
      * Returns the values corresponding to the given entities.
      *
-     * @param array $resources
+     * @param array Resource $resources
      *
      * @return array
      *
@@ -254,17 +257,13 @@ class ResourceChoiceList extends ObjectChoiceList
     /**
      * Loads the list with entities from repository.
      * @TODO change graph loaded from the foaf:profil by a graph loaded by the repository
-     * @throws \EasyRdf_Exception
-     * @throws \EasyRdf_Http_Exception
+     * @throws Exception
+     * @throws \EasyRdf\Http\Exception
      */
     private function load()
     {
-        $resources = [];
         try {
-            $foaf = new \EasyRdf\Graph("http://njh.me/foaf.rdf");
-            $foaf->load();
-            $me = $foaf->primaryTopic();
-            $resources = $me->all($this->type);
+            $resources = $this->rm->getRepository($this->class)->findAll();
 
             // The second parameter $labels is ignored by ObjectChoiceList
             parent::initialize($resources, array(), $this->preferredResources);

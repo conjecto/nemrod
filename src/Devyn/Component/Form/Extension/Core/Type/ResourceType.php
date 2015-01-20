@@ -9,11 +9,8 @@
 namespace Devyn\Component\Form\Extension\Core\Type;
 
 
-use Devyn\Component\Form\Extension\Core\Type\ResourceChoiceList;
+use Devyn\Component\RAL\Manager\Manager;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
@@ -24,6 +21,20 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 class ResourceType extends AbstractType
 {
     /**
+     * @var Manager
+     */
+    protected $rm;
+
+    /**
+     * @param Manager $rm
+     */
+    public function __construct(Manager $rm)
+    {
+        $this->rm = $rm;
+    }
+
+
+    /**
      * Add options type and property used to find resources in repository
      * @param $resolver
      */
@@ -31,8 +42,9 @@ class ResourceType extends AbstractType
     {
         $choiceList = function (Options $options) {
             return new ResourceChoiceList(
+                $this->rm,
                 $options['choices'],
-                $options['type'],
+                $options['class'],
                 $options['property']
             );
         };
@@ -42,7 +54,7 @@ class ResourceType extends AbstractType
             'property' => 'rdfs:label'
         ));
 
-        $resolver->setRequired(array('type'));
+        $resolver->setRequired(array('class'));
         $resolver->setOptional(array('property'));
     }
 
