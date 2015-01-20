@@ -16,6 +16,7 @@
         </service>
         <service id="form.type.resource" class="%form.type.resource.class%">
             <argument type="service" id="rm"/>
+            <argument type="service" id="ral.type_mapper"/>
             <tag name="form.type" alias="resource" />
         </service>
     </services>

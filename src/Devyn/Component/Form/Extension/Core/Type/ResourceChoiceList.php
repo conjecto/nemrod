@@ -9,6 +9,7 @@
 namespace Devyn\Component\Form\Extension\Core\Type;
 
 use Devyn\Component\RAL\Manager\Manager;
+use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use EasyRdf\Exception;
 use EasyRdf\Resource;
 use Symfony\Component\Form\Exception\StringCastException;
@@ -39,11 +40,6 @@ class ResourceChoiceList extends ObjectChoiceList
     /**
      * @var string
      */
-    protected $property;
-
-    /**
-     * @var string
-     */
     protected $class;
 
     /**
@@ -52,21 +48,26 @@ class ResourceChoiceList extends ObjectChoiceList
     protected $rm;
 
     /**
-     * @param Manager $rm
-     * @param null|string $choices
-     * @param string $class
-     * @param string $property
+     * @var TypeMapperRegistry
+     */
+    protected $typeMapperRegistry;
+
+    /**
+     * @param array|\Traversable $rm
+     * @param TypeMapperRegistry $typeMapperRegistry
+     * @param array $choices
+     * @param null|string $class
      * @param null $labelPath
      * @param array $preferredChoices
      * @param null $groupPath
      * @param null $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct($rm, $choices, $class, $property = 'rdfs:label', $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($rm, $typeMapperRegistry, $choices, $class, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->rm = $rm;
+        $this->typeMapperRegistry = $typeMapperRegistry;
         $this->class = $class;
-        $this->property = $property;
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -263,7 +264,7 @@ class ResourceChoiceList extends ObjectChoiceList
     private function load()
     {
         try {
-            $resources = $this->rm->getRepository($this->class)->findAll();
+            $resources = $this->rm->getRepository($this->typeMapperRegistry->getRdfClass($this->class))->findAll();
 
             // The second parameter $labels is ignored by ObjectChoiceList
             parent::initialize($resources, array(), $this->preferredResources);

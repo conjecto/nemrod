@@ -10,6 +10,7 @@ namespace Devyn\Component\Form\Extension\Core\Type;
 
 
 use Devyn\Component\RAL\Manager\Manager;
+use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
@@ -26,11 +27,17 @@ class ResourceType extends AbstractType
     protected $rm;
 
     /**
+     * @var TypeMapperRegistry
+     */
+    protected $typeMapperRegistry;
+
+    /**
      * @param Manager $rm
      */
-    public function __construct(Manager $rm)
+    public function __construct(Manager $rm, TypeMapperRegistry $typeMapperRegistry)
     {
         $this->rm = $rm;
+        $this->typeMapperRegistry = $typeMapperRegistry;
     }
 
 
@@ -43,19 +50,17 @@ class ResourceType extends AbstractType
         $choiceList = function (Options $options) {
             return new ResourceChoiceList(
                 $this->rm,
+                $this->typeMapperRegistry,
                 $options['choices'],
-                $options['class'],
-                $options['property']
+                $options['class']
             );
         };
 
         $resolver->setDefaults(array(
             'choice_list' => $choiceList,
-            'property' => 'rdfs:label'
         ));
 
         $resolver->setRequired(array('class'));
-        $resolver->setOptional(array('property'));
     }
 
     /**
