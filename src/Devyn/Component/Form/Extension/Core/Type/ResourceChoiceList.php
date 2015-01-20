@@ -48,11 +48,6 @@ class ResourceChoiceList extends ObjectChoiceList
     protected $rm;
 
     /**
-     * @var TypeMapperRegistry
-     */
-    protected $typeMapperRegistry;
-
-    /**
      * @param array|\Traversable $rm
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param array $choices
@@ -63,10 +58,9 @@ class ResourceChoiceList extends ObjectChoiceList
      * @param null $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct($rm, $typeMapperRegistry, $choices, $class, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($rm, $choices, $class, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->rm = $rm;
-        $this->typeMapperRegistry = $typeMapperRegistry;
         $this->class = $class;
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
@@ -257,14 +251,13 @@ class ResourceChoiceList extends ObjectChoiceList
 
     /**
      * Loads the list with entities from repository.
-     * @TODO change graph loaded from the foaf:profil by a graph loaded by the repository
      * @throws Exception
      * @throws \EasyRdf\Http\Exception
      */
     private function load()
     {
         try {
-            $resources = $this->rm->getRepository($this->typeMapperRegistry->getRdfClass($this->class))->findAll();
+            $resources = $this->rm->getRepository($this->class)->findAll();
 
             // The second parameter $labels is ignored by ObjectChoiceList
             if ($resources)
