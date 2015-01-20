@@ -56,18 +56,6 @@ class UnitOfWork {
     }
 
     /**
-     * Completes the resource according to provided graph
-     *
-     * @param $uri
-     * @param $type
-     * @param $properties
-     */
-    public function completeLoad($uri, $type, $properties)
-    {
-        //not implemented
-    }
-
-    /**
      * Register a resource to the list of
      * @param Resource $resource
      */
@@ -388,7 +376,6 @@ class UnitOfWork {
                 }
             }
         }
-
         return $snapshot;
     }
 
@@ -401,10 +388,13 @@ class UnitOfWork {
         //iterating through graph
         $i = 1;
         $sRes = null;
+        $after = false;
         foreach ($this->initialSnapshots as $res) {
             if ($res->getUri() == $resource->getUri()) {
                 $this->initialSnapshots->offsetUnset($i);
-                break;
+                $after = true;
+            } else if ($after) {
+                //$this->initialSnapshots->getGraph()->delete($res->getUri(), $);
             }
             $i++;
         }
