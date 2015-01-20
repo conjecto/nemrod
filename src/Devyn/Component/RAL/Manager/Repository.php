@@ -32,13 +32,8 @@ class Repository
      */
     public function find($uri)
     {
-
         /** @var \EasyRdf_Sparql_Result $result */
         $result = $this->_rm->find($this->className, $uri);
-
-        if(empty($result)) {
-            throw new Exception("Resource was not found");
-        }
 
         return $result;
     }

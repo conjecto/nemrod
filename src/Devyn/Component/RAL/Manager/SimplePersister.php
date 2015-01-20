@@ -231,7 +231,7 @@ class SimplePersister implements PersisterInterface
                 $collection = $this->extractResources($graph, $criteria['rdf:type']);
             }
         } else {
-            throw new Exception("findBy: a type must be set");
+            return null;
         }
 
         return $collection;
