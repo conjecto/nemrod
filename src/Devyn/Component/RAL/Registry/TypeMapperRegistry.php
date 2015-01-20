@@ -15,12 +15,16 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
  */
 class TypeMapperRegistry
 {
+
+    private $rdfClasses = array();
+
     /**
      * @param $type
      * @param $class
      * @return string
      */
     public function set($type, $class) {
+        $this->rdfClasses[$class] = $type;
         return TypeMapper::set($type, $class);
     }
 
@@ -30,6 +34,11 @@ class TypeMapperRegistry
      */
     public function get($type) {
         return TypeMapper::get($type);
+    }
+
+    public function getRdfClass($class) {
+        if (!isset($this->rdfClasses[$class])) return null;
+        return $this->rdfClasses[$class];
     }
 
     /**
