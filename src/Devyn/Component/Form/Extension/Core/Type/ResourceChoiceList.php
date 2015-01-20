@@ -267,7 +267,8 @@ class ResourceChoiceList extends ObjectChoiceList
             $resources = $this->rm->getRepository($this->typeMapperRegistry->getRdfClass($this->class))->findAll();
 
             // The second parameter $labels is ignored by ObjectChoiceList
-            parent::initialize($resources, array(), $this->preferredResources);
+            if ($resources)
+                parent::initialize($resources, array(), $this->preferredResources);
         } catch (StringCastException $e) {
             throw new StringCastException(str_replace('argument $labelPath', 'option "property"', $e->getMessage()), null, $e);
         }
