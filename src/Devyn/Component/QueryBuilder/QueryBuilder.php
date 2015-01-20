@@ -434,6 +434,7 @@ class QueryBuilder
     public function getQuery()
     {
         return $this->rm->createQuery($this->getSparqlQuery())
+            ->setType($this->type)
             ->setOffset($this->offset)
             ->setMaxResults($this->maxResults)
             ->setOrderBy($this->getOrderBy());
@@ -498,7 +499,7 @@ class QueryBuilder
      */
     public function reset()
     {
-        $this->offset = 0;
+        $this->offset = -1;
         $this->maxResults = 0;
         $this->type = self::CONSTRUCT;
 

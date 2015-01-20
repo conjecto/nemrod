@@ -30,6 +30,12 @@ class Query
     protected $state = self::STATE_DIRTY;
 
     /**
+     * query type
+     * @var int
+     */
+    protected $type = QueryBuilder::CONSTRUCT;
+
+    /**
      * Resource manager for easyrdf resources
      * @var Manager
      */
@@ -190,6 +196,25 @@ class Query
     }
 
     /**
+     * @return int
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param int $type
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+        $this->state = self::STATE_DIRTY;
+
+        return $this;
+    }
+
+    /**
      * Execute the query
      *
      * @return Graph|Result
@@ -211,7 +236,7 @@ class Query
      *
      * @return string
      */
-    protected function getCompleteSparqlQuery()
+    public function getCompleteSparqlQuery()
     {
         $sparqlQuery = $this->getSparqlQuery();
 
@@ -219,12 +244,14 @@ class Query
             $sparqlQuery .= $this->orderBy . ' ';
         }
 
-        if ($this->getOffset() >= 0) {
-            $sparqlQuery .= 'OFFSET ' . strval($this->getOffset()) . ' ';
-        }
+        if ($this->type < QueryBuilder::INSERT) {
+            if ($this->getOffset() >= 0) {
+                $sparqlQuery .= 'OFFSET ' . strval($this->getOffset()) . ' ';
+            }
 
-        if ($this->getMaxResults() > 0) {
-            $sparqlQuery .= 'LIMIT ' . strval($this->getMaxResults());
+            if ($this->getMaxResults() > 0) {
+                $sparqlQuery .= 'LIMIT ' . strval($this->getMaxResults());
+            }
         }
 
         return $sparqlQuery;
