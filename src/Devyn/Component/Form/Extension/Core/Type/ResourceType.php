@@ -27,17 +27,11 @@ class ResourceType extends AbstractType
     protected $rm;
 
     /**
-     * @var TypeMapperRegistry
-     */
-    protected $typeMapperRegistry;
-
-    /**
      * @param Manager $rm
      */
-    public function __construct(Manager $rm, TypeMapperRegistry $typeMapperRegistry)
+    public function __construct(Manager $rm)
     {
         $this->rm = $rm;
-        $this->typeMapperRegistry = $typeMapperRegistry;
     }
 
 
@@ -50,7 +44,6 @@ class ResourceType extends AbstractType
         $choiceList = function (Options $options) {
             return new ResourceChoiceList(
                 $this->rm,
-                $this->typeMapperRegistry,
                 $options['choices'],
                 $options['class']
             );
