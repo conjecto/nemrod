@@ -219,4 +219,13 @@ class Manager
     {
         return $this->getUnitOfWork()->isResource($resource);
     }
+
+    /**
+     * @param $phpClass
+     */
+    public function getRdfClass($phpClass)
+    {
+        $class = TypeMapper:: get($phpClass);
+        return $class;
+    }
 }
