@@ -9,7 +9,7 @@
 namespace Devyn\Component\RAL\Manager;
 
 
-use Devyn\Component\RAL\Resource\Resource;
+use Devyn\Component\RAL\Resource\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use EasyRdf\Container;
@@ -57,7 +57,7 @@ class UnitOfWork {
 
     /**
      * Register a resource to the list of
-     * @param Resource $resource
+     * @param BaseResource $resource
      */
     public function registerResource($resource)
     {
@@ -82,7 +82,7 @@ class UnitOfWork {
         $owningGraph = $owningResource->getGraph();
 
         $owningGraph->delete($uri, $property);
-        /** @var Resource $res */
+        /** @var BaseResource $res */
         foreach ($graph->allResources($uri, $property) as $res) {
 
             //var_dump($res);
@@ -156,9 +156,9 @@ class UnitOfWork {
     }
 
     /**
-     * @param Resource $resource
+     * @param BaseResource $resource
      */
-    private function resourceSnapshot(Resource $resource)
+    private function resourceSnapshot(BaseResource $resource)
     {
         //copying resource
         $this->initialSnapshots->append($resource);
@@ -175,7 +175,7 @@ class UnitOfWork {
      * update a resource
      * @param $resource
      */
-    public function update(Resource $resource)
+    public function update(BaseResource $resource)
     {
         //resource must be an instance of Resource that is already managed
         if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
@@ -189,7 +189,7 @@ class UnitOfWork {
     /**
      * @param Resource $resource
      */
-    public function save($className, Resource $resource)
+    public function save($className, BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
             //@todo perform "ask" on db to check if resource is already there
@@ -202,7 +202,7 @@ class UnitOfWork {
     /**
      * @param Resource $resource
      */
-    public function delete(Resource $resource)
+    public function delete(BaseResource $resource)
     {
         $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         $this->deleteSnapshotForResource($resource);
@@ -211,12 +211,12 @@ class UnitOfWork {
 
     /**
      * @param $className
-     * @return Resource
+     * @return BaseResource
      */
     public function create($className)
     {
         $classN = TypeMapper::get($className);
-        /** @var Resource $resource */
+        /** @var BaseResource $resource */
         $resource = new $classN($this->generateURI(),new Graph());
         $resource->setType($className);
         $resource->setRm($this->_rm);
@@ -267,7 +267,7 @@ class UnitOfWork {
     /**
      *
      */
-    private function computeChangeSet(Resource $resource)
+    private function computeChangeSet(BaseResource $resource)
     {
         return $this->diff($this->getSnapshotForResource($resource), $resource->getGraph()->toRdfPhp());
     }
