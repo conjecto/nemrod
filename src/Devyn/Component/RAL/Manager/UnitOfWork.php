@@ -30,7 +30,7 @@ class UnitOfWork {
 
     /**
      * Initial snapshots of registered resources
-     * @var $initialSnapshots
+     * @var SnapshotContainer $initialSnapshots
      */
     private $initialSnapshots;
 
@@ -51,7 +51,7 @@ class UnitOfWork {
         $this->_rm = $manager;
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = array();
-        $this->initialSnapshots = new Container('snapshots', new Graph('snapshots'));
+        $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
         $this->blackListedResources = array();
     }
 
@@ -64,7 +64,7 @@ class UnitOfWork {
         $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
 
-        $this->resourceSnapshot($resource);
+        $this->initialSnapshots->takeSnapshot($resource);
     }
 
     /**
@@ -156,6 +156,7 @@ class UnitOfWork {
     }
 
     /**
+     * @todo remove
      * @param Resource $resource
      */
     private function resourceSnapshot(Resource $resource)
@@ -226,7 +227,7 @@ class UnitOfWork {
     /**
      * @param Graph $graph
      */
-    public function graphSnapshot(Graph $graph)
+    private function graphSnapshot(Graph $graph)
     {
         foreach ($graph->toRdfPhp() as $resource => $properties) {
             if (!$this->isManagementBlackListed($resource)) {
@@ -259,7 +260,7 @@ class UnitOfWork {
      * @param $uri
      * @return boolean
      */
-    private function isManagementBlackListed($uri)
+    public function isManagementBlackListed($uri)
     {
         return (in_array($uri, $this->blackListedResources));
     }
@@ -364,7 +365,7 @@ class UnitOfWork {
      */
     private function getSnapshotForResource($resource)
     {
-        $bigSnapshot = $this->initialSnapshots->getGraph()->toRdfPhp();
+        $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
 
         $snapshot = array($resource->getUri() => $bigSnapshot[$resource->getUri()]);
 
@@ -386,18 +387,7 @@ class UnitOfWork {
     private function deleteSnapshotForResource($resource)
     {
         //iterating through graph
-        $i = 1;
-        $sRes = null;
-        $after = false;
-        foreach ($this->initialSnapshots as $res) {
-            if ($res->getUri() == $resource->getUri()) {
-                $this->initialSnapshots->offsetUnset($i);
-                $after = true;
-            } else if ($after) {
-                //$this->initialSnapshots->getGraph()->delete($res->getUri(), $);
-            }
-            $i++;
-        }
+        $this->initialSnapshots->removeSnapshot($resource);
     }
 
     /**
