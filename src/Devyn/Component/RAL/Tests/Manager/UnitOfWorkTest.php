@@ -5,12 +5,8 @@ use Devyn\Component\RAL\Manager\UnitOfWork;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\Graph;
 
-class UnitOfWorkTest extends \PHPUnit_Framework_TestCase
+class UnitOfWorkTest extends ManagerTestCase
 {
-
-    private $manager;
-
-    private $repoFactory;
     /**
      *
      */
@@ -49,38 +45,6 @@ class UnitOfWorkTest extends \PHPUnit_Framework_TestCase
         $uow->registerResource($res);
 
         $this->assertTrue($uow->isRegistered($res));
-    }
-
-    /**
-     * mocks a resource
-     */
-    private function getMockedResource($className, $uri, $graph)
-    {
-        $mockedResource = $this/*->getMockBuilder('Resource')
-            ->setMethods(array('setRm', 'getUri', 'getGraph'))*/->getMock('Devyn\Component\RAL\Resource\Resource', array('setRm', 'getUri', 'getGraph'));
-        $mockedResource->method('getUri')->willReturn($uri);
-        $mockedResource->method('setRm')->willReturn(null);
-        $mockedResource->method('getGraph')->willReturn($graph);
-        ;
-
-        return $mockedResource;
-    }
-
-    /**
-     * sets graph for a mocked resource
-     */
-    private function getMockedGraph($class,$uri,$props = array())
-    {
-        $rdfphpgraph = array ($uri => array ('a' => array(array ('type' => $class, 'value' => 'uri'))));
-        $mockedGraph = $this->getMock('EasyRdf\Graph');
-        $mockedGraph->expects($this->any())->method("toRdfPhp")->willReturn($rdfphpgraph);
-
-        return $mockedGraph;
-    }
-
-    private function mockManager()
-    {
-        return $this->getMockBuilder('Devyn\Component\RAL\Manager\Manager')->setConstructorArgs(array($this->repoFactory, 'foo'));
     }
 
     private function foo()

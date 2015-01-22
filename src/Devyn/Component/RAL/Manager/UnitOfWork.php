@@ -155,20 +155,10 @@ class UnitOfWork {
         return $this->persister->constructCollection($criteria, $options);
     }
 
-    /**
-     * @param BaseResource $resource
-     */
-    private function resourceSnapshot(BaseResource $resource)
-    {
-        //copying resource
-        $this->initialSnapshots->append($resource);
-        $this->graphSnapshot($resource->getGraph());
-    }
-
     public function dumpRegistered()
     {
         echo $this->initialSnapshots->dump();
-        echo $this->initialSnapshots->getGraph()->dump();
+        //echo $this->initialSnapshots->getGraph()->dump();
     }
 
     /**
@@ -208,7 +198,6 @@ class UnitOfWork {
     {
         $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         $this->deleteSnapshotForResource($resource);
-        //@todo unregister from uow.
     }
 
     /**
@@ -223,28 +212,6 @@ class UnitOfWork {
         $resource->setType($className);
         $resource->setRm($this->_rm);
         return $resource;
-    }
-
-    /**
-     * @param Graph $graph
-     */
-    private function graphSnapshot(Graph $graph)
-    {
-        foreach ($graph->toRdfPhp() as $resource => $properties) {
-            if (!$this->isManagementBlackListed($resource)) {
-                foreach ($properties as $property => $values) {
-                    foreach ($values as $value) {
-                        if ($value['type'] == 'bnode' || $value['type'] == 'uri') {
-                            $this->initialSnapshots->getGraph()->addResource($resource, $property, $value['value']);
-                        } else if ($value['type'] == 'literal') {
-                            $this->initialSnapshots->getGraph()->addLiteral($resource, $property, $value['value']);
-                        } else {
-                            //@todo check for addType
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**

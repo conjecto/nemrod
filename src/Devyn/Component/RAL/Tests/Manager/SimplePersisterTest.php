@@ -9,7 +9,7 @@
 namespace Devyn\Component\RAL\Tests\Manager;
 
 
-class SimplePersisterTest extends \PHPUnit_Framework_TestCase
+class SimplePersisterTest extends ManagerTestCase
 {
 
 } 

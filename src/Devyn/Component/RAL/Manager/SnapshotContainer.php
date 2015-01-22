@@ -43,6 +43,7 @@ class SnapshotContainer extends Graph
         $res = $this->resource($resource->getUri());
 
         $graph = $resource->getGraph();
+
         foreach ($graph->toRdfPhp() as $resource2 => $properties) {
             if (!$this->unitOfWork->isManagementBlackListed($resource2)) {
                 foreach ($properties as $property => $values) {
@@ -74,6 +75,7 @@ class SnapshotContainer extends Graph
         //remove bnodes associated to resource
         if (isset($index[$resource->getUri()])) {
             foreach ($index[$resource->getUri()] as $property => $values) {
+                $this->delete($resource, $property);
                 foreach ($values as $value) {
                     if ($value ['type'] == 'bnode') {
                         if (isset($index[$value['value']])) {
@@ -83,9 +85,8 @@ class SnapshotContainer extends Graph
                 }
             }
 
-            unset($index[$resource->getUri()]);
+            //unset($index[$resource->getUri()]);
         }
-
 
         return true;
     }
@@ -100,7 +101,8 @@ class SnapshotContainer extends Graph
         //if uri is not known or result is null, resource is not known
         //@todo check if $resource is known
         try {
-            $typ = $this->get($resource->getUri(), 'rdfs:type');
+            $typ = $this->get($resource->getUri(), 'rdf:type');
+
             if (!$typ) return null;
         } catch (Exception $e) {
             return null;
@@ -110,5 +112,4 @@ class SnapshotContainer extends Graph
 
         return $res;
     }
-
-} 
+}

@@ -159,7 +159,7 @@ class SimplePersister implements PersisterInterface
         //echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
 
         $qb = $this->_rm->getQueryBuilder()->delete(implode(".", $deleteArr))->where(implode(".", $whereArr));
-        $qb->getQuery()->execute();
+        //$qb->getQuery()->execute();
         $this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
@@ -303,8 +303,10 @@ class SimplePersister implements PersisterInterface
 
                         if ($val['type'] == 'literal') {
                             $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
+                            $whereParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
                         } else if($val['type'] == 'uri') {
                             $criteriaParts[] = "<" . $uri . "> <" . $property . "> <" . $val['value'] . ">";
+                            $whereParts[] = "<" . $uri . "> <" . $property . "> <" . $val['value'] . ">";
                         } else if ($val['type'] == 'bnode') {
 
                             if ($bNodesAsVariables) {
@@ -326,6 +328,7 @@ class SimplePersister implements PersisterInterface
                                 $newBNode = $this->getNewBnode($val['value']);
 
                                 $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $newBNode . "";
+                                $whereParts[] = "<" . $uri . "> <" . $property . "> " . $newBNode . "";
                                 if ($followBNodes) {
                                     list ($a, $b) = $this->getTriplesForUri($array, $val['value'], $bNodesAsVariables, false);
                                     $criteriaParts = array_merge($criteriaParts, $a);
@@ -425,9 +428,6 @@ class SimplePersister implements PersisterInterface
         }
 
         return $graph;
-
-
-
     }
 
     /**
