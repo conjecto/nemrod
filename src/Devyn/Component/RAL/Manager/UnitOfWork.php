@@ -187,7 +187,9 @@ class UnitOfWork {
     }
 
     /**
-     * @param Resource $resource
+     * @param $className
+     * @param BaseResource $resource
+     * @throws Exception
      */
     public function save($className, BaseResource $resource)
     {
@@ -200,7 +202,7 @@ class UnitOfWork {
     }
 
     /**
-     * @param Resource $resource
+     * @param BaseResource $resource
      */
     public function delete(BaseResource $resource)
     {
