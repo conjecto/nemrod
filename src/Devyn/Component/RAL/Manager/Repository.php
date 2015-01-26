@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Component\RAL\Manager;
+use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\Exception;
 
@@ -47,12 +48,14 @@ class Repository
     public function findBy(array $criterias, array $options = array())
     {
         //first add a type criteria if not found
-        if (empty($criterias['rdf:type'])) {
-            $criterias['rdf:type'] = $this->className;
-        } else if (is_array ($criterias['rdfs:Class'])) {
-            $criterias['rdf:type'][] = $this->className;
-        } else {
-            $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
+        if ($this->className) {
+            if (empty($criterias['rdf:type'])) {
+                $criterias['rdf:type'] = $this->className;
+            } else if (is_array ($criterias['rdfs:Class'])) {
+                $criterias['rdf:type'][] = $this->className;
+            } else {
+                $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
+            }
         }
 
         return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
@@ -90,5 +93,21 @@ class Repository
     public function save(Resource $resource)
     {
         return $this->_rm->getUnitOfWork()->save($this->className, $resource);
+    }
+
+    /**
+     *
+     * @return \Devyn\Component\QueryBuilder\QueryBuilder
+     */
+    public function getQueryBuilder()
+    {
+        $qb = $this->_rm->createQueryBuilder();
+        if ($this->className) {
+            $qb->construct(
+                "?s a ".$this->className
+            )->where("?s a ".$this->className);
+        }
+
+        return $qb;
     }
 }

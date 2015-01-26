@@ -101,11 +101,6 @@ class RALExtension extends Extension
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
                 ->setArguments(array($name));
 
-            //query builder
-            //repository factory
-            //$container->setDefinition('ral.query_builder.'.$name, new DefinitionDecorator('ral.query_builder'))
-            //    ->setArguments(array($endpoint['query_uri']));
-
             //persister
             $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
                 ->setArguments(array($endpoint['query_uri']));
@@ -115,10 +110,7 @@ class RALExtension extends Extension
                 //adding query builder
                 ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)));
 
-            //if ($container->has('logger')) {
-            //    echo 'haslogger';die();
-                $rm->addMethodCall('setLogger', array(new Reference('logger')));
-            //}
+            $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
             //setting main alias
             if($name == $config["default_endpoint"]){

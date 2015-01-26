@@ -43,15 +43,16 @@ class Resource extends BaseResource
 
         if (is_array($result)) {
             //@todo do this better.
+            $llResult = array();
             foreach ($result as $res) {
+
                 if ($res instanceof Resource) {
-                    $res->setRm($this->_rm);
+                    $llResult[] = $this->_rm->find(null, $res->getUri());
                 }
             }
 
-            return $result;
+            return $llResult;
         } else if ($this->_rm->isResource($result)) {
-
             try {
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);

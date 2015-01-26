@@ -9,7 +9,7 @@
 namespace Devyn\Component\RAL\Manager;
 
 
-use Devyn\Component\RAL\Resource\Resource;
+use Devyn\Component\RAL\Resource\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use EasyRdf\Container;
@@ -30,7 +30,7 @@ class UnitOfWork {
 
     /**
      * Initial snapshots of registered resources
-     * @var $initialSnapshots
+     * @var SnapshotContainer $initialSnapshots
      */
     private $initialSnapshots;
 
@@ -51,32 +51,20 @@ class UnitOfWork {
         $this->_rm = $manager;
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = array();
-        $this->initialSnapshots = new Container('snapshots', new Graph('snapshots'));
+        $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
         $this->blackListedResources = array();
     }
 
     /**
-     * Completes the resource according to provided graph
-     *
-     * @param $uri
-     * @param $type
-     * @param $properties
-     */
-    public function completeLoad($uri, $type, $properties)
-    {
-        //not implemented
-    }
-
-    /**
      * Register a resource to the list of
-     * @param Resource $resource
+     * @param BaseResource $resource
      */
     public function registerResource($resource)
     {
         $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
 
-        $this->resourceSnapshot($resource);
+        $this->initialSnapshots->takeSnapshot($resource);
     }
 
     /**
@@ -94,7 +82,7 @@ class UnitOfWork {
         $owningGraph = $owningResource->getGraph();
 
         $owningGraph->delete($uri, $property);
-        /** @var Resource $res */
+        /** @var BaseResource $res */
         foreach ($graph->allResources($uri, $property) as $res) {
 
             //var_dump($res);
@@ -126,6 +114,7 @@ class UnitOfWork {
     }
 
     /**
+     * //@todo remove first parameter
      * Register a resource to the list of
      * @param $className
      * @param $uri
@@ -167,27 +156,25 @@ class UnitOfWork {
         return $this->persister->constructCollection($criteria, $options);
     }
 
-    /**
-     * @param Resource $resource
-     */
-    private function resourceSnapshot(Resource $resource)
-    {
-        //copying resource
-        $this->initialSnapshots->append($resource);
-        $this->graphSnapshot($resource->getGraph());
-    }
-
     public function dumpRegistered()
     {
         echo $this->initialSnapshots->dump();
-        echo $this->initialSnapshots->getGraph()->dump();
+        //echo $this->initialSnapshots->getGraph()->dump();
+    }
+
+    /**
+     * Saves all changes in unit of work to store
+     */
+    public function commit()
+    {
+
     }
 
     /**
      * update a resource
      * @param $resource
      */
-    public function update(Resource $resource)
+    public function update(BaseResource $resource)
     {
         //resource must be an instance of Resource that is already managed
         if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
@@ -199,9 +186,12 @@ class UnitOfWork {
     }
 
     /**
-     * @param Resource $resource
+     * //@todo remove first parameter
+     * @param $className
+     * @param BaseResource $resource
+     * @throws Exception
      */
-    public function save($className, Resource $resource)
+    public function save($className, BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
             //@todo perform "ask" on db to check if resource is already there
@@ -212,49 +202,31 @@ class UnitOfWork {
     }
 
     /**
-     * @param Resource $resource
+     * @param BaseResource $resource
      */
-    public function delete(Resource $resource)
+    public function delete(BaseResource $resource)
     {
         $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         $this->deleteSnapshotForResource($resource);
-        //@todo unregister from uow.
     }
 
     /**
      * @param $className
-     * @return Resource
+     * @return BaseResource
      */
-    public function create($className)
+    public function create($className = null)
     {
-        $classN = TypeMapper::get($className);
-        /** @var Resource $resource */
+        if ($className) {
+            $classN = TypeMapper::get($className);
+        } else {
+            $classN = "Devyn\\Component\\RAL\\Resource\\Resource";
+        }
+
+        /** @var BaseResource $resource */
         $resource = new $classN($this->generateURI(),new Graph());
         $resource->setType($className);
         $resource->setRm($this->_rm);
         return $resource;
-    }
-
-    /**
-     * @param Graph $graph
-     */
-    public function graphSnapshot(Graph $graph)
-    {
-        foreach ($graph->toRdfPhp() as $resource => $properties) {
-            if (!$this->isManagementBlackListed($resource)) {
-                foreach ($properties as $property => $values) {
-                    foreach ($values as $value) {
-                        if ($value['type'] == 'bnode' || $value['type'] == 'uri') {
-                            $this->initialSnapshots->getGraph()->addResource($resource, $property, $value['value']);
-                        } else if ($value['type'] == 'literal') {
-                            $this->initialSnapshots->getGraph()->addLiteral($resource, $property, $value['value']);
-                        } else {
-                            //@todo check for addType
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -271,7 +243,7 @@ class UnitOfWork {
      * @param $uri
      * @return boolean
      */
-    private function isManagementBlackListed($uri)
+    public function isManagementBlackListed($uri)
     {
         return (in_array($uri, $this->blackListedResources));
     }
@@ -279,7 +251,7 @@ class UnitOfWork {
     /**
      *
      */
-    private function computeChangeSet(Resource $resource)
+    private function computeChangeSet(BaseResource $resource)
     {
         return $this->diff($this->getSnapshotForResource($resource), $resource->getGraph()->toRdfPhp());
     }
@@ -376,7 +348,7 @@ class UnitOfWork {
      */
     private function getSnapshotForResource($resource)
     {
-        $bigSnapshot = $this->initialSnapshots->getGraph()->toRdfPhp();
+        $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
 
         $snapshot = array($resource->getUri() => $bigSnapshot[$resource->getUri()]);
 
@@ -388,7 +360,6 @@ class UnitOfWork {
                 }
             }
         }
-
         return $snapshot;
     }
 
@@ -399,15 +370,7 @@ class UnitOfWork {
     private function deleteSnapshotForResource($resource)
     {
         //iterating through graph
-        $i = 1;
-        $sRes = null;
-        foreach ($this->initialSnapshots as $res) {
-            if ($res->getUri() == $resource->getUri()) {
-                $this->initialSnapshots->offsetUnset($i);
-                break;
-            }
-            $i++;
-        }
+        $this->initialSnapshots->removeSnapshot($resource);
     }
 
     /**

@@ -2,20 +2,18 @@
 namespace Devyn\Component\RAL\Tests\Manager;
 
 use Devyn\Component\RAL\Manager\UnitOfWork;
+use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\Graph;
 
-class UnitOfWorkTest extends \PHPUnit_Framework_TestCase
+class UnitOfWorkTest extends ManagerTestCase
 {
-
-    private $manager;
-
-    private $repoFactory;
     /**
      *
      */
-    public function setUp(){
+    public function setUp()
+    {
         $this->repoFactory = $this->getMockBuilder('Devyn\Component\RAL\Manager\RepositoryFactory')->setConstructorArgs(array('foo'));
-        $this->manager = $this->getMockBuilder('Devyn\Component\RAL\Manager\Manager')->setConstructorArgs(array($this->repoFactory, 'foo'));
+        $this->manager = $this->mockManager();
     }
 
     public function testMinus()
@@ -28,27 +26,25 @@ class UnitOfWorkTest extends \PHPUnit_Framework_TestCase
         $graph2 = new Graph();
         $graph2->add('http://www.example.com/jdoe#jdoe',
             'foaf:name',
-            'John Doe');
+            'Foo Bar');
 
         $uow = new UnitOfWork($this->manager,'fooUrl');
-        $uow->update;
+        //$uow->update();
         $this->assertEquals(1,1);
     }
 
-    /**
-     * mocks a resource
-     */
-    private function getMockedResource($uri, $graph)
+    public function testManagerRegisterResource()
     {
+        $uow = new UnitOfWork($this->manager,'fooUrl');
+        $res = $this->getMockedResource('FooClass', 'uri:foo:1234', $this->getMockedGraph('FooClass', 'uri:foo:1234'));
 
-    }
+        $pouf = $this->getMock('Resource');
 
-    /**
-     * sets graph for a mocked resource
-     */
-    private function setGraphForMockedResource()
-    {
+        $this->assertInstanceOf('Resource',$pouf);
 
+        $uow->registerResource($res);
+
+        $this->assertTrue($uow->isRegistered($res));
     }
 
     private function foo()
