@@ -49,17 +49,19 @@ class ResourceType extends AbstractType
                 $options['rm'],
                 $options['choices'],
                 $options['class'],
-                $options['query_builder']
+                $options['query_builder'],
+                $options['property']
             );
         };
 
         $resolver->setDefaults(array(
             'choice_list' => $choiceList,
             'rm' => $this->rm,
-            'query_builder' => null
+            'query_builder' => null,
+            'property' => 'rdfs:label'
         ));
 
-        $resolver->setRequired(array('class'));
+        $resolver->setRequired(array('class', 'property'));
     }
 
     /**
