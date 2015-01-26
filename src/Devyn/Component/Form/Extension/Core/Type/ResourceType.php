@@ -9,6 +9,9 @@
 namespace Devyn\Component\Form\Extension\Core\Type;
 
 
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourceLabelAccessor;
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyAccessor;
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Devyn\Component\RAL\Manager\Manager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
@@ -25,7 +28,6 @@ class ResourceType extends AbstractType
      * @var Manager $rm
      */
     protected $rm;
-
 
     /**
      * @param Manager $defaultManager
@@ -50,7 +52,11 @@ class ResourceType extends AbstractType
                 $options['choices'],
                 $options['class'],
                 $options['query_builder'],
-                $options['property']
+                $options['property'],
+                $options['preferred_choices'],
+                $options['group_by'],
+                null,
+                new ResourceLabelAccessor()
             );
         };
 
@@ -58,7 +64,8 @@ class ResourceType extends AbstractType
             'choice_list' => $choiceList,
             'rm' => $this->rm,
             'query_builder' => null,
-            'property' => 'rdfs:label'
+            'property' => 'rdfs:label',
+            'group_by' => null
         ));
 
         $resolver->setRequired(array('class', 'property'));
