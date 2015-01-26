@@ -22,18 +22,18 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 class ResourceType extends AbstractType
 {
     /**
-     * @var Manager
+     * @var Manager $rm
      */
     protected $rm;
 
-    /**
-     * @param Manager $rm
-     */
-    public function __construct(Manager $rm)
-    {
-        $this->rm = $rm;
-    }
 
+    /**
+     * @param Manager $defaultManager
+     */
+    function __construct(Manager $defaultManager)
+    {
+        $this->rm = $defaultManager;
+    }
 
     /**
      * Add options type and property used to find resources in repository
@@ -43,14 +43,17 @@ class ResourceType extends AbstractType
     {
         $choiceList = function (Options $options) {
             return new ResourceChoiceList(
-                $this->rm,
+                $options['rm'],
                 $options['choices'],
-                $options['class']
+                $options['class'],
+                $options['qb']
             );
         };
 
         $resolver->setDefaults(array(
             'choice_list' => $choiceList,
+            'rm' => $this->rm,
+            'qb' => null
         ));
 
         $resolver->setRequired(array('class'));
