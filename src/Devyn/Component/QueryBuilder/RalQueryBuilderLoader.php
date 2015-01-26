@@ -6,15 +6,19 @@
  * Time: 11:02
  */
 
-namespace Devyn\Component\Form\Extension\Core\Type;
+namespace Devyn\Component\QueryBuilder;
 
-
-use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Manager\Manager;
+use EasyRdf\Graph;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 class RalQueryBuilderLoader
 {
+    /**
+     * @var string
+     */
+    protected $class;
+
     /**
      * Construct an ORM Query Builder Loader
      *
@@ -45,13 +49,14 @@ class RalQueryBuilderLoader
         }
 
         $this->queryBuilder = $queryBuilder;
+        $this->class = $class;
     }
 
     /**
-     * {@inheritdoc}
+     * @return Graph|\EasyRdf\Sparql\Result
      */
     public function getResources()
     {
-        return $this->queryBuilder->getQuery()->execute();
+        return $this->queryBuilder->getQuery()->execute(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
     }
 }

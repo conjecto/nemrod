@@ -9,6 +9,7 @@
 namespace Devyn\Component\Form\Extension\Core\Type;
 
 use Devyn\Component\QueryBuilder\QueryBuilder;
+use Devyn\Component\QueryBuilder\RalQueryBuilderLoader;
 use Devyn\Component\RAL\Manager\Manager;
 use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use EasyRdf\Exception;
@@ -54,7 +55,7 @@ class ResourceChoiceList extends ObjectChoiceList
     protected $queryBuilder;
 
     /**
-     * @param array|\Traversable $rm
+     * @param array|\Traversable|string $rm
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param array $choices
      * @param null|string $class
