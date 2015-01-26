@@ -59,10 +59,10 @@ class Manager
     }
 
     /**
-     * @param $className
+     * @param null|string $className
      * @return mixed
      */
-    public function getRepository($className)
+    public function getRepository($className = null)
     {
         return $this->repositoryFactory->getRepository($className, $this);
     }
@@ -120,7 +120,7 @@ class Manager
     {
         //trying to find resource if already loaded
         $resource = $this->unitOfWork->retrieveResource($className, $uri);
-        //var_dump($resource);
+
         if (!empty($resource)) {
             return $resource;
         }
@@ -141,7 +141,6 @@ class Manager
      */
     public function save(Resource $resource)
     {
-
         //$this->getRepository($resource->)
     }
 
@@ -225,7 +224,7 @@ class Manager
      */
     public function getRdfClass($phpClass)
     {
-        $class = TypeMapper:: get($phpClass);
+        $class = TypeMapper::get($phpClass);
         return $class;
     }
 }

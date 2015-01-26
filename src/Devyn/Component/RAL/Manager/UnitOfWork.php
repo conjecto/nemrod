@@ -114,6 +114,7 @@ class UnitOfWork {
     }
 
     /**
+     * //@todo remove first parameter
      * Register a resource to the list of
      * @param $className
      * @param $uri
@@ -162,6 +163,14 @@ class UnitOfWork {
     }
 
     /**
+     * Saves all changes in unit of work to store
+     */
+    public function commit()
+    {
+
+    }
+
+    /**
      * update a resource
      * @param $resource
      */
@@ -177,6 +186,7 @@ class UnitOfWork {
     }
 
     /**
+     * //@todo remove first parameter
      * @param $className
      * @param BaseResource $resource
      * @throws Exception
@@ -204,9 +214,14 @@ class UnitOfWork {
      * @param $className
      * @return BaseResource
      */
-    public function create($className)
+    public function create($className = null)
     {
-        $classN = TypeMapper::get($className);
+        if ($className) {
+            $classN = TypeMapper::get($className);
+        } else {
+            $classN = "Devyn\\Component\\RAL\\Resource\\Resource";
+        }
+
         /** @var BaseResource $resource */
         $resource = new $classN($this->generateURI(),new Graph());
         $resource->setType($className);
