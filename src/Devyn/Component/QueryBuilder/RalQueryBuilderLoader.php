@@ -28,7 +28,7 @@ class RalQueryBuilderLoader
      *
      * @throws UnexpectedTypeException
      */
-    public function __construct($queryBuilder, $manager = null, $class = null)
+    public function __construct($queryBuilder, $manager = null, $class)
     {
         // If a query builder was passed, it must be a closure or QueryBuilder
         // instance
