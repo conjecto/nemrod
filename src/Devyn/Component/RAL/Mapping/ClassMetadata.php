@@ -10,4 +10,6 @@ class ClassMetadata {
      * @var array
      */
     public $types = array();
+
+    public $properties = array();
 }

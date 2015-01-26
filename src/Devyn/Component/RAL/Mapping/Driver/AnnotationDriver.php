@@ -15,7 +15,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
      * {@inheritDoc}
      */
     protected $entityAnnotationClasses = array(
-      'Devyn\Component\RAL\Annotation\Resource' => 1
+      'Devyn\Component\RAL\Annotation\Rdf\Resource' => 1
     );
 
     /**
@@ -32,18 +32,29 @@ class AnnotationDriver extends AbstractAnnotationDriver
         $class = new \ReflectionClass($className);
         $classAnnotations = $this->reader->getClassAnnotations($class);
 
+
+        foreach ($class->getProperties() as $prop) {
+            $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
+        }
+
+        var_dump($propertyAnnotations);
+
         if ($classAnnotations) {
             foreach ($classAnnotations as $key => $annot) {
                 if ( ! is_numeric($key)) {
                     continue;
                 }
                 $classAnnotations[get_class($annot)] = $annot;
+
             }
         }
 
+
+        var_dump($classAnnotations);
+
         // Evaluate Resource annotation
-        if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Resource'])) {
-            $resourceAnnot = $classAnnotations['Devyn\Component\RAL\Annotation\Resource'];
+        if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'])) {
+            $resourceAnnot = $classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'];
             $types = $resourceAnnot->types;
             if(!is_array($types)) {
                 $types = array($types);

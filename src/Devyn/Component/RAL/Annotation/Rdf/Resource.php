@@ -1,6 +1,6 @@
 <?php
 
-namespace Devyn\Component\RAL\Annotation;
+namespace Devyn\Component\RAL\Annotation\Rdf;
 
 /**
  * @Annotation
