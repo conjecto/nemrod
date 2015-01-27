@@ -213,6 +213,11 @@ class ResourceParamConverter implements ParamConverterInterface
             return false;
         }
 
+        // test an existing PHP class
+        if (class_exists($configuration->getClass())) {
+            return false;
+        }
+
         $options = $this->getOptions($configuration);
 
         $rm = $this->getManager($options['resource_manager']);
