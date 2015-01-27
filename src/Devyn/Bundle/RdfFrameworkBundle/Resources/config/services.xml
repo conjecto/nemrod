@@ -7,6 +7,7 @@
     <parameters>    
         <parameter key="rdf.serialization_visitor.class">Devyn\Bridge\EasyRdf\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="rdf.jsonld.frame.loader.filesystem.class">Devyn\Bundle\RdfFrameworkBundle\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="rdf.param_convecter.resource.class">Devyn\Component\ParamConverter\ResourceParamConverter</parameter>
     </parameters>
 
     <services>
@@ -15,5 +16,9 @@
             <argument type="service" id="templating.name_parser" />
         </service>
         <service id="jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
+        <service id="conjecto.converter.resource" class="%rdf.param_convecter.resource.class%">
+            <tag name="request.param_converter" priority="0" converter="resource" />
+            <argument type="service" id="service_container" />
+        </service>
     </services>
 </container>
