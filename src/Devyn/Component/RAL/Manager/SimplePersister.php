@@ -75,6 +75,10 @@ class SimplePersister implements PersisterInterface
 
         $result = $qb->getQuery()->execute();
 
+        if ($result instanceof Result) {
+            $result = $this->resultToGraph($result);
+        }
+
         if (!$this->isEmpty($result)) {
 
             $resourceClass = null;
@@ -112,7 +116,7 @@ class SimplePersister implements PersisterInterface
 
         $graph = $qb->getQuery()->execute();
 
-        if($graph instanceof Graph) {
+        if(!$graph instanceof Graph) {
             $graph = $this->resultToGraph($graph);
         }
 
@@ -424,7 +428,7 @@ class SimplePersister implements PersisterInterface
         $graph = new Graph(null);
 
         foreach ($result as $row) {
-            $graph->add($row->s, $row->p, $row->o);
+            $graph->add($row->subject, $row->predicate, $row->object);
         }
 
         return $graph;
