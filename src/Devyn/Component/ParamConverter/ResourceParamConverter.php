@@ -17,6 +17,11 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * Find a rdf resource with parameters
+ * Class ResourceParamConverter
+ * @package Devyn\Component\ParamConverter
+ */
 class ResourceParamConverter implements ParamConverterInterface
 {
     /**
@@ -34,6 +39,10 @@ class ResourceParamConverter implements ParamConverterInterface
      */
     protected $rm;
 
+    /**
+     * @param Container $container
+     * @param string $defaultResourceManager
+     */
     public function __construct(Container $container, $defaultResourceManager = 'rm')
     {
         $this->defaultResourceManager = $defaultResourceManager;
@@ -79,6 +88,14 @@ class ResourceParamConverter implements ParamConverterInterface
         return true;
     }
 
+    /**
+     * Try to find a resource without using mapping options
+     * @param $class
+     * @param Request $request
+     * @param $options
+     * @param $name
+     * @return bool
+     */
     protected function find($class, Request $request, $options, $name)
     {
         if ($options['mapping'] || $options['exclude']) {
@@ -100,6 +117,13 @@ class ResourceParamConverter implements ParamConverterInterface
         return $this->rm->getRepository($class)->$method($uri);
     }
 
+    /**
+     * Search if a uri is defined
+     * @param Request $request
+     * @param $options
+     * @param $name
+     * @return bool|mixed
+     */
     protected function getIdentifier(Request $request, $options, $name)
     {
         $key = 'uri';
@@ -134,6 +158,13 @@ class ResourceParamConverter implements ParamConverterInterface
         return false;
     }
 
+    /**
+     * Use mapping options to find a resource
+     * @param $class
+     * @param Request $request
+     * @param $options
+     * @return bool
+     */
     protected function findOneBy($class, Request $request, $options)
     {
         if (!$options['mapping']) {
@@ -169,9 +200,15 @@ class ResourceParamConverter implements ParamConverterInterface
             $method = 'findBy';
         }
 
+
+        //@todo findOneBy
         return $this->rm->getRepository($class)->$method($criteria)->offsetGet(1);
     }
 
+    /**
+     * @param ConfigurationInterface $configuration
+     * @return array
+     */
     protected function getOptions(ConfigurationInterface $configuration)
     {
         return array_replace(array(
@@ -182,6 +219,11 @@ class ResourceParamConverter implements ParamConverterInterface
         ), $configuration->getOptions());
     }
 
+    /**
+     * Get the specified resource manager or the default resource manager if no one is defined
+     * @param $name
+     * @return object
+     */
     private function getManager($name)
     {
         if (null === $name) {
