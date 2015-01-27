@@ -230,7 +230,9 @@ class Query
     /**
      * Execute the query
      *
-     * @return Graph|Result
+     * @param null $hydratation
+     * @param array $options
+     * @return Graph|Result|null
      */
     public function execute($hydratation = null, $options = array())
     {

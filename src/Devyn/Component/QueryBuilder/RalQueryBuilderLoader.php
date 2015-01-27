@@ -28,7 +28,7 @@ class RalQueryBuilderLoader
      *
      * @throws UnexpectedTypeException
      */
-    public function __construct($queryBuilder, $manager = null, $class)
+    public function __construct($queryBuilder, $manager = null, $class = null)
     {
         // If a query builder was passed, it must be a closure or QueryBuilder
         // instance
@@ -53,10 +53,12 @@ class RalQueryBuilderLoader
     }
 
     /**
+     * @param null $hydratation
+     * @param array $options
      * @return Graph|\EasyRdf\Sparql\Result
      */
-    public function getResources()
+    public function getResources($hydratation = null, $options = array())
     {
-        return $this->queryBuilder->getQuery()->execute(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
+        return $this->queryBuilder->getQuery()->execute($hydratation, $options);
     }
 }
