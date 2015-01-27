@@ -61,10 +61,12 @@ class UnitOfWork {
      */
     public function registerResource($resource)
     {
-        $resource->setRm($this->_rm);
-        $this->registeredResources[$resource->getUri()] = $resource ;
+        if (method_exists($resource, "setRm")) {
+            $resource->setRm($this->_rm);
+            $this->registeredResources[$resource->getUri()] = $resource;
 
-        $this->initialSnapshots->takeSnapshot($resource);
+            $this->initialSnapshots->takeSnapshot($resource);
+        }
     }
 
     /**
