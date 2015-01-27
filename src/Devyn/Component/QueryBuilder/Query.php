@@ -240,6 +240,7 @@ class Query
         }
 
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
+        $this->result = $this->resultToGraph($this->result);
 
         if (($hydrator = $this->newHydrator($hydratation)) != null) {
             $this->result = $hydrator->hydrateResources($options);
@@ -361,5 +362,21 @@ class Query
     public function getRm()
     {
         return $this->rm;
+    }
+
+    private function resultToGraph($result)
+    {
+        //@todo fix this
+        if ($result instanceof Graph) {
+            return $result;
+        }
+
+        $graph = new Graph(null);
+
+        foreach ($result as $row) {
+            $graph->add($row->subject, $row->predicate, $row->object);
+        }
+
+        return $graph;
     }
 }
