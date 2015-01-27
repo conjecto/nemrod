@@ -81,7 +81,7 @@ class ResourceParamConverter implements ParamConverterInterface
 
     protected function find($class, Request $request, $options, $name)
     {
-        if (($options['mapping'] && !array_key_exists('uri', $options['mapping'])) || $options['exclude']) {
+        if ($options['mapping'] || $options['exclude']) {
             return false;
         }
 
@@ -108,12 +108,12 @@ class ResourceParamConverter implements ParamConverterInterface
             if (!is_array($options[$key])) {
                 $name = $options[$key];
             } elseif (is_array($options[$key])) {
-                $id = array();
+                $uri = array();
                 foreach ($options[$key] as $field) {
-                    $id[$field] = $request->attributes->get($field);
+                    $uri[$field] = $request->attributes->get($field);
                 }
 
-                return $id;
+                return $uri;
             }
         }
 
@@ -137,7 +137,7 @@ class ResourceParamConverter implements ParamConverterInterface
     protected function findOneBy($class, Request $request, $options)
     {
         if (!$options['mapping']) {
-            $keys               = $request->attributes->keys();
+            $keys = $request->attributes->keys();
             $options['mapping'] = $keys ? array_combine($keys, $keys) : array();
         }
 
@@ -152,7 +152,7 @@ class ResourceParamConverter implements ParamConverterInterface
         $criteria = array();
 
         foreach ($options['mapping'] as $attribute => $field) {
-            $criteria[$attribute] = '"'.$field.'"';
+            $criteria[$attribute] = '"' . $request->attributes->get($field) . '"';
         }
 
         if ($options['strip_null']) {
@@ -175,7 +175,7 @@ class ResourceParamConverter implements ParamConverterInterface
     protected function getOptions(ConfigurationInterface $configuration)
     {
         return array_replace(array(
-            'entity_manager' => null,
+            'resource_manager' => null,
             'exclude'        => array(),
             'mapping'        => array(),
             'strip_null'     => false,
@@ -205,7 +205,7 @@ class ResourceParamConverter implements ParamConverterInterface
         }
 
         // if there is no manager, this means that only Doctrine DBAL is configured
-        if (null === $this->container/* || !count($this->registry->getManagers())*/) {
+        if (null === $this->container/* null === $this->registry || !count($this->registry->getManagers())*/) {
             return false;
         }
 
@@ -215,7 +215,7 @@ class ResourceParamConverter implements ParamConverterInterface
 
         $options = $this->getOptions($configuration);
 
-        $rm = $this->getManager($options['entity_manager']);
+        $rm = $this->getManager($options['resource_manager']);
 
         if (null === $rm) {
             return false;
@@ -224,6 +224,5 @@ class ResourceParamConverter implements ParamConverterInterface
         $this->rm = $rm;
 
         return true;
-//        return ! $rm->getMetadataFactory()->isTransient($configuration->getClass());
     }
 }

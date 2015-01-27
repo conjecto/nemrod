@@ -17,7 +17,7 @@
         </service>
         <service id="jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
         <service id="conjecto.converter.resource" class="%rdf.param_convecter.resource.class%">
-            <tag name="request.param_converter" priority="0" converter="resource" />
+            <tag name="request.param_converter" priority="1" converter="resource" />
             <argument type="service" id="service_container" />
         </service>
     </services>
