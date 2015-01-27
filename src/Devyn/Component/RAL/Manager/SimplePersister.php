@@ -75,6 +75,10 @@ class SimplePersister implements PersisterInterface
 
         $result = $qb->getQuery()->execute();
 
+        if ($result instanceof Result) {
+            $result = $this->resultToGraph($result);
+        }
+
         if (!$this->isEmpty($result)) {
 
             $resourceClass = null;
@@ -112,7 +116,7 @@ class SimplePersister implements PersisterInterface
 
         $graph = $qb->getQuery()->execute();
 
-        if($graph instanceof Graph) {
+        if(!$graph instanceof Graph) {
             $graph = $this->resultToGraph($graph);
         }
 
@@ -214,11 +218,7 @@ class SimplePersister implements PersisterInterface
 
         $graph = $qb->getQuery()->execute();
 
-        //"CONSTRUCT {".$body."} WHERE {".$body."}"." ".$queryFinal;
-
         $this->_rm->getLogger()->info($qb->getSparqlQuery());
-        //echo htmlspecialchars($query->getSparqlQuery());
-        //$graph = $this->query($query->getSparqlQuery());
 
         if ($graph instanceof Result) {
             $graph = $this->resultToGraph($graph);
@@ -315,7 +315,7 @@ class SimplePersister implements PersisterInterface
 //                                        $bNodeVariablesGroupByProperty[$uri] = array();
 //                                    }
                                     //$bNodeVariablesGroupByProperty[$uri][$property] = true ;
-                                    echo "uuu";
+
                                     $varBnode = $this->nextVariable();
                                     $varBnodePred = $this->nextVariable();
                                     $varBnodeObj = $this->nextVariable();
@@ -342,7 +342,6 @@ class SimplePersister implements PersisterInterface
                 }
             }
         }
-        var_dump($whereParts);
         return array($criteriaParts, $whereParts);
     }
 
@@ -421,10 +420,11 @@ class SimplePersister implements PersisterInterface
             return $result;
         }
 
+
         $graph = new Graph(null);
 
         foreach ($result as $row) {
-            $graph->add($row->s, $row->p, $row->o);
+            $graph->add($row->subject, $row->predicate, $row->object);
         }
 
         return $graph;

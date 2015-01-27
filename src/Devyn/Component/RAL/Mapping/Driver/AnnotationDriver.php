@@ -3,14 +3,24 @@ namespace Devyn\Component\RAL\Mapping\Driver;
 
 use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnotationDriver;
+use Metadata\Driver\AdvancedDriverInterface;
 
 /**
  * Class AnnotationDriver parses a bundle for
  * @package Devyn\Component\RAL\Mapping\Driver
  */
-class AnnotationDriver extends AbstractAnnotationDriver
+class AnnotationDriver implements AdvancedDriverInterface
 {
+    /**
+     * @var
+     */
+    private $dirs;
+
+
+    private $reader;
+
     /**
      * {@inheritDoc}
      */
@@ -19,25 +29,24 @@ class AnnotationDriver extends AbstractAnnotationDriver
     );
 
     /**
-     * Loads the metadata for the specified class into the provided container.
-     *
-     * @param string $className
-     * @param ClassMetadata $metadata
-     *
-     * @return void
+     * @param Reader $reader
      */
-    public function loadMetadataForClass($className, \Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata = null)
+    public function __construct(Reader $reader, $dirs)
+    {
+        $this->reader = $reader;
+        $this->dirs = $dirs;
+    }
+
+
+    /**
+     * @param \ReflectionClass $class
+     * @return \Metadata\ClassMetadata
+     */
+    public function loadMetadataForClass(\ReflectionClass $class)
     {
         $metadata = new ClassMetadata();
-        $class = new \ReflectionClass($className);
         $classAnnotations = $this->reader->getClassAnnotations($class);
 
-
-        foreach ($class->getProperties() as $prop) {
-            $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
-        }
-
-        var_dump($propertyAnnotations);
 
         if ($classAnnotations) {
             foreach ($classAnnotations as $key => $annot) {
@@ -45,12 +54,16 @@ class AnnotationDriver extends AbstractAnnotationDriver
                     continue;
                 }
                 $classAnnotations[get_class($annot)] = $annot;
+            }
 
+            //getting properties annotations
+            foreach ($class->getProperties() as $prop) {
+                $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
+                if (isset($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property'])) {
+
+                }
             }
         }
-
-
-        var_dump($classAnnotations);
 
         // Evaluate Resource annotation
         if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'])) {
@@ -64,5 +77,30 @@ class AnnotationDriver extends AbstractAnnotationDriver
 
         // to do : more doctrine style ?
         return $metadata;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllClassNames()
+    {
+        $classes = array();
+        foreach ($this->dirs as $nsPrefix => $dir) {
+            /** @var $iterator \RecursiveIteratorIterator|\SplFileInfo[] */
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($iterator as $file) {
+
+                if (($fileName = $file->getBasename('.php')) == $file->getBasename()) {
+                    continue;
+                }
+                $classes[] = $nsPrefix.'\\RdfResource\\'.str_replace('.', '\\', $fileName);
+            }
+        }
+
+        return $classes;
     }
 }

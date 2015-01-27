@@ -137,7 +137,7 @@ class RALExtension extends Extension
             $resourcePath = $path['dirname'] . '\\RdfResource\\';
             //adding dir path to driver known pathes
             if(is_dir($resourcePath)) {
-                $paths[] = $resourcePath;
+                $paths[$refl->getNamespaceName()] = $resourcePath;
             }
         }
 
@@ -147,7 +147,8 @@ class RALExtension extends Extension
         $classes = $driver->getAllClassNames();
 
         foreach($classes as $class) {
-            $metadata = $driver->loadMetadataForClass($class);
+            echo $class;
+            $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
             foreach($metadata->types as $type) {
                 $service->addMethodCall('set', array($type, $class));
             }

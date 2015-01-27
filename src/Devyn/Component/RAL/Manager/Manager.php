@@ -5,6 +5,7 @@ use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
 use EasyRdf\TypeMapper;
+use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;
 
 
@@ -32,6 +33,10 @@ class Manager
 
     /** @var  Logger */
     private $logger;
+
+    /** @var MetadataFactory */
+    private $metadataFactory;
+
 
     /**
      * @param RepositoryFactory $repositoryFactory
