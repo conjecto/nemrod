@@ -17,7 +17,7 @@ final class Property {
     public function construct($arr)
     {
         parent::__construct($arr);
-        echo "**";
+
     }
 
     public $value;

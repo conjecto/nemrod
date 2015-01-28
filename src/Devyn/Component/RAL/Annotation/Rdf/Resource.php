@@ -12,4 +12,6 @@ final class Resource
      * @var array
      */
     public $types = array();
+
+    public $uriPattern = "";
 }

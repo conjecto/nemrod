@@ -9,6 +9,7 @@
 namespace Devyn\Component\RAL\Manager;
 
 
+use Devyn\Component\RAL\Annotation\Rdf\Resource;
 use Devyn\Component\RAL\Resource\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
@@ -36,6 +37,9 @@ class UnitOfWork {
 
     /** @var PersisterInterface */
     private $persister;
+
+    /** @var  int $variableCount */
+    private $bnodeCount = 0;
 
     /**
      * @var Manager
@@ -163,14 +167,7 @@ class UnitOfWork {
     }
 
     /**
-     * Saves all changes in unit of work to store
-     */
-    public function commit()
-    {
-
-    }
-
-    /**
+     * @todo not used since function only purpose is to "save" resource
      * update a resource
      * @param $resource
      */
@@ -180,7 +177,7 @@ class UnitOfWork {
         if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
             throw new \InvalidArgumentException("Provided object is not a resource or is not currently managed");
         }
-        $chgSet=$this->computeChangeSet($resource);
+        $chgSet=$this->computeChangeSet(array($resource));
         $this->persister->update($resource->getUri(), $chgSet[0], $chgSet[1], array());
         //print_r(, false);
     }
@@ -198,7 +195,26 @@ class UnitOfWork {
             throw new Exception("Resource already exist");
         }
         $this->registerResource($resource);
-        $this->persister->save($resource->getUri(),$resource->getGraph()->toRdfPhp());
+
+        //no more effective save.
+        //$this->persister->save($resource->getUri(),$resource->getGraph()->toRdfPhp());
+    }
+
+    /**
+     * performing a diff between snaphshots and entities
+     */
+    public function commit()
+    {
+        $correspondances = array();
+
+        /** @var BaseResource $resource */
+        foreach ($this->registeredResources as $resource)
+        {
+            //generating an uri if resource is a blank node
+            if ($resource->isBNode()) {
+                $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
+            }
+        }
     }
 
     /**
@@ -216,14 +232,17 @@ class UnitOfWork {
      */
     public function create($className = null)
     {
+        $classN = null;
         if ($className) {
             $classN = TypeMapper::get($className);
-        } else {
+        }
+
+        if (!$classN) {
             $classN = "Devyn\\Component\\RAL\\Resource\\Resource";
         }
 
         /** @var BaseResource $resource */
-        $resource = new $classN($this->generateURI(),new Graph());
+        $resource = new $classN($this->nextBNode(),new Graph());
         $resource->setType($className);
         $resource->setRm($this->_rm);
         return $resource;
@@ -251,9 +270,30 @@ class UnitOfWork {
     /**
      *
      */
-    private function computeChangeSet(BaseResource $resource)
+    private function computeChangeSet($resources = array())
     {
-        return $this->diff($this->getSnapshotForResource($resource), $resource->getGraph()->toRdfPhp());
+        if (empty($resources)){
+            $resources = $this->registeredResources();
+        }
+
+        return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($resources));
+    }
+
+    private function mergeRdfPhp($resources)
+    {
+        $merged = array();
+
+        /** @var Resource $resource */
+        foreach ($resources as $resource) {
+            $entries = $resource->getGraph()->toRdfPhp();
+
+            if(!isset($merged[$resource->getUri()])) {
+                $merged[$resource->getUri()] = $entries[$resource->getUri()];
+            }
+            $merged[$resource->getUri()] = $resource;
+        }
+
+        return $merged;
     }
 
     /**
@@ -346,11 +386,13 @@ class UnitOfWork {
      * @param $resource
      * @return array
      */
-    private function getSnapshotForResource($resource)
+    private function getSnapshotForResource($resources)
     {
+        $snapshot = array();
+        foreach ($resources as $resource)
         $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
 
-        $snapshot = array($resource->getUri() => $bigSnapshot[$resource->getUri()]);
+        $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
         //getting snapshots also for blank nodes
         foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
@@ -390,8 +432,17 @@ class UnitOfWork {
      * Uri generation.
      * @return string
      */
-    private function generateURI()
+    private function generateURI($className)
     {
         return uniqid("ogbd:");
+    }
+
+    /**
+     * provides a blank node uri for collections
+     * @return string
+     */
+    public function nextBNode()
+    {
+        return "_:bn".(++$this->bnodeCount);
     }
 }

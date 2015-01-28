@@ -1,51 +1,22 @@
 <?php
 namespace Devyn\Component\RAL\Mapping;
 
+//use \JMS\Serializer\Metadata\ ClassMetadata as BaseClassMetadata;
+use Metadata\MergeableClassMetadata as BaseClassMetadata;
+use Metadata\MergeableInterface;
+
 /**
  * Class ClassMetadata
  * @package Devyn\Component\RAL\Mapping
  */
-class ClassMetadata {
+class ClassMetadata extends BaseClassMetadata
+{
     /**
      * @var array
      */
     public $types = array();
 
-    public $properties = array();
-
-    public $cascadeStrategy = array();
-
-    /**
-     * @return array
-     */
-    public function getCascadeStrategy()
-    {
-        return $this->cascadeStrategy;
-    }
-
-    /**
-     * @param array $cascadeStrategy
-     */
-    public function setCascadeStrategy($cascadeStrategy)
-    {
-        $this->cascadeStrategy = $cascadeStrategy;
-    }
-
-    /**
-     * @return array
-     */
-    public function getProperties()
-    {
-        return $this->properties;
-    }
-
-    /**
-     * @param array $properties
-     */
-    public function setProperties($properties)
-    {
-        $this->properties = $properties;
-    }
+    public $uriPattern = "";
 
     /**
      * @return array
@@ -62,4 +33,18 @@ class ClassMetadata {
     {
         $this->types = $types;
     }
+
+    public function setUriPattern($up)
+    {
+        $this->uriPattern = $up;
+    }
+
+    public function merge(MergeableInterface $object)
+    {
+        parent::merge($object);
+
+        $this->types = array_merge($this->types, $object->types);
+        $this->uriPattern = $object->uriPattern;
+    }
+
 }

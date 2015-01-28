@@ -2,10 +2,12 @@
 namespace Devyn\Component\RAL\Mapping\Driver;
 
 use Devyn\Component\RAL\Mapping\ClassMetadata;
+use Devyn\Component\RAL\Mapping\PropertyMetadata;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnotationDriver;
 use Metadata\Driver\AdvancedDriverInterface;
+use Devyn\Component\RAL\Annotation\Rdf\Property as RdfProperty;
 
 /**
  * Class AnnotationDriver parses a bundle for
@@ -21,12 +23,6 @@ class AnnotationDriver implements AdvancedDriverInterface
 
     private $reader;
 
-    /**
-     * {@inheritDoc}
-     */
-    protected $entityAnnotationClasses = array(
-      'Devyn\Component\RAL\Annotation\Rdf\Resource' => 1
-    );
 
     /**
      * @param Reader $reader
@@ -44,9 +40,8 @@ class AnnotationDriver implements AdvancedDriverInterface
      */
     public function loadMetadataForClass(\ReflectionClass $class)
     {
-        $metadata = new ClassMetadata();
+        $metadata = new ClassMetadata($class->getName());
         $classAnnotations = $this->reader->getClassAnnotations($class);
-
 
         if ($classAnnotations) {
             foreach ($classAnnotations as $key => $annot) {
@@ -55,27 +50,39 @@ class AnnotationDriver implements AdvancedDriverInterface
                 }
                 $classAnnotations[get_class($annot)] = $annot;
             }
+        }
 
-            //getting properties annotations
-            foreach ($class->getProperties() as $prop) {
-                $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
-                if (isset($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property'])) {
-
+        foreach ($class->getProperties() as $prop) {
+            $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
+            foreach($propertyAnnotations as $propAnnot) {
+                if ($propAnnot instanceof RdfProperty) {
+                    $propMetadata = new PropertyMetadata($class->getName(), $prop->getName());
+                    $propMetadata->value = $propAnnot->value;
+                    $propMetadata->cascade = $propAnnot->cascade;
+                    $metadata->addPropertyMetadata($propMetadata);
                 }
+            }
+            if (isset($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property'])) {
+               // var_dump($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property']);
             }
         }
 
+
         // Evaluate Resource annotation
         if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'])) {
+
             $resourceAnnot = $classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'];
+
             $types = $resourceAnnot->types;
+            $pattern = $resourceAnnot->uriPattern;
             if(!is_array($types)) {
                 $types = array($types);
             }
             $metadata->types = $types;
+            $metadata->uriPattern = $pattern;
         }
 
-        // to do : more doctrine style ?
+
         return $metadata;
     }
 

@@ -15,7 +15,7 @@
 
         <!-- MetadataFactory -->
         <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
-        <parameter key="ral.metadata_annotation_driver.class">Devyn\Component\Mapping\Driver\AnnotationDriver</parameter>
+        <parameter key="ral.metadata_annotation_driver.class">Devyn\Component\RAL\Mapping\Driver\AnnotationDriver</parameter>
     </parameters>
 
     <services>
@@ -40,11 +40,12 @@
         </service>
 
         <!-- metadatafactory -->
-        <service id="ral.metadata_annotation_driver" class="ral.metadata_annotation_driver.class" public="false">
+        <service id="ral.metadata_annotation_driver" class="%ral.metadata_annotation_driver.class%" public="false">
             <argument type="service" id="annotation_reader" />
+            <argument />
         </service>
         <service id="ral.metadata_factory" class="%ral.metadata_factory.class%" public="false">
-            <argument type="service" id="annotation_driver" />
+            <argument type="service" id="ral.metadata_annotation_driver" />
         </service>
 
 

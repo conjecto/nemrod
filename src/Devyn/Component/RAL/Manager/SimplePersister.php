@@ -31,9 +31,6 @@ class SimplePersister implements PersisterInterface
     /** @var  int $variableCount */
     private $variableCount = 0;
 
-    /** @var  int $variableCount */
-    private $bnodeCount = 0;
-
     private $bnodeMap = array();
 
     /**  */
@@ -177,8 +174,6 @@ class SimplePersister implements PersisterInterface
      */
     public function constructCollection(array $criteria, array $options)
     {
-        //$body = "?s ?p ?q";
-
         //end statments for query (order by, etc)
         $queryFinal = "";
 
@@ -217,18 +212,14 @@ class SimplePersister implements PersisterInterface
         }
 
         $graph = $qb->getQuery()->execute();
-
-        $this->_rm->getLogger()->info($qb->getSparqlQuery());
-
-        if ($graph instanceof Result) {
+        if (!$graph instanceof Graph) {
             $graph = $this->resultToGraph($graph);
         }
+        //$this->_rm->getLogger()->info($qb->getSparqlQuery());
 
         if ($this->isEmpty($graph)){
             return null;
         }
-
-        $graph = $this->resultToGraph($graph);
 
         $collection = null;
 
@@ -342,6 +333,7 @@ class SimplePersister implements PersisterInterface
                 }
             }
         }
+
         return array($criteriaParts, $whereParts);
     }
 
@@ -354,18 +346,19 @@ class SimplePersister implements PersisterInterface
     {
         $res = $graph->allOfType($className);
         $collUri = $this->nextCollectionUri();
-        $this->_rm->getUnitOfWork()->managementBlackList($collUri);
+        //$this->_rm->getUnitOfWork()->managementBlackList($collUri);
         $coll = new Collection($collUri, $graph);
 
+        //@todo WAY too long
         //building collection
         foreach ($res as $re) {
             $coll->append($re);
         }
 
-        $this->blackListCollection ($coll);
+        //$this->blackListCollection ($coll);
 
         foreach ($res as $re) {
-            $this->_rm->getUnitOfWork()->registerResource($re);
+            //$this->_rm->getUnitOfWork()->registerResource($re);
         }
 
         return $coll;
@@ -466,18 +459,9 @@ class SimplePersister implements PersisterInterface
             return $bNode;
         }
         if (!isset($this->bnodeMap[$bNode])){
-            $this->bnodeMap[$bNode] = $this->nextBNode();
+            $this->bnodeMap[$bNode] = $this->_rm->getUnitOfWork()->nextBNode();
         }
         return $this->bnodeMap[$bNode];
-    }
-
-    /**
-     * provides a blank node uri for collections
-     * @return string
-     */
-    private function nextBNode()
-    {
-        return "_:bn".(++$this->bnodeCount);
     }
 
     private function isEmpty($result) {

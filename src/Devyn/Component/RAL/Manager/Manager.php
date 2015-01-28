@@ -4,6 +4,7 @@ namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;
@@ -214,6 +215,11 @@ class Manager
         $this->getUnitOfWork()->dumpRegistered();
     }
 
+    public function flush()
+    {
+        $this->unitOfWork->commit();
+    }
+
     /**
      *
      * @param $resource
@@ -222,6 +228,36 @@ class Manager
     public function isResource($resource)
     {
         return $this->getUnitOfWork()->isResource($resource);
+    }
+
+    /**
+     *
+     */
+    public function setMetadataFactory($metadataFactory)
+    {
+        $this->metadataFactory = $metadataFactory;
+    }
+
+    /**
+     * @return MetadataFactory
+     */
+    public function getMetadataFactory()
+    {
+        return $this->metadataFactory();
+    }
+
+    /**
+     * @param $type
+     * @return \Metadata\ClassHierarchyMetadata|\Metadata\MergeableClassMetadata|null
+     */
+    public function getMetadata($type)
+    {
+        $class = TypeMapper::get($type);
+        echo $class."<<";
+        if ($class) {
+            return $this->metadataFactory->getMetadataForClass($class);
+        }
+        return null;
     }
 
     /**

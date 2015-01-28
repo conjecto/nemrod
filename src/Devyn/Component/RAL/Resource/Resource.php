@@ -87,7 +87,11 @@ class Resource extends BaseResource
         list($first, $rest) = $this->split($property);
 
         $result = parent::get($first, $type, $lang);
-        //echo $this->getUri();
+
+        if ($rest == "") {
+            return $result;
+        }
+
         if (is_array($result)) {
             if (count($result)){
                 //$result->
