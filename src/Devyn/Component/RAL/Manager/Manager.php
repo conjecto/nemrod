@@ -136,6 +136,7 @@ class Manager
         /** @var PersisterInterface $persister */
         $persister = $this->unitOfWork->getPersister();
 
+
         /** @var Resource $res */
         $res = $persister->constructUri($className, $uri);
 
@@ -243,7 +244,7 @@ class Manager
      */
     public function getMetadataFactory()
     {
-        return $this->metadataFactory();
+        return $this->metadataFactory;
     }
 
     /**

@@ -40,6 +40,10 @@ class SnapshotContainer extends Graph
      */
     public function takeSnapshot(BaseResource $resource)
     {
+        $mtime = microtime();
+        $mtime = explode(" ",$mtime);
+        $mtime = $mtime[1] + $mtime[0];
+        $starttime = $mtime;
         $res = $this->resource($resource->getUri());
 
         $graph = $resource->getGraph();
@@ -63,7 +67,12 @@ class SnapshotContainer extends Graph
                 }
             }
         }
-
+        $mtime = microtime();
+        $mtime = explode(" ",$mtime);
+        $mtime = $mtime[1] + $mtime[0];
+        $endtime = $mtime;
+        $totaltime = ($endtime - $starttime);
+        echo "Snap in ".$totaltime." seconds";
         return $res;
     }
 

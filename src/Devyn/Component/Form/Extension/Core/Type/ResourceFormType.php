@@ -102,7 +102,7 @@ class ResourceFormType extends FormType
             'empty_data' => function (FormInterface $form) {
                 $parseUri = $form->getRoot()->getData()->parseUri();
                 $newUri = $parseUri->getScheme() . '://' . $parseUri->getAuthority() . '/#' .  $this->findNameInForm($form->all());
-                return new \EasyRdf\Resource($newUri, new \EasyRdf\Graph());
+                return new \EasyRdf\Resource($newUri, $form->getRoot()->getData()->getGraph());
             },
         ));
     }

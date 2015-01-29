@@ -225,7 +225,6 @@ class Query
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
-
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
         return $this->result;

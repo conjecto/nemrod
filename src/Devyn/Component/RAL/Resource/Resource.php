@@ -48,6 +48,10 @@ class Resource extends BaseResource
 
                 if ($res instanceof Resource) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
+                } else if ($res instanceof BaseResource) {
+                    $nr = new Resource($res->getUri(), $res->getGraph());
+                    $nr->setRm($this->_rm);
+                    $llResult[] = $nr;
                 }
             }
 
@@ -87,6 +91,7 @@ class Resource extends BaseResource
         list($first, $rest) = $this->split($property);
 
         $result = parent::get($first, $type, $lang);
+        //var_dump($result);
 
         if ($rest == "") {
             return $result;
@@ -94,7 +99,6 @@ class Resource extends BaseResource
 
         if (is_array($result)) {
             if (count($result)){
-                //$result->
                 return $result[0];
             }
             return null;
@@ -106,6 +110,7 @@ class Resource extends BaseResource
                 } else {
                     $re = $this->_rm->find(null, $result->getUri());
                 }
+                //var_dump($re);
                 if (!empty($re)){
                      if ($rest == ''){
                          return $re;
@@ -120,6 +125,17 @@ class Resource extends BaseResource
         } else {
             return $result;
         }
+    }
+
+    /**
+     * @return int|void
+     */
+    public function set($a, $b)
+    {
+        if(is_object($b)) {
+            var_dump($b->getGraph());
+        }
+        return parent::set($a, $b);
     }
 
     /**
