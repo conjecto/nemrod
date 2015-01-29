@@ -173,13 +173,11 @@ class UnitOfWork {
      */
     public function update(BaseResource $resource)
     {
-        //resource must be an instance of Resource that is already managed
         if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
             throw new \InvalidArgumentException("Provided object is not a resource or is not currently managed");
         }
         $chgSet=$this->computeChangeSet(array($resource));
         $this->persister->update($resource->getUri(), $chgSet[0], $chgSet[1], array());
-        //print_r(, false);
     }
 
     /**
