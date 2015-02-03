@@ -78,8 +78,13 @@ class UnitOfWork {
         //echo $resource->getUri();
         $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
+        if (method_exists($resource, "setRm")) {
+            $resource->setRm($this->_rm);
+            $this->registeredResources[$resource->getUri()] = $resource;
 
         if ($fromStore) {
+            $this->initialSnapshots->takeSnapshot($resource);
+        }
             $this->initialSnapshots->takeSnapshot($resource);
         }
     }

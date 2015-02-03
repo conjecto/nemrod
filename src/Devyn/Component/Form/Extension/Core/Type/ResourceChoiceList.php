@@ -8,6 +8,7 @@
 
 namespace Devyn\Component\Form\Extension\Core\Type;
 
+use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\QueryBuilder\RalQueryBuilderLoader;
 use Devyn\Component\RAL\Manager\Manager;
@@ -266,11 +267,12 @@ class ResourceChoiceList extends ObjectChoiceList
     private function load()
     {
         try {
-            $resources = (new RalQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources();
+            $resources = (new RalQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
 
             // The second parameter $labels is ignored by ObjectChoiceList
-            if ($resources)
+            if ($resources) {
                 parent::initialize($resources, array(), $this->preferredResources);
+            }
         } catch (StringCastException $e) {
             throw new StringCastException(str_replace('argument $labelPath', 'option "property"', $e->getMessage()), null, $e);
         }
