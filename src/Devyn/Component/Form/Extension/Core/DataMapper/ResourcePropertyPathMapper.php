@@ -139,6 +139,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         if (is_string($propertyPath)) {
             $propertyPath = new PropertyPath($propertyPath);
+
         } elseif (!$propertyPath instanceof PropertyPathInterface) {
             throw new UnexpectedTypeException($propertyPath, 'string or Symfony\Component\PropertyAccess\PropertyPathInterface');
         }

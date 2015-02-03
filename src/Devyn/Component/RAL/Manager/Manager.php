@@ -70,6 +70,7 @@ class Manager
      */
     public function getRepository($className = null)
     {
+        //TypeMapper::set($className,"Devyn\\Component\\RAL\\Resource\\Resource");
         return $this->repositoryFactory->getRepository($className, $this);
     }
 
@@ -136,7 +137,6 @@ class Manager
         /** @var PersisterInterface $persister */
         $persister = $this->unitOfWork->getPersister();
 
-
         /** @var Resource $res */
         $res = $persister->constructUri($className, $uri);
 
@@ -148,6 +148,7 @@ class Manager
      */
     public function save(Resource $resource)
     {
+        $this->getUnitOfWork()->save(null, $resource);
         //$this->getRepository($resource->)
     }
 
@@ -216,6 +217,9 @@ class Manager
         $this->getUnitOfWork()->dumpRegistered();
     }
 
+    /**
+     * calls Managers UnitOfWork commit function
+     */
     public function flush()
     {
         $this->unitOfWork->commit();

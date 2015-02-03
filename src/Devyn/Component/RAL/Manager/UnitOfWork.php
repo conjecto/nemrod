@@ -22,6 +22,10 @@ use EasyRdf\TypeMapper;
 
 class UnitOfWork {
 
+    const STATUS_REMOVED = 1 ;
+    const STATUS_MANAGED = 2 ;
+    const STATUS_NEW = 2 ;
+
     /**
      * registered resources
      * @var  ArrayCollection $registeredResources
@@ -42,6 +46,9 @@ class UnitOfWork {
 
     /** @var  int $variableCount */
     private $bnodeCount = 0;
+
+    /** @var array */
+    private $status = array();
 
     /**
      * @var Manager
@@ -234,7 +241,12 @@ class UnitOfWork {
         }
         $chSt = $this->computeChangeSet(array(), array('correspondence' => $correspondances));
 
-        $this->persister->update(null, $chSt[0], $chSt[1], null);
+        //update if needed
+        if (!empty($chSt[0]) || !empty($chSt[1])) {
+            //var_dump($chSt);
+            $this->persister->update(null, $chSt[0], $chSt[1], null);
+        }
+
     }
 
     /**
@@ -242,8 +254,12 @@ class UnitOfWork {
      */
     public function delete(BaseResource $resource)
     {
-        $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
-        $this->deleteSnapshotForResource($resource);
+        //$this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
+        if (isset ($this->registeredResources[$resource->getUri()])){
+            //unset($this->registeredResources[$resource->getUri()]);
+            $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
+        }
+        //$this->deleteSnapshotForResource($resource);
     }
 
     /**
@@ -292,11 +308,18 @@ class UnitOfWork {
      */
     private function computeChangeSet($resources = array(), $options)
     {
-        if (empty($resources)){
+        if (empty($resources)) {
             $resources = $this->registeredResources;
         }
 
-        return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($resources), $options);
+        $outResources = array();
+        foreach($resources as $resource) { //echo '.'.$resource->getUri();
+            if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
+                $outResources[$resource->getUri()] = $resource;
+            }
+        }
+
+        return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($outResources), $options);
     }
 
     /**
@@ -332,7 +355,10 @@ class UnitOfWork {
      */
     private function diff($rdfArray1, $rdfArray2, $options)
     {
-        return array($this->minus($rdfArray1, $rdfArray2, $options), $this->minus($rdfArray2, $rdfArray1, $options));
+        return array(
+            $this->minus($rdfArray1, $rdfArray2, $options),
+            $this->minus($rdfArray2, $rdfArray1, $options)
+        );
     }
 
     /**
@@ -345,32 +371,38 @@ class UnitOfWork {
     private function minus($rdfArray1, $rdfArray2, $options)
     {
         $minusArray = array();
+        $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
 
             //bnodes are taken separately
             if (!empty($properties)) {
                 $index = (isset($options['correspondence'][$resource])) ? $options['correspondence'][$resource] : $resource ;
-                $minusArray[$index] = array();
+
                 foreach ($properties as $property => $values) {
                     if (!empty($values)) {
                         foreach ($values as $value) {
-                            if (empty($rdfArray2[$resource]) ||
+                            if (!isset ($rdfArray2[$resource]) ||
+                                empty($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource][$property]) ||
                                 !$this->containsObject($value, $rdfArray2[$resource][$property])) {
-                                if (!isset($minusArray[$index][$property])) $minusArray[$index][$property] = array();
+                                if (!isset($tmpMinus[$index][$property])) $tmpMinus[$index][$property] = array();
 
                                 if (isset($options['correspondence'][$value['value']])) {
                                     $value = array('value' => $options['correspondence'][$value['value']], 'type' => 'uri');
                                 }
-                                $minusArray[$index][$property][] = $value ;
+                                $tmpMinus[$index][$property][] = $value ;
                             }
                         }
                     }
                 }
+                if (isset ($tmpMinus[$index]) && count($tmpMinus[$index])) {
+
+                    $minusArray[$index] = $tmpMinus[$index];
+                }
+
             }
         }
-
         return $minusArray;
     }
 
@@ -467,4 +499,13 @@ class UnitOfWork {
     {
         return "_:bn".(++$this->bnodeCount);
     }
+
+    /**
+     *
+     */
+    public function isManaged(BaseResource $resource)
+    {
+        return (isset($this->registeredResources[$resource->getUri()]));
+    }
+
 }

@@ -90,31 +90,30 @@ class Resource extends BaseResource
     {
         list($first, $rest) = $this->split($property);
 
+        //first trrying to get first step value
         $result = parent::get($first, $type, $lang);
-        //var_dump($result);
 
-        if ($rest == "") {
-            return $result;
-        }
 
         if (is_array($result)) {
             if (count($result)){
                 return $result[0];
             }
             return null;
-        } else if ($this->_rm->isResource($result)) {
+        } else if ($this->_rm->isResource($result)) { //we get a resource
 
             try {
+                //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
                 } else {
                     $re = $this->_rm->find(null, $result->getUri());
                 }
-                //var_dump($re);
+
                 if (!empty($re)){
                      if ($rest == ''){
                          return $re;
                      }
+                    //if rest of path is not empty, we get along it
                      return $re->get($rest, $type, $lang);
                 }
                 return null;
@@ -122,7 +121,7 @@ class Resource extends BaseResource
                 return null;
             }
 
-        } else {
+        } else { //result is a litteral
             return $result;
         }
     }
@@ -132,8 +131,9 @@ class Resource extends BaseResource
      */
     public function set($a, $b)
     {
-        if(is_object($b)) {
-            var_dump($b->getGraph());
+        //resource: check if managed (for further save
+        if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            $this->_rm->save($b);
         }
         return parent::set($a, $b);
     }

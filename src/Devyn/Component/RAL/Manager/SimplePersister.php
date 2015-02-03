@@ -39,17 +39,6 @@ class SimplePersister implements PersisterInterface
         $this->_rm = $rm;
     }
 
-    /**
-     * @param $string
-     * @return $this|\EasyRdf\Sparql\Result
-     */
-    private function query($string)
-    {
-        $result = $this->_rm->getClient()->query($string);
-
-        return $result;
-    }
-
     private function updateQuery($string)
     {
         $this->_rm->getClient()->update($string);
@@ -101,7 +90,10 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
-     *
+     * @param $owningUri
+     * @param $property
+     * @return mixed
+     * @throws Exception
      */
     public function constructBNode($owningUri, $property)
     {
@@ -129,29 +121,17 @@ class SimplePersister implements PersisterInterface
      */
     public function update($uri, $delete, $insert, $where)
     {
-        $mtime = microtime();
-        $mtime = explode(" ",$mtime);
-        $mtime = $mtime[1] + $mtime[0];
-        $starttime = $mtime;
-
         list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
         list($insertStr) = $this->phpRdfToSparqlBody($insert);
 
-        //$whereStr = "";
-        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
         $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
-        $mtime = microtime();
-        $mtime = explode(" ",$mtime);
-        $mtime = $mtime[1] + $mtime[0];
-        $endtime = $mtime;
-        $totaltime = ($endtime - $starttime);
-        echo "Update in ".$totaltime." seconds";
         return $result;
     }
 
     /**
-     * @param Resource $resource
+     * @param $uri
+     * @param $insert
      */
     public function save($uri, $insert)
     {
@@ -171,7 +151,8 @@ class SimplePersister implements PersisterInterface
 
         $qb = $this->_rm->getQueryBuilder()->delete(implode(".", $deleteArr))->where(implode(".", $whereArr));
         //$qb->getQuery()->execute();
-        $this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
+        echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
+        //$this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
     /**
@@ -197,7 +178,8 @@ class SimplePersister implements PersisterInterface
                         }
                     }
                 }
-                $criteriaParts[] = $property. " " . $value;
+                if ($value == "") $criteriaParts[] = $property. " \"\"";
+                else $criteriaParts[] = $property. " " . $value;
             }
         }
 
@@ -255,8 +237,6 @@ class SimplePersister implements PersisterInterface
      */
     private function phpRdfToSparqlBody($criteria, $bNodesAsVariables = false)
     {
-        //translating criteria to simple query terms
-
         $criteriaParts = array();
         $whereParts = array();
         if (!empty ($criteria)) {
@@ -287,7 +267,6 @@ class SimplePersister implements PersisterInterface
     {
         $criteriaParts = array();
         $whereParts = array();
-        $bNodeVariablesGroupByProperty = array();
 
         if ($this->_rm->getUnitOfWork()->isBNode($uri)) {
             $oldUri = $uri;
@@ -303,7 +282,6 @@ class SimplePersister implements PersisterInterface
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-
                             if ($val['type'] == 'literal') {
                                 $criteriaParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
                                 $whereParts[] = "<" . $uri . "> <" . $property . "> \"" . $val['value'] . "\"";
@@ -325,7 +303,7 @@ class SimplePersister implements PersisterInterface
                                     $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
                                     $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
                                     $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
-                                    //}
+//                                    }
 
                                 } else {
                                     $newBNode = $this->getNewBnode($val['value']);
