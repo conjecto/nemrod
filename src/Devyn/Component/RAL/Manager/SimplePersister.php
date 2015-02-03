@@ -167,8 +167,9 @@ class SimplePersister implements PersisterInterface
     {
         //end statments for query (order by, etc)
         $queryFinal = "";
-
         $criteriaParts = array();
+        $criteriaUnionParts = array();
+
         if (!empty ($criteria)) {
             foreach ($criteria as $property => $value) {
                 if (is_array($value)) {
@@ -183,9 +184,8 @@ class SimplePersister implements PersisterInterface
             }
         }
 
-
         if (isset($options['orderBy'])) {
-            $criteriaParts[] = $options['orderBy']." ?orderingvar";
+            $criteriaUnionParts[] = "?s ".$options['orderBy']." ?orderingvar";
             $queryFinal .= "?orderingvar";
         }
 
@@ -197,6 +197,16 @@ class SimplePersister implements PersisterInterface
             $qb->addConstruct("?s ".$triple);
             $qb->andWhere("?s ".$triple);
         }
+
+        foreach ($criteriaUnionParts as $triple) {
+            $qb->addConstruct($triple);
+
+        }
+
+        if (count($criteriaUnionParts) == 1) {
+            $criteriaUnionParts[] = "";
+        }
+        $qb->addUnion($criteriaUnionParts);
 
         $qb->setOffset(0);
         if ($queryFinal != "") {
