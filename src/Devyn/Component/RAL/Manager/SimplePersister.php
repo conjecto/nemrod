@@ -124,6 +124,7 @@ class SimplePersister implements PersisterInterface
         list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
         list($insertStr) = $this->phpRdfToSparqlBody($insert);
 
+        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
         $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
         return $result;

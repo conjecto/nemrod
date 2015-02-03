@@ -179,26 +179,12 @@ class UnitOfWork {
     }
 
     /**
-     * @todo not used since function only purpose is to "save" resource
-     * update a resource
-     * @param $resource
-     */
-    public function update(BaseResource $resource)
-    {
-        if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
-            throw new \InvalidArgumentException("Provided object is not a resource or is not currently managed");
-        }
-        $chgSet=$this->computeChangeSet(array($resource));
-        $this->persister->update($resource->getUri(), $chgSet[0], $chgSet[1], array());
-    }
-
-    /**
      * //@todo remove first parameter
      * @param $className
      * @param BaseResource $resource
      * @throws Exception
      */
-    public function save($className, BaseResource $resource)
+    public function persist($className, BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
             //@todo perform "ask" on db to check if resource is already there
@@ -214,7 +200,7 @@ class UnitOfWork {
                 $cascadeResources = $resource->all($pm->value);
 
                 foreach ($cascadeResources as $res2) {
-                    $this->save(null, $res2);
+                    $this->persist(null, $res2);
                 }
             }
         }
@@ -246,13 +232,12 @@ class UnitOfWork {
             //var_dump($chSt);
             $this->persister->update(null, $chSt[0], $chSt[1], null);
         }
-
     }
 
     /**
      * @param BaseResource $resource
      */
-    public function delete(BaseResource $resource)
+    public function remove(BaseResource $resource)
     {
         //$this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         if (isset ($this->registeredResources[$resource->getUri()])){

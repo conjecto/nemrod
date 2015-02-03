@@ -79,20 +79,21 @@ class Repository
     }
 
     /**
-     * Create a new entity.
+     * Calls UnitOfWork delete method and returns the result
+     * @param Resource $resource
      */
-    public function delete(Resource $resource)
+    public function remove(Resource $resource)
     {
-        return $this->_rm->getUnitOfWork()->delete($resource);
+        return $this->_rm->getUnitOfWork()->remove($resource);
     }
 
     /**
      * Save a newly created resource
      * @param Resource $resource
      */
-    public function save(Resource $resource)
+    public function persist(Resource $resource)
     {
-        return $this->_rm->getUnitOfWork()->save($this->className, $resource);
+        return $this->_rm->getUnitOfWork()->persist($this->className, $resource);
     }
 
     /**

@@ -146,46 +146,9 @@ class Manager
     /**
      * @param Resource $resource
      */
-    public function save(Resource $resource)
+    public function persist(Resource $resource)
     {
-        $this->getUnitOfWork()->save(null, $resource);
-        //$this->getRepository($resource->)
-    }
-
-    public function update($resource) {
-        $this->getUnitOfWork()->update($resource);
-    }
-
-    /**
-     * @return UnitOfWork
-     */
-    public function getUnitOfWork()
-    {
-        return $this->unitOfWork;
-    }
-
-    /**
-     * @param UnitOfWork $unitOfWork
-     */
-    public function setUnitOfWork($unitOfWork)
-    {
-        $this->unitOfWork = $unitOfWork;
-    }
-
-    /**
-     * @return Client
-     */
-    public function getClient()
-    {
-        return $this->sparqlClient;
-    }
-
-    /**
-     * @param Client $sparqlClient
-     */
-    public function setClient($sparqlClient)
-    {
-        $this->sparqlClient = $sparqlClient;
+        $this->getUnitOfWork()->persist(null, $resource);
     }
 
     /**
@@ -226,6 +189,15 @@ class Manager
     }
 
     /**
+     * @param Resource $resource
+     * @return mixed
+     */
+    public function remove(Resource $resource)
+    {
+        return $this->getUnitOfWork()->remove($resource);
+    }
+
+    /**
      *
      * @param $resource
      * @return boolean
@@ -263,6 +235,38 @@ class Manager
             return $this->metadataFactory->getMetadataForClass($class);
         }
         return null;
+    }
+
+    /**
+     * @return UnitOfWork
+     */
+    public function getUnitOfWork()
+    {
+        return $this->unitOfWork;
+    }
+
+    /**
+     * @param UnitOfWork $unitOfWork
+     */
+    public function setUnitOfWork($unitOfWork)
+    {
+        $this->unitOfWork = $unitOfWork;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->sparqlClient;
+    }
+
+    /**
+     * @param Client $sparqlClient
+     */
+    public function setClient($sparqlClient)
+    {
+        $this->sparqlClient = $sparqlClient;
     }
 
     /**

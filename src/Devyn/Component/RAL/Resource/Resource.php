@@ -139,6 +139,18 @@ class Resource extends BaseResource
     }
 
     /**
+     * @return int|void
+     */
+    public function add($a, $b)
+    {
+        //resource: check if managed (for further save
+        if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            $this->_rm->save($b);
+        }
+        return parent::add($a, $b);
+    }
+
+    /**
      * @return Manager
      */
     public function getRm()

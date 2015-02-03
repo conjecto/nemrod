@@ -232,12 +232,13 @@ class Query
      *
      * @return Graph|Result
      */
-    public function execute($hydratation = null, $options = array())
+    public function execute($hydratation = null/*self::HYDRATE_ARRAY*/, $options = array())
     {
         if ($this->state == self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
+
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
         if (($hydrator = $this->newHydrator($hydratation)) != null) {
