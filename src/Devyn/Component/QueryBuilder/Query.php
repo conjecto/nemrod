@@ -9,6 +9,9 @@
 namespace Devyn\Component\QueryBuilder;
 
 
+use Devyn\Component\QueryBuilder\Internal\Hydratation\AbstractHydrator;
+use Devyn\Component\QueryBuilder\Internal\Hydratation\ArrayHydrator;
+use Devyn\Component\QueryBuilder\Internal\Hydratation\CollectionHydrator;
 use Devyn\Component\RAL\Manager\Manager;
 use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;
@@ -19,6 +22,16 @@ use EasyRdf\Graph;
  */
 class Query
 {
+    /**
+     * Hydrates graph in an array
+     */
+    const HYDRATE_ARRAY = 1;
+
+    /**
+     * Hydrates a graph in a collection
+     */
+    const HYDRATE_COLLECTION = 2;
+
     const STATE_CLEAN = 1;
     const STATE_DIRTY = 2;
 
@@ -219,7 +232,7 @@ class Query
      *
      * @return Graph|Result
      */
-    public function execute()
+    public function execute($hydratation = null, $options = array())
     {
         if ($this->state == self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
@@ -227,7 +240,30 @@ class Query
         }
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
+        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+            $this->result = $hydrator->hydrateResources($options);
+        }
+
         return $this->result;
+    }
+
+    /**
+     * @param $hydratation
+     * @return AbstractHydrator
+     */
+    protected function newHydrator($hydratation)
+    {
+        switch ($hydratation) {
+            case self::HYDRATE_COLLECTION:
+                return new CollectionHydrator($this);
+                break;
+            case self::HYDRATE_ARRAY:
+                return new ArrayHydrator($this);
+                break;
+            default:
+                return null;
+                break;
+        }
     }
 
     /**
@@ -316,5 +352,13 @@ class Query
     public function getHints()
     {
         return $this->hints;
+    }
+
+    /**
+     * @return Manager
+     */
+    public function getRm()
+    {
+        return $this->rm;
     }
 }

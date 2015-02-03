@@ -104,8 +104,8 @@ class Repository
         $qb = $this->_rm->createQueryBuilder();
         if ($this->className) {
             $qb->construct(
-                "?s a ".$this->className
-            )->where("?s a ".$this->className);
+                "?s a ".$this->className.". ?s ?p ?o"
+            )->where("?s a ".$this->className.". ?s ?p ?o");
         }
 
         return $qb;
