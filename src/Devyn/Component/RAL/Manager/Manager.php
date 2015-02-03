@@ -4,7 +4,9 @@ namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyRdf\TypeMapper;
+use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;
 
 
@@ -32,6 +34,10 @@ class Manager
 
     /** @var  Logger */
     private $logger;
+
+    /** @var MetadataFactory */
+    private $metadataFactory;
+
 
     /**
      * @param RepositoryFactory $repositoryFactory
@@ -64,6 +70,7 @@ class Manager
      */
     public function getRepository($className = null)
     {
+        //TypeMapper::set($className,"Devyn\\Component\\RAL\\Resource\\Resource");
         return $this->repositoryFactory->getRepository($className, $this);
     }
 
@@ -141,6 +148,7 @@ class Manager
      */
     public function save(Resource $resource)
     {
+        $this->getUnitOfWork()->save(null, $resource);
         //$this->getRepository($resource->)
     }
 
@@ -210,6 +218,14 @@ class Manager
     }
 
     /**
+     * calls Managers UnitOfWork commit function
+     */
+    public function flush()
+    {
+        $this->unitOfWork->commit();
+    }
+
+    /**
      *
      * @param $resource
      * @return boolean
@@ -217,6 +233,36 @@ class Manager
     public function isResource($resource)
     {
         return $this->getUnitOfWork()->isResource($resource);
+    }
+
+    /**
+     *
+     */
+    public function setMetadataFactory($metadataFactory)
+    {
+        $this->metadataFactory = $metadataFactory;
+    }
+
+    /**
+     * @return MetadataFactory
+     */
+    public function getMetadataFactory()
+    {
+        return $this->metadataFactory;
+    }
+
+    /**
+     * @param $type
+     * @return \Metadata\ClassHierarchyMetadata|\Metadata\MergeableClassMetadata|null
+     */
+    public function getMetadata($type)
+    {
+        $class = TypeMapper::get($type);
+        echo $class."<<";
+        if ($class) {
+            return $this->metadataFactory->getMetadataForClass($class);
+        }
+        return null;
     }
 
     /**

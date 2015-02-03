@@ -12,6 +12,10 @@
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
         <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
         <parameter key="query_manager.class">Devyn\Component\QueryBuilder\QueryBuilder</parameter>
+
+        <!-- MetadataFactory -->
+        <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
+        <parameter key="ral.metadata_annotation_driver.class">Devyn\Component\RAL\Mapping\Driver\AnnotationDriver</parameter>
     </parameters>
 
     <services>
@@ -35,8 +39,15 @@
             <tag name="kernel.event_listener" event="kernel.request" />
         </service>
 
-        <!--service id="ral.repository_factory" class="%ral.repository_factory.class%" public="false">
-        </service-->
+        <!-- metadatafactory -->
+        <service id="ral.metadata_annotation_driver" class="%ral.metadata_annotation_driver.class%" public="false">
+            <argument type="service" id="annotation_reader" />
+            <argument />
+        </service>
+        <service id="ral.metadata_factory" class="%ral.metadata_factory.class%" public="false">
+            <argument type="service" id="ral.metadata_annotation_driver" />
+        </service>
+
 
         <!-- sparql endpoints -->
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>

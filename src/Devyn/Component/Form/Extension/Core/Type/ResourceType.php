@@ -9,9 +9,12 @@
 namespace Devyn\Component\Form\Extension\Core\Type;
 
 
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourceLabelAccessor;
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyAccessor;
+use Devyn\Component\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Devyn\Component\RAL\Manager\Manager;
-use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
@@ -22,18 +25,17 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 class ResourceType extends AbstractType
 {
     /**
-     * @var Manager
+     * @var Manager $rm
      */
     protected $rm;
 
     /**
-     * @param Manager $rm
+     * @param Manager $defaultManager
      */
-    public function __construct(Manager $rm)
+    function __construct(Manager $defaultManager)
     {
-        $this->rm = $rm;
+        $this->rm = $defaultManager;
     }
-
 
     /**
      * Add options type and property used to find resources in repository
@@ -42,18 +44,31 @@ class ResourceType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $choiceList = function (Options $options) {
+            if (!$options['rm'] && $options['qb']) {
+                throw new MissingOptionsException('You have to specify a resource manager or a query builder');
+            }
             return new ResourceChoiceList(
-                $this->rm,
+                $options['rm'],
                 $options['choices'],
-                $options['class']
+                $options['class'],
+                $options['query_builder'],
+                $options['property'],
+                $options['preferred_choices'],
+                $options['group_by'],
+                null,
+                new ResourceLabelAccessor()
             );
         };
 
         $resolver->setDefaults(array(
             'choice_list' => $choiceList,
+            'rm' => $this->rm,
+            'query_builder' => null,
+            'property' => 'rdfs:label',
+            'group_by' => null
         ));
 
-        $resolver->setRequired(array('class'));
+        $resolver->setRequired(array('class', 'property'));
     }
 
     /**

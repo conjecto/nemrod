@@ -8,6 +8,8 @@
 
 namespace Devyn\Component\Form\Extension\Core\Type;
 
+use Devyn\Component\QueryBuilder\QueryBuilder;
+use Devyn\Component\QueryBuilder\RalQueryBuilderLoader;
 use Devyn\Component\RAL\Manager\Manager;
 use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use EasyRdf\Exception;
@@ -48,20 +50,27 @@ class ResourceChoiceList extends ObjectChoiceList
     protected $rm;
 
     /**
-     * @param array|\Traversable $rm
+     * @var QueryBuilder
+     */
+    protected $queryBuilder;
+
+    /**
+     * @param array|\Traversable|string $rm
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param array $choices
      * @param null|string $class
+     * @param QueryBuilder|null $queryBuilder
      * @param null $labelPath
      * @param array $preferredChoices
      * @param null $groupPath
      * @param null $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct($rm, $choices, $class, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($rm, $choices, $class, $queryBuilder, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->rm = $rm;
         $this->class = $class;
+        $this->queryBuilder = $queryBuilder == null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -257,7 +266,7 @@ class ResourceChoiceList extends ObjectChoiceList
     private function load()
     {
         try {
-            $resources = $this->rm->getRepository($this->class)->findAll();
+            $resources = (new RalQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources();
 
             // The second parameter $labels is ignored by ObjectChoiceList
             if ($resources)

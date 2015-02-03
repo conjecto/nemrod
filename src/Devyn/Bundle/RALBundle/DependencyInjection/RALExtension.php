@@ -108,7 +108,9 @@ class RALExtension extends Extension
             $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
             $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
                 //adding query builder
-                ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)));
+                ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)))
+                //adding metadatfactory
+                ->addMethodCall('setMetadataFactory', array(new Reference('ral.metadata_factory')));
 
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
@@ -137,17 +139,24 @@ class RALExtension extends Extension
             $resourcePath = $path['dirname'] . '\\RdfResource\\';
             //adding dir path to driver known pathes
             if(is_dir($resourcePath)) {
-                $paths[] = $resourcePath;
+                $paths[$refl->getNamespaceName()] = $resourcePath;
             }
         }
 
         // registering all annotation mappings.
         $service = $container->getDefinition('ral.type_mapper');
+
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
+
+        //adding paths to annotation driver
+        $annDriver = $container->getDefinition('ral.metadata_annotation_driver');
+        $annDriver->replaceArgument(1,$paths);
+
         $classes = $driver->getAllClassNames();
 
         foreach($classes as $class) {
-            $metadata = $driver->loadMetadataForClass($class);
+
+            $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
             foreach($metadata->types as $type) {
                 $service->addMethodCall('set', array($type, $class));
             }

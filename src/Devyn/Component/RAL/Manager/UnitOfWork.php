@@ -9,6 +9,9 @@
 namespace Devyn\Component\RAL\Manager;
 
 
+use Devyn\Component\RAL\Annotation\Rdf\Resource;
+use Devyn\Component\RAL\Mapping\ClassMetadata;
+use Devyn\Component\RAL\Mapping\PropertyMetadata;
 use Devyn\Component\RAL\Resource\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
@@ -18,6 +21,10 @@ use EasyRdf\Graph;
 use EasyRdf\TypeMapper;
 
 class UnitOfWork {
+
+    const STATUS_REMOVED = 1 ;
+    const STATUS_MANAGED = 2 ;
+    const STATUS_NEW = 2 ;
 
     /**
      * registered resources
@@ -36,6 +43,12 @@ class UnitOfWork {
 
     /** @var PersisterInterface */
     private $persister;
+
+    /** @var  int $variableCount */
+    private $bnodeCount = 0;
+
+    /** @var array */
+    private $status = array();
 
     /**
      * @var Manager
@@ -58,13 +71,17 @@ class UnitOfWork {
     /**
      * Register a resource to the list of
      * @param BaseResource $resource
+     * @param boolean $fromStore
      */
-    public function registerResource($resource)
+    public function registerResource($resource, $fromStore = true)
     {
+        //echo $resource->getUri();
         $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
 
-        $this->initialSnapshots->takeSnapshot($resource);
+        if ($fromStore) {
+            $this->initialSnapshots->takeSnapshot($resource);
+        }
     }
 
     /**
@@ -85,7 +102,6 @@ class UnitOfWork {
         /** @var BaseResource $res */
         foreach ($graph->allResources($uri, $property) as $res) {
 
-            //var_dump($res);
             $bnode = $owningGraph->newBNode();
 
             $owningGraph->add($uri, $property, $bnode);
@@ -95,7 +111,7 @@ class UnitOfWork {
             if (!empty($rdfPhp[$res->getUri()])) {
                 foreach ($rdfPhp[$res->getUri()] as $prop => $vals) {
                     foreach ($vals as $val) {
-                        //echo $prop;
+
                         $bnode->set($prop, $val['value']);
                     }
                 }
@@ -163,26 +179,17 @@ class UnitOfWork {
     }
 
     /**
-     * Saves all changes in unit of work to store
-     */
-    public function commit()
-    {
-
-    }
-
-    /**
+     * @todo not used since function only purpose is to "save" resource
      * update a resource
      * @param $resource
      */
     public function update(BaseResource $resource)
     {
-        //resource must be an instance of Resource that is already managed
         if ((!$this->isResource($resource)) || (!$this->isRegistered($resource))) {
             throw new \InvalidArgumentException("Provided object is not a resource or is not currently managed");
         }
-        $chgSet=$this->computeChangeSet($resource);
+        $chgSet=$this->computeChangeSet(array($resource));
         $this->persister->update($resource->getUri(), $chgSet[0], $chgSet[1], array());
-        //print_r(, false);
     }
 
     /**
@@ -197,8 +204,49 @@ class UnitOfWork {
             //@todo perform "ask" on db to check if resource is already there
             throw new Exception("Resource already exist");
         }
-        $this->registerResource($resource);
-        $this->persister->save($resource->getUri(),$resource->getGraph()->toRdfPhp());
+        $this->registerResource($resource, $fromStore = false);
+
+        //getting entities to be cascade persisted
+        $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
+        /** @var PropertyMetadata $pm */
+        foreach ($metadata->propertyMetadata as $pm) {
+            if (is_array($pm->cascade) && in_array("persist", $pm->cascade)) {
+                $cascadeResources = $resource->all($pm->value);
+
+                foreach ($cascadeResources as $res2) {
+                    $this->save(null, $res2);
+                }
+            }
+        }
+
+        //$this->persister->save($resource->getUri(),$resource->getGraph()->toRdfPhp());
+    }
+
+    /**
+     * performing a diff between snaphshots and entities
+     */
+    public function commit()
+    {
+        $correspondances = array();
+
+        /** @var BaseResource $resource */
+        foreach ($this->registeredResources as $resource)
+        {
+            //generating an uri if resource is a blank node
+            if ($resource->isBNode()) {
+                /** @var ClassMetadata $metadata */
+                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
+                $correspondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+            }
+        }
+        $chSt = $this->computeChangeSet(array(), array('correspondence' => $correspondances));
+
+        //update if needed
+        if (!empty($chSt[0]) || !empty($chSt[1])) {
+            //var_dump($chSt);
+            $this->persister->update(null, $chSt[0], $chSt[1], null);
+        }
+
     }
 
     /**
@@ -206,8 +254,12 @@ class UnitOfWork {
      */
     public function delete(BaseResource $resource)
     {
-        $this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
-        $this->deleteSnapshotForResource($resource);
+        //$this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
+        if (isset ($this->registeredResources[$resource->getUri()])){
+            //unset($this->registeredResources[$resource->getUri()]);
+            $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
+        }
+        //$this->deleteSnapshotForResource($resource);
     }
 
     /**
@@ -216,14 +268,17 @@ class UnitOfWork {
      */
     public function create($className = null)
     {
+        $classN = null;
         if ($className) {
             $classN = TypeMapper::get($className);
-        } else {
+        }
+
+        if (!$classN) {
             $classN = "Devyn\\Component\\RAL\\Resource\\Resource";
         }
 
         /** @var BaseResource $resource */
-        $resource = new $classN($this->generateURI(),new Graph());
+        $resource = new $classN($this->nextBNode(), new Graph());
         $resource->setType($className);
         $resource->setRm($this->_rm);
         return $resource;
@@ -251,9 +306,43 @@ class UnitOfWork {
     /**
      *
      */
-    private function computeChangeSet(BaseResource $resource)
+    private function computeChangeSet($resources = array(), $options)
     {
-        return $this->diff($this->getSnapshotForResource($resource), $resource->getGraph()->toRdfPhp());
+        if (empty($resources)) {
+            $resources = $this->registeredResources;
+        }
+
+        $outResources = array();
+        foreach($resources as $resource) { //echo '.'.$resource->getUri();
+            if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
+                $outResources[$resource->getUri()] = $resource;
+            }
+        }
+
+        return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($outResources), $options);
+    }
+
+    /**
+     *
+     * @param $resources
+     * @return array
+     */
+    private function mergeRdfPhp($resources)
+    {
+        $merged = array();
+
+        /** @var Resource $resource */
+        foreach ($resources as $resource) {
+
+            $entries = $resource->getGraph()->toRdfPhp();
+
+            if(!isset($merged[$resource->getUri()]) && isset($entries[$resource->getUri()])) {
+                $merged[$resource->getUri()] = $entries[$resource->getUri()];
+            }
+
+        }
+
+        return $merged;
     }
 
     /**
@@ -261,59 +350,59 @@ class UnitOfWork {
      * content of 1st argument)
      * @param $rdfArray1
      * @param $rdfArray2
+     * @param $options array containing a correspondance array
      * @return array
      */
-    private function diff($rdfArray1, $rdfArray2)
+    private function diff($rdfArray1, $rdfArray2, $options)
     {
-        return array($this->minus($rdfArray1, $rdfArray2), $this->minus($rdfArray2, $rdfArray1));
+        return array(
+            $this->minus($rdfArray1, $rdfArray2, $options),
+            $this->minus($rdfArray2, $rdfArray1, $options)
+        );
     }
 
     /**
      * Removes elements of $rdfArray1 that are present in $rdfArray2
      * @param $rdfArray1
      * @param $rdfArray2
+     * @param $options array containing a correspondance array
      * @return array
      */
-    private function minus($rdfArray1, $rdfArray2)
+    private function minus($rdfArray1, $rdfArray2, $options)
     {
         $minusArray = array();
-        $bnodesCollector = array();
+        $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
+
             //bnodes are taken separately
-            if (!empty($properties) && !$this->isBNode($resource)) {
-                $minusArray[$resource] = array();
+            if (!empty($properties)) {
+                $index = (isset($options['correspondence'][$resource])) ? $options['correspondence'][$resource] : $resource ;
+
                 foreach ($properties as $property => $values) {
                     if (!empty($values)) {
                         foreach ($values as $value) {
-
-                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']]) && !empty($rdfArray1[$value['value']])) {
-                                $minusArray[$resource][$property][] = $value ;
-                                $bnodesCollector [$value['value']]= $rdfArray1[$value['value']];
-                            }else if (empty($rdfArray2[$resource]) ||
+                            if (!isset ($rdfArray2[$resource]) ||
+                                empty($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource][$property]) ||
                                 !$this->containsObject($value, $rdfArray2[$resource][$property])) {
-                                if (!isset($minusArray[$resource][$property])) $minusArray[$resource][$property] = array();
-                                $minusArray[$resource][$property][] = $value ;
-                            }
-                            //content of bnode resource is stored in a separate array and will be merged with final result
-                            if (($value['type'] == 'bnode') && isset($rdfArray1[$value['value']]) && !empty($rdfArray1[$value['value']])) {
-                                //@todo nothing for now but try a similarity test between blanknodes.
+                                if (!isset($tmpMinus[$index][$property])) $tmpMinus[$index][$property] = array();
+
+                                if (isset($options['correspondence'][$value['value']])) {
+                                    $value = array('value' => $options['correspondence'][$value['value']], 'type' => 'uri');
+                                }
+                                $tmpMinus[$index][$property][] = $value ;
                             }
                         }
                     }
                 }
+                if (isset ($tmpMinus[$index]) && count($tmpMinus[$index])) {
+
+                    $minusArray[$index] = $tmpMinus[$index];
+                }
+
             }
         }
-
-        //including blank nodes to final result
-        if (!empty($bnodesCollector)) {
-            foreach ($bnodesCollector as $uri => $content) {
-                $minusArray[$uri] = $content;
-            }
-        }
-
-        //print_r($minusArray); echo "<br/>";
         return $minusArray;
     }
 
@@ -346,20 +435,26 @@ class UnitOfWork {
      * @param $resource
      * @return array
      */
-    private function getSnapshotForResource($resource)
+    private function getSnapshotForResource($resources)
     {
-        $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
+        $snapshot = array();
+        foreach ($resources as $resource) {
+            if ($this->initialSnapshots->getSnapshot($resource)) {
+                $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
 
-        $snapshot = array($resource->getUri() => $bigSnapshot[$resource->getUri()]);
+                $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
-        //getting snapshots also for blank nodes
-        foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
-            foreach ($values as $value) {
-                if ($value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']]) ) {
-                    $snapshot[$value['value']] = $bigSnapshot[$value['value']];
+                //getting snapshots also for blank nodes
+                foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                    foreach ($values as $value) {
+                        if ($value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']])) {
+                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
+                        }
+                    }
                 }
             }
         }
+
         return $snapshot;
     }
 
@@ -390,8 +485,27 @@ class UnitOfWork {
      * Uri generation.
      * @return string
      */
-    private function generateURI()
+    private function generateURI($options = array())
     {
-        return uniqid("ogbd:");
+        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "ogbd:" ;
+        return uniqid($prefix);
     }
+
+    /**
+     * provides a blank node uri for collections
+     * @return string
+     */
+    public function nextBNode()
+    {
+        return "_:bn".(++$this->bnodeCount);
+    }
+
+    /**
+     *
+     */
+    public function isManaged(BaseResource $resource)
+    {
+        return (isset($this->registeredResources[$resource->getUri()]));
+    }
+
 }

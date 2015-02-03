@@ -1,6 +1,6 @@
 <?php
 
-namespace Devyn\Component\RAL\Annotation;
+namespace Devyn\Component\RAL\Annotation\Rdf;
 
 /**
  * @Annotation
@@ -12,4 +12,6 @@ final class Resource
      * @var array
      */
     public $types = array();
+
+    public $uriPattern = "";
 }

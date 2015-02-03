@@ -45,6 +45,10 @@ class SnapshotContainer extends Graph
         $graph = $resource->getGraph();
 
         foreach ($graph->toRdfPhp() as $resource2 => $properties) {
+
+            if ($resource2 != $res->getUri()) {
+                continue;
+            }
             if (!$this->unitOfWork->isManagementBlackListed($resource2)) {
                 foreach ($properties as $property => $values) {
                     foreach ($values as $value) {
@@ -84,8 +88,6 @@ class SnapshotContainer extends Graph
                     }
                 }
             }
-
-            //unset($index[$resource->getUri()]);
         }
 
         return true;
