@@ -41,6 +41,7 @@ class SimplePersister implements PersisterInterface
 
     private function updateQuery($string)
     {
+        //echo htmlspecialchars($string); die();
         $this->_rm->getClient()->update($string);
     }
 
@@ -124,7 +125,8 @@ class SimplePersister implements PersisterInterface
         list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
         list($insertStr) = $this->phpRdfToSparqlBody($insert);
 
-        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");die();
+
         $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
         return $result;
@@ -207,11 +209,15 @@ class SimplePersister implements PersisterInterface
         if (count($criteriaUnionParts) == 1) {
             $criteriaUnionParts[] = "";
         }
-        $qb->addUnion($criteriaUnionParts);
+        if (count($criteriaUnionParts)) $qb->addUnion($criteriaUnionParts);
 
         $qb->setOffset(0);
         if ($queryFinal != "") {
             $qb->orderBy($queryFinal);
+        }
+
+        if(isset($options['limit'])&& is_numeric($options['limit'])) {
+            $qb->setMaxResults($options['limit']);
         }
 
         $graph = $qb->getQuery()->execute();

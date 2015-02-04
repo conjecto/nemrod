@@ -133,9 +133,23 @@ class Resource extends BaseResource
     {
         //resource: check if managed (for further save
         if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            $this->_rm->save($b);
+            $this->_rm->persist($b);
         }
-        return parent::set($a, $b);
+        $out = parent::set($a, $b);
+
+        return $out ;
+    }
+
+    public function allResources($path)
+    {
+        $resources = parent::allResources($path);
+        $nr = array();
+        foreach ($resources as $rs) {
+            $r = new Resource($rs->getUri(), $rs->getGraph());
+            $r->setRm($this->_rm);
+            $nr[] = $r;
+        }
+        return $nr;
     }
 
     /**
@@ -145,9 +159,10 @@ class Resource extends BaseResource
     {
         //resource: check if managed (for further save
         if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            $this->_rm->save($b);
+            $this->_rm->persist($b);
         }
-        return parent::add($a, $b);
+        $out = parent::add($a, $b);
+        return $out;
     }
 
     /**

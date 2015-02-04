@@ -148,7 +148,7 @@ class Manager
      */
     public function persist(Resource $resource)
     {
-        $this->getUnitOfWork()->persist(null, $resource);
+        $this->getUnitOfWork()->persist($resource);
     }
 
     /**
@@ -178,6 +178,14 @@ class Manager
     public function dump()
     {
         $this->getUnitOfWork()->dumpRegistered();
+    }
+
+    /**
+     * @param $className
+     */
+    public function create($className)
+    {
+        return $this->getRepository($className)->create();
     }
 
     /**
@@ -230,7 +238,7 @@ class Manager
     public function getMetadata($type)
     {
         $class = TypeMapper::get($type);
-        echo $class."<<";
+
         if ($class) {
             return $this->metadataFactory->getMetadataForClass($class);
         }

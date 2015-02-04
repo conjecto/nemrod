@@ -3,6 +3,7 @@
 namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Resource\Resource;
+use Doctrine\Common\Collections\ArrayCollection;
 use EasyRdf\Exception;
 
 /**
@@ -43,7 +44,7 @@ class Repository
      * find a set of resources according to criterias.
      * @param array $criterias
      * @param array $options
-     * @return Collection|void
+     * @return ArrayCollection|void
      */
     public function findBy(array $criterias, array $options = array())
     {
@@ -59,6 +60,17 @@ class Repository
         }
 
         return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
+    }
+
+    /**
+     * @param array $criterias
+     * @param array $options
+     * @return ArrayCollection|void
+     */
+    public function findOneBy(array $criterias, array $options = array())
+    {
+        $options['limit'] = 1;
+        return $this->findBy($criterias, $options);
     }
 
     /**
@@ -93,7 +105,7 @@ class Repository
      */
     public function persist(Resource $resource)
     {
-        return $this->_rm->getUnitOfWork()->persist($this->className, $resource);
+        return $this->_rm->getUnitOfWork()->persist($resource);
     }
 
     /**
