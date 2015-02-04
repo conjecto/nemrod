@@ -10,6 +10,7 @@ namespace Devyn\Component\RAL\Manager;
 
 
 use Devyn\Component\RAL\Annotation\Rdf\Resource;
+use Devyn\Component\RAL\Manager\Events\ResourceLifeCycleEvent;
 use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Devyn\Component\RAL\Mapping\PropertyMetadata;
 use Devyn\Component\RAL\Resource\Resource as BaseResource;
@@ -19,6 +20,7 @@ use EasyRdf\Container;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
 use EasyRdf\TypeMapper;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class UnitOfWork {
 
@@ -41,6 +43,9 @@ class UnitOfWork {
 
     /** @var  array $blackListedResources */
     private $blackListedResources;
+
+    /** @var  EventDispatcher */
+    private $evd;
 
     /**
      * Initial snapshots of registered resources
@@ -69,6 +74,7 @@ class UnitOfWork {
     public function __construct($manager, $clientUrl)
     {
         $this->_rm = $manager;
+        $this->evd = $manager->getEventDispatcher();
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = new arrayCollection();
         $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
@@ -90,7 +96,6 @@ class UnitOfWork {
         if (method_exists($resource, "setRm")) {
             $resource->setRm($this->_rm);
             $this->registeredResources[$resource->getUri()] = $resource;
-
         }
 
         if ($fromStore) {
@@ -177,6 +182,23 @@ class UnitOfWork {
     }
 
     /**
+     * @param EventDispatcher $evd
+     */
+    public function setEventDispatcher(EventDispatcher $evd)
+    {
+        $this->evd = $evd;
+    }
+
+    /**
+     *
+     * @return EventDispatcher
+     */
+    public function getEventDispatcher()
+    {
+        return $this->evd;
+    }
+
+    /**
      * @param array $criteria
      * @param array $options
      * @return Collection|\EasyRdf\Collection|void
@@ -233,7 +255,6 @@ class UnitOfWork {
      */
     public function commit()
     {
-
         $correspondances = array();
 
         /** @var BaseResource $resource */
@@ -246,6 +267,7 @@ class UnitOfWork {
                 $correspondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
             }
         }
+
         $chSt = $this->computeChangeSet(array(), array('correspondence' => $correspondances));
 
         //update if needed
@@ -327,6 +349,9 @@ class UnitOfWork {
                 $outResources[$resource->getUri()] = $resource;
             }
         }
+
+        //triggering pre-flush event
+        $this->evd->dispatch('ral.pre_flush', new ResourceLifeCycleEvent($outResources));
 
         return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($outResources), $options);
     }

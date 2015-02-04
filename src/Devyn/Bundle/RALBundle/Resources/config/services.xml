@@ -11,6 +11,7 @@
         <parameter key="ral.resource_manager.class">Devyn\Component\RAL\Manager\Manager</parameter>
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
         <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
+        <parameter key="ral.resource_lifecycle_event_dispatcher.class">Symfony\Component\EventDispatcher\EventDispatcher</parameter>
         <parameter key="query_manager.class">Devyn\Component\QueryBuilder\QueryBuilder</parameter>
 
         <!-- MetadataFactory -->
@@ -25,6 +26,9 @@
             <tag name="kernel.event_listener" event="kernel.request" />
         </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
+
+        <!-- event dispatcher -->
+        <service id="ral.resource_lifecycle_event_dispatcher" class="%ral.resource_lifecycle_event_dispatcher.class%" abstract="true"/>
 
         <!-- query builder -->
         <service id="ral.query_builder" class="%query_manager.class%" abstract="true"/>

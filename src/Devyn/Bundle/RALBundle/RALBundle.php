@@ -11,6 +11,7 @@
 
 namespace Devyn\Bundle\RALBundle;
 
+use Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass\EventListenerRegistrationPass;
 use Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler\RdfNamespacePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -24,5 +25,12 @@ use Symfony\Component\HttpKernel\DependencyInjection\RegisterListenersPass;
  */
 class RALBundle extends Bundle
 {
-
+    /**
+     * @param ContainerBuilder $container
+     */
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+        $container->addCompilerPass(new EventListenerRegistrationPass());
+    }
 }

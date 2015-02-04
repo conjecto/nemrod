@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 
 /**
@@ -38,6 +39,8 @@ class Manager
     /** @var MetadataFactory */
     private $metadataFactory;
 
+    /** @var EventDispatcher */
+    private $evd;
 
     /**
      * @param RepositoryFactory $repositoryFactory
@@ -46,6 +49,22 @@ class Manager
     {
         $this->repositoryFactory = $repositoryFactory;
         $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
+    }
+
+    /**
+     * @return EventDispatcher
+     */
+    public function getEventDispatcher()
+    {
+        return $this->evd;
+    }
+
+    /**
+     * @param EventDispatcher $evd
+     */
+    public function setEventDispatcher(EventDispatcher $evd)
+    {
+        $this->evd = $evd;
     }
 
     /**

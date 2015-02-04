@@ -94,7 +94,6 @@ class RALExtension extends Extension
      */
     public function registerResourceManagers(array $config, ContainerBuilder $container)
     {
-
         foreach($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
@@ -105,12 +104,17 @@ class RALExtension extends Extension
             $container->setDefinition('ral.persister.'.$name, new DefinitionDecorator('ral.persister'))
                 ->setArguments(array($endpoint['query_uri']));
 
+            $evd = $container->setDefinition('ral.resource_lifecycle_event_dispatcher.'.$name, new DefinitionDecorator('ral.resource_lifecycle_event_dispatcher'));
+            $evd->addTag('ral.event_dispatcher', array("endpoint" => $name));
+
             $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
             $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
                 //adding query builder
                 ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)))
                 //adding metadatfactory
-                ->addMethodCall('setMetadataFactory', array(new Reference('ral.metadata_factory')));
+                ->addMethodCall('setMetadataFactory', array(new Reference('ral.metadata_factory')))
+                //adding event dispatcher
+                ->addMethodCall('setEventDispatcher', array(new Reference('ral.resource_lifecycle_event_dispatcher.'.$name)));
 
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
