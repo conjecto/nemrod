@@ -227,6 +227,10 @@ class UnitOfWork {
             //@todo perform "ask" on db to check if resource is already there
             throw new Exception("Resource already exist");
         }
+
+        //@todo relevant do do this here ?
+        $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
         $this->registerResource($resource, $fromStore = false);
 
         //getting entities to be cascade persisted
@@ -249,6 +253,8 @@ class UnitOfWork {
                 }
             }
         }
+        $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
     }
 
     /**
@@ -257,9 +263,19 @@ class UnitOfWork {
     public function commit()
     {
         $correspondances = array();
+        $uris = array();
+
+        //collecting
+        $concernedResources = array();
+        foreach($this->registeredResources as $resource) {
+            if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
+                $concernedResources[$resource->getUri()] = $resource;
+                $uris[] = $resource->getUri();
+            }
+        }
 
         /** @var BaseResource $resource */
-        foreach ($this->registeredResources as $resource)
+        foreach ($concernedResources as $resource)
         {
             //generating an uri if resource is a blank node
             if ($resource->isBNode()) {
@@ -269,25 +285,36 @@ class UnitOfWork {
             }
         }
 
-        $chSt = $this->computeChangeSet(array(), array('correspondence' => $correspondances));
+        //triggering pre-flush event
+        $this->evd->dispatch(Events::PreFlush, new ResourceLifeCycleEvent(array('resources' => $concernedResources)));
+
+        $chSt = $this->diff($this->getSnapshotForResource($this->registeredResources), $this->mergeRdfPhp($concernedResources), array('correspondence' => $correspondances));
 
         //update if needed
         if (!empty($chSt[0]) || !empty($chSt[1])) {
             $this->persister->update(null, $chSt[0], $chSt[1], null);
         }
+
+        //triggering post-flush events
+        $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('uris' => $uris)));
     }
+
+
+
 
     /**
      * @param BaseResource $resource
      */
     public function remove(BaseResource $resource)
     {
+        $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
         //$this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         if (isset ($this->registeredResources[$resource->getUri()])){
             //unset($this->registeredResources[$resource->getUri()]);
             $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
         }
-        //$this->deleteSnapshotForResource($resource);
+        $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
     }
 
     /**
@@ -313,6 +340,8 @@ class UnitOfWork {
         //storing resource in temp resources array
         $this->tempResources[$resource->getUri()] = $resource;
 
+        $this->evd->dispatch(Events::PostCreate, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
         return $resource;
     }
 
@@ -333,28 +362,6 @@ class UnitOfWork {
     public function isManagementBlackListed($uri)
     {
         return ($this->blackListedResources->contains($uri));
-    }
-
-    /**
-     *
-     */
-    private function computeChangeSet($resources = array(), $options)
-    {
-        if (empty($resources)) {
-            $resources = $this->registeredResources;
-        }
-
-        $outResources = array();
-        foreach($resources as $resource) {
-            if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
-                $outResources[$resource->getUri()] = $resource;
-            }
-        }
-
-        //triggering pre-flush event
-        $this->evd->dispatch(Events::PreFlush, new ResourceLifeCycleEvent($outResources));
-
-        return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($outResources), $options);
     }
 
     /**
@@ -434,7 +441,6 @@ class UnitOfWork {
 
                     $minusArray[$index] = $tmpMinus[$index];
                 }
-
             }
         }
         return $minusArray;
