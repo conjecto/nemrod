@@ -65,6 +65,7 @@ class Manager
     public function setEventDispatcher(EventDispatcher $evd)
     {
         $this->evd = $evd;
+        $this->unitOfWork->setEventDispatcher($evd);
     }
 
     /**

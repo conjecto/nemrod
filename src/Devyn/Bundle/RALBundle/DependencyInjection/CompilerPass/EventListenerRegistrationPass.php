@@ -23,31 +23,56 @@ class EventListenerRegistrationPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $dispatchers = $container->findTaggedServiceIds('ral.event_dispatcher');
-        if (!$dispatchers) {
+        $tmpDispatchers = $container->findTaggedServiceIds('ral.event_dispatcher');
+        if (!$tmpDispatchers) {
             return;
         }
 
+        $dispatchers = array();
+
+        foreach ($tmpDispatchers as $key => $dispatcherTags) {
+            foreach ($dispatcherTags as $dispatcherTag) {
+                $endP = (isset($dispatcherTag['endpoint'])) ? $dispatcherTag['endpoint'] : 'default';
+                $dispatchers[$endP] = $key;
+            }
+        }
+
+        //finding and registering listeners
         $listeners = $container->findTaggedServiceIds('ral.resource_event_listener');
-        if (!$listeners) {
-            return;
-        }
-        echo "a";
-
-        foreach ($dispatchers as $dispId => $dispatcher) {
-            echo "disp: ".$dispId;
-            var_dump($dispatcher);
-            echo "listeners";
-            foreach ($listeners as $listId => $listenerTags) {
-                foreach ($listenerTags as $tag) {
-                    if(isset ($tag['endpoint'])) {
-                        //$container->getDefinition()
-                        //@todo listener added to right dispatcher
+        if (!empty($listeners)) {
+            foreach ($dispatchers as $endPoint => $dispatcher) {
+                foreach ($listeners as $listId => $listenerTags) {
+                    $listenerDef = $container->getDefinition($listId);
+                    foreach ($listenerTags as $tag) {
+                        if(isset ($tag['endpoint']) &&
+                            isset($dispatchers[$tag['endpoint']]) &&
+                            ($dispatchers[$tag['endpoint']] == $dispatcher))
+                        {
+                            $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
+                            $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
+                        }
                     }
                 }
             }
-            echo "<br/>";
+        }
+
+        //finding and registering subscribers
+        $subscribers = $container->findTaggedServiceIds('ral.resource_event_subscriber');
+        if (!empty($subscribers)) {
+            foreach ($dispatchers as $endPoint => $dispatcher) {
+                foreach ($subscribers as $listId => $listenerTags) {
+                    $listenerDef = $container->getDefinition($listId);
+                    foreach ($listenerTags as $tag) {
+                        if(isset ($tag['endpoint']) &&
+                            isset($dispatchers[$tag['endpoint']]) &&
+                            ($dispatchers[$tag['endpoint']] == $dispatcher))
+                        {
+                            $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
+                            $def->addMethodCall('addsubscriber', array($listenerDef));
+                        }
+                    }
+                }
+            }
         }
     }
-
 } 

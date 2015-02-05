@@ -6,7 +6,7 @@
  * Time: 15:52
  */
 
-namespace Devyn\Component\RAL\Manager\Events;
+namespace Devyn\Component\RAL\Manager\Event;
 
 
 use Devyn\Component\RAL\Resource\Resource;

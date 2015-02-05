@@ -10,7 +10,8 @@ namespace Devyn\Component\RAL\Manager;
 
 
 use Devyn\Component\RAL\Annotation\Rdf\Resource;
-use Devyn\Component\RAL\Manager\Events\ResourceLifeCycleEvent;
+use Devyn\Component\RAL\Manager\Event\Events;
+use Devyn\Component\RAL\Manager\Event\ResourceLifeCycleEvent;
 use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Devyn\Component\RAL\Mapping\PropertyMetadata;
 use Devyn\Component\RAL\Resource\Resource as BaseResource;
@@ -351,7 +352,7 @@ class UnitOfWork {
         }
 
         //triggering pre-flush event
-        $this->evd->dispatch('ral.pre_flush', new ResourceLifeCycleEvent($outResources));
+        $this->evd->dispatch(Events::PreFlush, new ResourceLifeCycleEvent($outResources));
 
         return $this->diff($this->getSnapshotForResource($resources), $this->mergeRdfPhp($outResources), $options);
     }
