@@ -146,7 +146,7 @@ class Manager
     public function find($className, $uri)
     {
         //trying to find resource if already loaded
-        $resource = $this->unitOfWork->retrieveResource($className, $uri);
+        $resource = $this->unitOfWork->retrieveResource($uri);
 
         if (!empty($resource)) {
             return $resource;

@@ -90,7 +90,6 @@ class UnitOfWork {
      */
     public function registerResource($resource, $fromStore = true)
     {
-
         //echo $resource->getUri();
         $resource->setRm($this->_rm);
         $this->registeredResources[$resource->getUri()] = $resource ;
@@ -157,7 +156,7 @@ class UnitOfWork {
      * @internal param Resource $resource
      * @return mixed|null
      */
-    public function retrieveResource($className, $uri)
+    public function retrieveResource($uri)
     {
         if (!isset($this->registeredResources[$uri])) {
             return null;
@@ -254,7 +253,6 @@ class UnitOfWork {
             }
         }
         $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
-
     }
 
     /**

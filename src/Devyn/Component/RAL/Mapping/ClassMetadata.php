@@ -1,7 +1,6 @@
 <?php
 namespace Devyn\Component\RAL\Mapping;
 
-//use \JMS\Serializer\Metadata\ ClassMetadata as BaseClassMetadata;
 use Metadata\MergeableClassMetadata as BaseClassMetadata;
 use Metadata\MergeableInterface;
 
@@ -34,11 +33,19 @@ class ClassMetadata extends BaseClassMetadata
         $this->types = $types;
     }
 
+    /**
+     * Sets the uri patten for class
+     * @param $up
+     */
     public function setUriPattern($up)
     {
         $this->uriPattern = $up;
     }
 
+    /**
+     * Merge metadata
+     * @param MergeableInterface $object
+     */
     public function merge(MergeableInterface $object)
     {
         parent::merge($object);

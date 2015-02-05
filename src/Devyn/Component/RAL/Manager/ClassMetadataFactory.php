@@ -1,14 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 26/01/2015
- * Time: 17:12
- */
 
 namespace Devyn\Component\RAL\Manager;
-
-
 
 use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Devyn\Component\RAL\Mapping\Driver\MappingDriver;
@@ -18,7 +10,7 @@ class ClassMetadataFactory
     /**
      * @var
      */
-    private $loadedMetadatas;
+    private $loadedMetadata;
 
     /**
      * @var MappingDriver
@@ -31,20 +23,25 @@ class ClassMetadataFactory
     public function getMetadataFor($className)
     {
         if (empty($this->metadatas[$className])) {
-            $classMD = new ClassMetadata();
+            $classMD = new ClassMetadata($className);
             $this->driver->loadMetadataForClass($className, $classMD);
-            $this->loadedMetadatas[$className] = $classMD;
+            $this->loadedMetadata[$className] = $classMD;
         }
 
-        return $this->loadedMetadatas[$className];
-    }
-
-    public function getAllMetadata()
-    {
-
+        return $this->loadedMetadata[$className];
     }
 
     /**
+     * loadedMetadata
+     * @return array
+     */
+    public function getAllMetadata()
+    {
+        return $this->loadedMetadata;
+    }
+
+    /**
+     * @todo remove
      * @return mixed
      */
     public function getDriver()
@@ -53,6 +50,7 @@ class ClassMetadataFactory
     }
 
     /**
+     * @todo remove
      * @param mixed $annotationdriver
      */
     public function setDriver($annotationdriver)

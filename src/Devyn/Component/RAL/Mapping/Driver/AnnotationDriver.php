@@ -20,7 +20,9 @@ class AnnotationDriver implements AdvancedDriverInterface
      */
     private $dirs;
 
-
+    /**
+     * @var Reader
+     */
     private $reader;
 
 
@@ -52,6 +54,7 @@ class AnnotationDriver implements AdvancedDriverInterface
             }
         }
 
+        //reads annotation for properties and pastes it
         foreach ($class->getProperties() as $prop) {
             $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
             foreach($propertyAnnotations as $propAnnot) {
@@ -62,11 +65,7 @@ class AnnotationDriver implements AdvancedDriverInterface
                     $metadata->addPropertyMetadata($propMetadata);
                 }
             }
-            if (isset($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property'])) {
-               // var_dump($propertyAnnotations['Devyn\Component\RAL\Annotation\Rdf\Property']);
-            }
         }
-
 
         // Evaluate Resource annotation
         if (isset($classAnnotations['Devyn\Component\RAL\Annotation\Rdf\Resource'])) {

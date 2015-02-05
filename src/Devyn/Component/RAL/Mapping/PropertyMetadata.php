@@ -12,7 +12,15 @@ use \Metadata\PropertyMetadata as BasePropertyMetadata;
 
 class PropertyMetadata extends BasePropertyMetadata
 {
+    /**
+     * Rdf property for php property
+     * @var $value
+     */
     public $value;
 
+    /**
+     * Defines cascade behaviors for subresources
+     * @var
+     */
     public $cascade;
 } 

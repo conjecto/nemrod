@@ -48,13 +48,43 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
         return $mockedGraph;
     }
 
+    /**
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
     protected function mockManager()
     {
-        return $this->getMockBuilder('Devyn\Component\RAL\Manager\Manager')->setConstructorArgs(array($this->repoFactory, 'foo'));
+
+        $metadata = array (
+            'Foo\Bar\ResourceClass' => array ( 'type' => 'foo:Type', 'uriPattern' => ''),
+            'Foo\Bar\ResourceClass' => array ( 'type' => 'foo:Type', 'uriPattern' => ''),
+        ) ;
+
+        return $this
+            ->getMockBuilder('Devyn\Component\RAL\Manager\Manager')
+            ->setConstructorArgs(array($this->repoFactory, 'foo'))
+            ->setMethods(array('getEventDispatcher'))
+            ->getMock();
     }
 
+    /**
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
     protected function mockUnitOfWork()
     {
         return $this->getMockBuilder('Devyn\Component\RAL\Manager\UnitOfWork')->setConstructorArgs(array($this->manager, 'http://foo.fr'))->getMock();
+    }
+
+    /**
+     * @param $metadata
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected function mockMetadataFactory($metadata)
+    {
+        $mdf = $this->getMockBuilder('Devyn\Component\RAL\Manager\ClassMetadataFactory')->setMethods(array('getMetaDataFor'))->getMock();
+        foreach ($metadata as $class=>$md) {
+            $mdf->expects($this->any())->method('getMetadataFor')->with($class)->willReturn($md);
+        }
+
+        return $mdf;
     }
 } 

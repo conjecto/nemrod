@@ -18,7 +18,6 @@ class UnitOfWorkTest extends ManagerTestCase
 
     public function testMinus()
     {
-
         $graph1 = new Graph();
         $graph1->add('http://www.example.com/jdoe#jdoe',
             'foaf:name',
@@ -29,7 +28,7 @@ class UnitOfWorkTest extends ManagerTestCase
             'Foo Bar');
 
         $uow = new UnitOfWork($this->manager,'fooUrl');
-        //$uow->update();
+
         $this->assertEquals(1,1);
     }
 
@@ -38,13 +37,11 @@ class UnitOfWorkTest extends ManagerTestCase
         $uow = new UnitOfWork($this->manager,'fooUrl');
         $res = $this->getMockedResource('FooClass', 'uri:foo:1234', $this->getMockedGraph('FooClass', 'uri:foo:1234'));
 
-        $pouf = $this->getMock('Resource');
-
-        $this->assertInstanceOf('Resource',$pouf);
-
         $uow->registerResource($res);
-
         $this->assertTrue($uow->isRegistered($res));
+
+        $retrieved = $uow->retrieveResource($res->getUri());
+        $this->assertEquals($res, $retrieved);
     }
 
     private function foo()
