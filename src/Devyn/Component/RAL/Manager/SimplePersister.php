@@ -41,7 +41,6 @@ class SimplePersister implements PersisterInterface
 
     private function updateQuery($string)
     {
-        //echo htmlspecialchars($string); die();
         $this->_rm->getClient()->update($string);
     }
 
@@ -126,8 +125,26 @@ class SimplePersister implements PersisterInterface
         list($insertStr) = $this->phpRdfToSparqlBody($insert);
 
         //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");die();
+        $qb = $this->_rm->getQueryBuilder();
+        foreach ($deleteStr as $del) {
+            $qb->addDelete($del);
+        }
+        foreach ($insertStr as $ins) {
+            $qb->addInsert($ins);
+        }
+        $unions = array();
+        foreach ($whereStr as $where) {
+            if (is_array($where)) {
+                $unions = array_merge($unions, $where);
+            } else {
+                $qb->andWhere($where);
+            }
+        }
+        $qb->addUnion($unions);
 
-        $result = $this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        $q = $qb->getQuery();
+        echo htmlspecialchars( $q->getSparqlQuery());
+        $result = $q->update();//$this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
         return $result;
     }
@@ -140,7 +157,7 @@ class SimplePersister implements PersisterInterface
     {
         //var_dump($insert);
         list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
-        echo htmlspecialchars("INSERT DATA{".implode(".", $insertArr)."}");
+
         $this->updateQuery("INSERT DATA{".implode(".", $insertArr)."}");
     }
 
@@ -269,7 +286,7 @@ class SimplePersister implements PersisterInterface
                 }
             }
         }
-        return array(implode(".", $criteriaParts),implode(".", $whereParts));
+        return array( $criteriaParts,$whereParts);
     }
 
     /**
@@ -296,7 +313,18 @@ class SimplePersister implements PersisterInterface
 
         if (isset($array[$uri])) {
             foreach ($array[$uri] as $property => $value) {
-                if (is_array($value)) {
+                //all triples are removed. UpLink are also removed.
+                if ($property == 'all') {
+                    $varObj = $this->nextVariable();
+                    $varPred = $this->nextVariable();
+                    $varUpSubj = $this->nextVariable();
+                    $varUpPred = $this->nextVariable();
+                    $criteriaParts[] = "<" . $uri . "> " . $varObj . " " . $varPred;
+                    $whereParts[] = array("<" . $uri . "> " . $varObj . " " . $varPred);
+                    $criteriaParts[] = $varUpSubj . " " . $varUpPred . " <" . $uri . ">";
+                    $whereParts[] = array($varUpSubj . " " . $varUpPred . " <" . $uri . ">");
+                }
+                else if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
                             if ($val['type'] == 'literal') {
@@ -306,22 +334,13 @@ class SimplePersister implements PersisterInterface
                                 $criteriaParts[] = "<" . $uri . "> <" . $property . "> <" . $val['value'] . ">";
                                 $whereParts[] = "<" . $uri . "> <" . $property . "> <" . $val['value'] . ">";
                             } else if ($val['type'] == 'bnode') {
-
                                 if ($bNodesAsVariables) {
-//                                if (!isset ($bNodeVariablesGroupByProperty[$uri][$property]) ) {
-//                                    if (!isset($bNodeVariablesGroupByProperty[$uri])) {
-//                                        $bNodeVariablesGroupByProperty[$uri] = array();
-//                                    }
-                                    //$bNodeVariablesGroupByProperty[$uri][$property] = true ;
-
                                     $varBnode = $this->nextVariable();
                                     $varBnodePred = $this->nextVariable();
                                     $varBnodeObj = $this->nextVariable();
                                     $criteriaParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
                                     $criteriaParts[] = $varBnode . " " . $varBnodePred . " " . $varBnodeObj;
                                     $whereParts[] = "<" . $uri . "> <" . $property . "> " . $varBnode;
-//                                    }
-
                                 } else {
                                     $newBNode = $this->getNewBnode($val['value']);
 
