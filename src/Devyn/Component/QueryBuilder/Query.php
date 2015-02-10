@@ -249,6 +249,24 @@ class Query
     }
 
     /**
+     * Execute an update query
+     *
+     * @return Graph|Result
+     */
+    public function update($hydratation = null/*self::HYDRATE_ARRAY*/, $options = array())
+    {
+        if ($this->state == self::STATE_DIRTY) {
+            $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
+            $this->state = self::STATE_CLEAN;
+        }
+
+        $this->result = $this->rm->getClient()->update($this->completeSparqlQuery);
+
+        return $this->result;
+    }
+
+
+    /**
      * @param $hydratation
      * @return AbstractHydrator
      */

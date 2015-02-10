@@ -139,6 +139,7 @@ class UnitOfWork {
     }
 
     /**
+     * @todo remove
      * Tells if a resource is managed by current UnitOfWork
      * @param $resource
      * @return bool
@@ -293,6 +294,9 @@ class UnitOfWork {
             $this->persister->update(null, $chSt[0], $chSt[1], null);
         }
 
+        //reseting unit of work
+        $this->reset();
+
         //triggering post-flush events
         $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('uris' => $uris)));
     }
@@ -421,7 +425,11 @@ class UnitOfWork {
                 foreach ($properties as $property => $values) {
                     if (!empty($values)) {
                         foreach ($values as $value) {
-                            if (!isset ($rdfArray2[$resource]) ||
+                            //special case of a removed resource
+                            if ($this->status[$resource] == self::STATUS_REMOVED) {
+                                $tmpMinus[$index]['all'] = array() ;
+                            }
+                            else if (!isset ($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource][$property]) ||
                                 !$this->containsObject($value, $rdfArray2[$resource][$property])) {
@@ -528,6 +536,18 @@ class UnitOfWork {
         $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "ogbd:" ;
 
         return uniqid($prefix);
+    }
+
+    /**
+     *
+     */
+    private function reset()
+    {
+        $this->registeredResources = new arrayCollection();
+        //no convenient method for reseting snapshot container, so we create a new one
+        $this->initialSnapshots = new SnapshotContainer($this);
+        $this->blackListedResources = new arrayCollection();
+        $this->tempResources = new ArrayCollection();
     }
 
     /**
