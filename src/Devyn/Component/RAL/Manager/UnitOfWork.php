@@ -10,6 +10,7 @@ namespace Devyn\Component\RAL\Manager;
 
 
 use Devyn\Component\RAL\Annotation\Rdf\Resource;
+use Devyn\Component\RAL\Manager\Event\ClearEvent;
 use Devyn\Component\RAL\Manager\Event\Events;
 use Devyn\Component\RAL\Manager\Event\ResourceLifeCycleEvent;
 use Devyn\Component\RAL\Mapping\ClassMetadata;
@@ -294,11 +295,11 @@ class UnitOfWork {
             $this->persister->update(null, $chSt[0], $chSt[1], null);
         }
 
-        //reseting unit of work
-        $this->reset();
-
         //triggering post-flush events
         $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('uris' => $uris)));
+
+        //reseting unit of work
+        $this->reset();
     }
 
 
@@ -548,6 +549,8 @@ class UnitOfWork {
         $this->initialSnapshots = new SnapshotContainer($this);
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
+
+        $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
     }
 
     /**

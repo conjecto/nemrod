@@ -48,4 +48,9 @@ final class Events
      * Event triggered after resource persist operation
      */
     const PostPersist = 'ral.post_persist';
+
+    /**
+     * Event triggered after resource persist operation
+     */
+    const OnClear = 'ral.on_clear';
 } 
