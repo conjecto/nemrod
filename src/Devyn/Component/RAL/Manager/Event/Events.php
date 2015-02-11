@@ -50,6 +50,16 @@ final class Events
     const PostPersist = 'ral.post_persist';
 
     /**
+     * Event triggered before resource persist operation
+     */
+    const PreUpdate = 'ral.pre_update';
+
+    /**
+     * Event triggered after resource persist operation
+     */
+    const PostUpdate = 'ral.post_update';
+
+    /**
      * Event triggered after resource persist operation
      */
     const OnClear = 'ral.on_clear';

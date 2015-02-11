@@ -121,58 +121,39 @@ class SimplePersister implements PersisterInterface
      */
     public function update($uri, $delete, $insert, $where)
     {
-        list($deleteStr, $whereStr) = $this->phpRdfToSparqlBody($delete, true);
-        list($insertStr) = $this->phpRdfToSparqlBody($insert);
+        list($deleteTriples, $whereTriples) = $this->phpRdfToSparqlBody($delete, true);
+        list($insertTriples) = $this->phpRdfToSparqlBody($insert);
 
         //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");die();
         $qb = $this->_rm->getQueryBuilder();
-        foreach ($deleteStr as $del) {
+
+
+        foreach ($deleteTriples as $del) {
             $qb->addDelete($del);
         }
-        foreach ($insertStr as $ins) {
+
+        foreach ($insertTriples as $ins) {
             $qb->addInsert($ins);
         }
+
         $unions = array();
-        foreach ($whereStr as $where) {
+        foreach ($whereTriples as $where) {
             if (is_array($where)) {
                 $unions = array_merge($unions, $where);
             } else {
                 $qb->andWhere($where);
             }
         }
-        $qb->addUnion($unions);
+        if (count($unions) == 1) {
+            $unions[] = "";
+        }
+        if (count($unions))$qb->addUnion($unions);
 
         $q = $qb->getQuery();
-        echo htmlspecialchars( $q->getSparqlQuery());
+        //echo htmlspecialchars( $q->getSparqlQuery());
         $result = $q->update();//$this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
 
         return $result;
-    }
-
-    /**
-     * @param $uri
-     * @param $insert
-     */
-    public function save($uri, $insert)
-    {
-        //var_dump($insert);
-        list($insertArr, )= $this->getTriplesForUri($insert, $uri, false);
-
-        $this->updateQuery("INSERT DATA{".implode(".", $insertArr)."}");
-    }
-
-    /**
-     *
-     */
-    public function delete($uri, $graph)
-    {
-        list($deleteArr, $whereArr)= $this->getTriplesForUri($graph, $uri, true);
-        //echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
-
-        $qb = $this->_rm->getQueryBuilder()->delete(implode(".", $deleteArr))->where(implode(".", $whereArr));
-        //$qb->getQuery()->execute();
-        echo htmlspecialchars("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
-        //$this->updateQuery("DELETE {".implode(".", $deleteArr)."} WHERE {".implode(".", $whereArr)."}");
     }
 
     /**

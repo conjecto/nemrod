@@ -12,6 +12,7 @@ namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\RAL\Annotation\Rdf\Resource;
 use Devyn\Component\RAL\Manager\Event\ClearEvent;
 use Devyn\Component\RAL\Manager\Event\Events;
+use Devyn\Component\RAL\Manager\Event\PreFlushEvent;
 use Devyn\Component\RAL\Manager\Event\ResourceLifeCycleEvent;
 use Devyn\Component\RAL\Mapping\ClassMetadata;
 use Devyn\Component\RAL\Mapping\PropertyMetadata;
@@ -82,6 +83,7 @@ class UnitOfWork {
         $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
+        $this->uriCorrespondances = new arrayCollection();
     }
 
     /**
@@ -262,7 +264,7 @@ class UnitOfWork {
      */
     public function commit()
     {
-        $correspondances = array();
+        //$correspondances = array();
         $uris = array();
 
         //collecting
@@ -281,14 +283,14 @@ class UnitOfWork {
             if ($resource->isBNode()) {
                 /** @var ClassMetadata $metadata */
                 $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-                $correspondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
             }
         }
 
-        //triggering pre-flush event
-        $this->evd->dispatch(Events::PreFlush, new ResourceLifeCycleEvent(array('resources' => $concernedResources)));
+        $chSt = $this->diff($this->getSnapshotForResource($this->registeredResources), $this->mergeRdfPhp($concernedResources), array('correspondence' => $this->uriCorrespondances));
 
-        $chSt = $this->diff($this->getSnapshotForResource($this->registeredResources), $this->mergeRdfPhp($concernedResources), array('correspondence' => $correspondances));
+        //triggering pre-flush event
+        $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt)));
 
         //update if needed
         if (!empty($chSt[0]) || !empty($chSt[1])) {
@@ -302,7 +304,42 @@ class UnitOfWork {
         $this->reset();
     }
 
+    /**
+     * @param $chSet
+     * @return array
+     */
+    private function getChangesetForEvent($chSet)
+    {
+        $eventChangeSet = array();
 
+        foreach ($chSet[0] as $uri => $changes) {
+            if(!isset($eventChangeSet[$uri])) {
+                $eventChangeSet[$uri] = array();
+                $types = $this->registeredResources[$uri]->types();
+                if ($types && count($types)) {
+                    $eventChangeSet[$uri]['type'] = $types[0];
+                }
+                $eventChangeSet[$uri]['insert'] = array();
+            }
+            $eventChangeSet[$uri]['delete'] = $changes;
+        }
+
+        foreach ($chSet[1] as $uri => $changes) {
+            $resource = ($this->uriCorrespondances->indexOf($uri) ) ? $this->registeredResources[$this->uriCorrespondances->indexOf($uri)] : $this->registeredResources[$uri] ;
+
+            if(!isset($eventChangeSet[$uri])) {
+                $eventChangeSet[$uri] = array();
+                $types = $resource->types();
+                if ($types && count($types)) {
+                    $eventChangeSet[$uri]['type'] = $types[0];
+                }
+                $eventChangeSet[$uri]['delete'] = array();
+            }
+            $eventChangeSet[$uri]['insert'] = $changes;
+        }
+
+        return $eventChangeSet;
+    }
 
 
     /**
@@ -312,9 +349,7 @@ class UnitOfWork {
     {
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        //$this->persister->delete($resource->getUri(),$resource->getGraph()->toRdfPhp());
         if (isset ($this->registeredResources[$resource->getUri()])){
-            //unset($this->registeredResources[$resource->getUri()]);
             $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
         }
         $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
@@ -380,12 +415,11 @@ class UnitOfWork {
         foreach ($resources as $resource) {
             $entries = $resource->getGraph()->toRdfPhp();
             if(!isset($merged[$resource->getUri()]) && isset($entries[$resource->getUri()])) {
-                //echo "w";
                 $merged[$resource->getUri()] = $entries[$resource->getUri()];
             }
 
         }
-        //echo count ($merged);
+
         return $merged;
     }
 
@@ -418,7 +452,6 @@ class UnitOfWork {
         $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
-            //echo "[".$resource."]";
             //bnodes are taken separately
             if (!empty($properties)) {
                 $index = (isset($options['correspondence'][$resource])) ? $options['correspondence'][$resource] : $resource ;
@@ -427,7 +460,7 @@ class UnitOfWork {
                     if (!empty($values)) {
                         foreach ($values as $value) {
                             //special case of a removed resource
-                            if ($this->status[$resource] == self::STATUS_REMOVED) {
+                            if (isset ($this->status[$resource]) && $this->status[$resource] == self::STATUS_REMOVED) {
                                 $tmpMinus[$index]['all'] = array() ;
                             }
                             else if (!isset ($rdfArray2[$resource]) ||
@@ -445,7 +478,6 @@ class UnitOfWork {
                     }
                 }
                 if (isset ($tmpMinus[$index]) && count($tmpMinus[$index])) {
-
                     $minusArray[$index] = $tmpMinus[$index];
                 }
             }
@@ -549,6 +581,7 @@ class UnitOfWork {
         $this->initialSnapshots = new SnapshotContainer($this);
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
+        $this->uriCorrespondances = new ArrayCollection();
 
         $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
     }
