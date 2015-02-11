@@ -53,6 +53,9 @@ class RALExtension extends Extension
 
         //
         $this->registerResourceManagers($config, $container);
+
+        //register elastica indexes and mappings
+        $this->registerElasticaIndexes($config, $container);
     }
 
     /**
@@ -165,6 +168,15 @@ class RALExtension extends Extension
                 $service->addMethodCall('set', array($type, $class));
             }
         }
+    }
+
+    /**
+     * @todo create appropriate services
+     * @param array $config
+     * @param ContainerBuilder $container
+     */
+    public function registerElasticaIndexes(array $config, ContainerBuilder $container){
+
     }
 
     /**

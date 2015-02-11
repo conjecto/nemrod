@@ -23,6 +23,7 @@ class Configuration implements ConfigurationInterface
 
         $this->addNamespaceSection($rootNode);
         $this->addEndpointsSection($rootNode);
+        $this->addElasticaSearchConfigurationSection($rootNode);
 
         return $treeBuilder;
     }
@@ -72,6 +73,31 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('default_endpoint')->end()
             ->end()
         ;
+    }
+
+    /**
+     * Adds elasticsearch configuration part
+     * @param ArrayNodeDefinition $rootNode
+     */
+    private function addElasticaSearchConfigurationSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('elasticsearch')
+                    ->prototype('array')
+                    ->children()
+                        ->arrayNode('types')
+                            ->prototype('array')
+                            ->children()
+                                ->scalarNode('class')
+                                ->end()
+                                ->scalarNode('frame')
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+        ->end();
     }
 
 }
