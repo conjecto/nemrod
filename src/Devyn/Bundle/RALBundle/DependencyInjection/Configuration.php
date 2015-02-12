@@ -84,20 +84,63 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('elasticsearch')
-                    ->prototype('array')
                     ->children()
-                        ->arrayNode('types')
+                        //clients
+                        ->arrayNode('clients')//node 'clients' is
+                            ->prototype('array')//an array containing all clients definitions
+                                ->children() //children for each array entries
+                                    //->arrayNode('servers')//node 'servers' is
+                                        //->prototype('array') //an array containing definitions of all possible servers
+                                            #->children() //children for each array entries are
+                                                ->scalarNode('host')  // a 'host' (scalar) node
+                                                ->end()
+                                                ->scalarNode('port')// a 'port' (scalar) node
+                                                ->end()
+                                            ->end()
+                                        //->end()
+                                    //->end()
+                                //->end()
+                            ->end()
+                        ->end()
+
+                        //indexes
+                        ->arrayNode('indexes')
                             ->prototype('array')
                             ->children()
-                                ->scalarNode('class')
-                                ->end()
-                                ->scalarNode('frame')
-                                ->end()
+                            ->scalarNode('client')
                             ->end()
+                            ->arrayNode('types')
+                                ->prototype('array')
+                                    ->children()
+                                        ->scalarNode('class')
+                                        ->end()
+                                        ->scalarNode('frame')
+                                        ->end()
+                                        ->append($this->getPropertiesNode())
+                                    ->end()
+                                ->end()
+                            ->end()->end()
                         ->end()
                     ->end()
                 ->end()
-        ->end();
+            ->end();
+    }
+
+    //below: stuffs taken from foselasticabundle
+    /**
+     * Returns the array node used for "properties".
+     */
+    protected function getPropertiesNode()
+    {
+        $builder = new TreeBuilder();
+        $node = $builder->root('properties');
+
+        $node
+            ->useAttributeAsKey('name')
+            ->prototype('variable')
+            ->treatNullLike(array());
+
+        return $node;
     }
 
 }

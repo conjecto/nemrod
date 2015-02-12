@@ -177,7 +177,42 @@ class RALExtension extends Extension
      */
     public function registerElasticaIndexes(array $config, ContainerBuilder $container){
 
-    }
+        foreach($config['elasticsearch']['clients'] as $name => $client) {
+            $container
+                ->setDefinition('ral.elasticsearch_client.'.$name, new DefinitionDecorator('ral.elasticsearch_client'))
+                ->setArguments(array(array(
+                    'host' => $client['host'],
+                    'port' => $client['port']
+                )));
+
+        }
+
+        foreach($config['elasticsearch']['indexes'] as $name => $index) {
+
+            //@todo use default client
+            $clientRef = null;
+            if (isset($index['client'])) {
+                $clientRef = new Reference('ral.elasticsearch_client.'.$index['client']);
+
+                $container
+                    ->setDefinition('ral.elasticsearch_index.'.$name, new DefinitionDecorator('ral.elasticsearch_index'))
+                    ->setArguments(array($clientRef, $name));
+                }
+
+                foreach($index['types'] as $typeName => $type) {
+
+                    $clientRef = null;
+
+                        $clientRef = new Reference('ral.elasticsearch_type.'.$typeName);
+                    }
+                    $container
+                        ->setDefinition('ral.elasticsearch_type.'.$typeName, new DefinitionDecorator('ral.elasticsearch_index'))
+                        ->setArguments(array(new Reference('ral.elasticsearch_index.'.$name), $typeName));
+
+            }
+        }
+
+
 
     /**
      * @return string

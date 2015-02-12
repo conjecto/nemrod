@@ -17,6 +17,12 @@
         <!-- MetadataFactory -->
         <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
         <parameter key="ral.metadata_annotation_driver.class">Devyn\Component\RAL\Mapping\Driver\AnnotationDriver</parameter>
+
+        <!-- Elastica -->
+        <parameter key="ral.elastica_client.class">Elastica\Client</parameter>
+        <parameter key="ral.elastica_index.class">Elastica\Index</parameter>
+        <parameter key="ral.elastica_type.class">Elastica\Type</parameter>
+
     </parameters>
 
     <services>
@@ -52,9 +58,22 @@
             <argument type="service" id="ral.metadata_annotation_driver" />
         </service>
 
-
         <!-- sparql endpoints -->
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>
+
+        <!-- elastica indexes, persisters, transformers... -->
+        <service id="ral.elasticsearch_client" class="%ral.elastica_client.class%" abstract="true">
+            <argument>config</argument>
+        </service>
+        <service id="ral.elasticsearch_index" class="%ral.elastica_index.class%" abstract="true">
+            <argument>client</argument>
+            <argument>name</argument>
+        </service>
+        <service id="ral.elasticsearch_type" class="%ral.elastica_type.class%" abstract="true">
+            <argument>index</argument>
+            <argument>name</argument>
+        </service>
+
     </services>
 
 </container>
