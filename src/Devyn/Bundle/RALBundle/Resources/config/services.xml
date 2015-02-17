@@ -12,7 +12,7 @@
         <parameter key="ral.repository_factory.class">Devyn\Component\RAL\Manager\RepositoryFactory</parameter>
         <parameter key="ral.persister.class">Devyn\Component\RAL\Manager\SimplePersister</parameter>
         <parameter key="ral.resource_lifecycle_event_dispatcher.class">Symfony\Component\EventDispatcher\EventDispatcher</parameter>
-        <parameter key="ral.elastica_search.class">Symfony\Component\EventDispatcher\EventDispatcher</parameter>
+        <parameter key="query_manager.class">Devyn\Component\QueryBuilder\QueryBuilder</parameter>
 
         <!-- MetadataFactory -->
         <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
@@ -22,7 +22,7 @@
         <parameter key="ral.elastica_client.class">Elastica\Client</parameter>
         <parameter key="ral.elastica_index.class">Elastica\Index</parameter>
         <parameter key="ral.elastica_type.class">Elastica\Type</parameter>
-        <parameter key="query_manager.class">Devyn\Bridge\Elastica\Search\Search</parameter>
+        <parameter key="ral.elastica_search.class">Devyn\Bridge\Elastica\Search</parameter>
 
     </parameters>
 
@@ -65,15 +65,13 @@
         <!-- elastica indexes, persisters, transformers... -->
         <service id="ral.elasticsearch_client" class="%ral.elastica_client.class%" abstract="true">
         </service>
-
         <service id="ral.elasticsearch_index" class="%ral.elastica_index.class%" abstract="true">
         </service>
-
         <service id="ral.elasticsearch_type" class="%ral.elastica_type.class%" abstract="true">
         </service>
-
         <service id="ral.elasticsearch_search" class="%ral.elastica_search.class%" abstract="true">
         </service>
+
     </services>
 
 </container>

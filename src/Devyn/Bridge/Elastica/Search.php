@@ -1,5 +1,5 @@
 <?php
-namespace Sygefor\Bundle\CoreBundle\Search;
+namespace Devyn\Bridge\Elastica;
 
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Aggregation\Filter;
