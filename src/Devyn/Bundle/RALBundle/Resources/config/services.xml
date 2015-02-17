@@ -74,7 +74,7 @@
         </service>
 
         <service id="ral.elasticsearch_cache" class="%ral.elastica_cache.class%" abstract="true">
-
+            <argument type="service" id="rm"/>
         </service>
 
     </services>

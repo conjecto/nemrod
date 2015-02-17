@@ -7,6 +7,7 @@
  */
 
 namespace Devyn\Component\ESIndexing;
+use Devyn\Component\RAL\Manager\Manager;
 
 /**
  * Class ESCache
@@ -25,28 +26,34 @@ class ESCache
     protected $requests;
 
     /**
+     * @var Manager
+     */
+    protected $rm;
+
+    /**
      * @param string $type
      * @param array $index
      */
-    function __construct($index)
+    function __construct(Manager $rm, $index)
     {
+        $this->rm = $rm;
         $this->index = $index;
         $this->guessIndexingRequests();
 
-        var_dump($this->getRequest('person', 'fullName'));
+        var_dump($this->getRequest('uri', 'person', 'fullName'));
     }
 
-    public function getRequest($class, $property = '')
+    public function getRequest($uri, $class, $property = '')
     {
         if (empty($property)) {
             if (isset($this->requests[$class]['guessResourceType'])) {
-                return $this->requests[$class]['guessResourceType'];
+                return $this->requests[$class]['guessResourceType']->andWhere('?s ?p ' . $uri)->getSparqlQuery();
             }
             throw new \Exception('No matching found for ' . $class);
         }
 
         if (isset($this->requests[$class]['guessIndexingRequest'][$property])) {
-            return $this->requests[$class]['guessIndexingRequest'][$property];
+            return $this->requests[$class]['guessIndexingRequest'][$property]->andWhere('?s ?p ' . $uri)->getSparqlQuery();
         }
 
         throw new \Exception('No matching found for ' . $class . ' and ' . $property);
@@ -54,12 +61,20 @@ class ESCache
 
     protected function guessIndexingRequests()
     {
+        $qb = $this->rm->getQueryBuilder();
+
         foreach ($this->index as $typeName => $settings) {
             $this->requests[$typeName]['class'] = $settings['class'];
             $this->requests[$typeName]['frame'] = $settings['frame'];
-            $this->requests[$typeName]['guessResourceType'] = 'guessResourceType for ' . $settings['class'];
+            $_qb = clone $qb;
+            $_qb->reset();
+            $_qb->construct('?s ?p ' . $settings['class'])->where('?s a ' . $settings['class']);
+            $this->requests[$typeName]['guessResourceType'] = $_qb;
             foreach ($settings['properties'] as $key => $property) {
-                $this->requests[$typeName]['guessIndexingRequest'][$key] = 'guessIndexingRequest for ' . $settings['class'] . ':' . $key;
+                $_qb = clone $qb;
+                $_qb->reset();
+                $_qb->construct('?s ?p ' . $key)->where('?s a ' . $key);
+                $this->requests[$typeName]['guessIndexingRequest'][$key] = $_qb;
             }
         }
 
