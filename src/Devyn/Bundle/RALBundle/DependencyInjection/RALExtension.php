@@ -199,6 +199,10 @@ class RALExtension extends Extension
                     ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
                     ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName));
             }
+
+            $container
+                ->setDefinition('ral.elasticsearch_cache.' . $name, new DefinitionDecorator('ral.elasticsearch_cache'))
+                ->setArguments(array($config['elasticsearch']['indexes'][$name]['types']));
         }
     }
 
