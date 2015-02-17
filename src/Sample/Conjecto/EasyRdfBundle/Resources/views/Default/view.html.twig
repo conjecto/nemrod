@@ -1,0 +1,56 @@
+{% extends "MopaBootstrapBundle::base.html.twig" %}
+{% from 'MopaBootstrapBundle::flash.html.twig' import session_flash %}
+
+ {% block head_script %}
+
+     {% javascripts
+     'http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js'
+     '@MopaBootstrapBundle/Resources/public/bootstrap-sass/assets/javascripts/bootstrap/tooltip.js'
+     '@MopaBootstrapBundle/Resources/public/bootstrap-sass/assets/javascripts/bootstrap/*.js'
+     '@MopaBootstrapBundle/Resources/public/js/mopabootstrap-collection.js'
+     '@MopaBootstrapBundle/Resources/public/js/mopabootstrap-subnav.js'
+
+     %}
+         <script type="text/javascript" src="{{ asset_url }}"></script>
+     {% endjavascripts %}
+
+     {% stylesheets
+     '@MopaBootstrapBundle/Resources/public/sass/mopabootstrapbundle-3.2.scss'
+     '@MopaBootstrapBundle/Resources/public/css/mopabootstrapbundle.css'
+
+     %}
+     <link href="{{ asset_url }}" type="text/css" rel="stylesheet" media="screen" />
+     {% endstylesheets %}
+
+ {% endblock head_script %}
+
+
+{% block content %}
+    <div class="col-lg-3">
+    <h2>Details</h2>
+        <p>{{ user.name}} / {{ user.place }} - <a href="{{ path('person.delete', {'uri': user.uri}) }}">supprimer</a> </p>
+
+    {{ form_start(form, {'class': 'form-horizontal'}) }}
+
+    {{ form_rest(form) }}
+
+    <div class="form-group">
+        <div>
+            <button class="btn btn-default" type="submit">Modifier</button>
+        </div>
+    </div>
+</div>
+
+
+    {{ form_end(form) }}
+
+{% endblock %}
+
+{% block title %}Edition{% endblock title %}
+
+{% block headline %}Edition
+    {% endblock %}
+
+ {% block footer %}
+    &nbsp;
+ {% endblock footer %}

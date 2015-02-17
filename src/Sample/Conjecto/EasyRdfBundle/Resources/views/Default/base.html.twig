@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>test</title>
+
+</head>
+<body class="{{ body_classes is defined ? body_classes|join(" ") : '' }}">
+<!-- body -->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+
+        $("a.btn.btn-default").click(function (index, element) {
+
+            if (typeof $( this ).attr('data-collection-add-btn') != 'undefined') {
+                var prototypeNode = $($($($(this).parent().parent().children()[1])).children()[0]);
+                var maxId = getMaxId(prototypeNode);
+                addChild(prototypeNode, maxId);
+            }
+
+            else if (typeof $( this ).attr('data-collection-remove-btn') != 'undefined') {
+                var prototypeNode = $(this).parent().parent().parent().parent();
+                $(this).parent().parent().parent().remove();
+                if (prototypeNode.children().length == 0)
+                    addChild(prototypeNode, 0);
+            }
+
+        });
+
+        function addChild(prototypeNode, id) {
+            prototype = $(prototypeNode).attr('data-prototype')
+            prototype = prototype.replace(/__name__label__/g, id);
+            newItem = prototype.replace(/__name__/g, id);
+            $(prototypeNode).append(newItem);
+        }
+
+        function getMaxId(prototypeNode) {
+            var maxId = 0;
+
+            prototypeNode.children('.collection-item').each(function () {
+                labelId = parseInt($($(this).children()[0]).attr('for').split("_").pop());
+                if (labelId > maxId)
+                    maxId = labelId;
+            });
+
+            return maxId + 1;
+        }
+
+    });
+
+
+    // Récupère le div qui contient la collection de tags
+    var collectionHolder = $('ul.tags');
+
+    // ajoute un lien « add a tag »
+    var $addTagLink = $('<a href="#" class="add_tag_link">Ajouter un tag</a>');
+    var $newLinkLi = $('<li></li>').append($addTagLink);
+
+    jQuery(document).ready(function() {
+        // ajoute l'ancre « ajouter un tag » et li à la balise ul
+        collectionHolder.append($newLinkLi);
+
+        $('a.add_tag_link').on('click', function(e) {
+
+            // empêche le lien de créer un « # » dans l'URL
+            e.preventDefault();
+
+            // ajoute un nouveau formulaire tag (voir le prochain bloc de code)
+            addTagForm($(this).parent(), $newLinkLi);
+        });
+
+        function addTagForm(collectionHolder, $newLinkLi) {
+            // Récupère l'élément ayant l'attribut data-prototype comme expliqué plus tôt
+            var prototype = collectionHolder.attr('data-prototype');
+
+            // Remplace '__name__' dans le HTML du prototype par un nombre basé sur
+            // la longueur de la collection courante
+            var newForm = prototype.replace(/__name__/g, $($(collectionHolder.children()[1]).children()[1]).children().length);
+
+            // Affiche le formulaire dans la page dans un li, avant le lien "ajouter un tag"
+            newForm = '<div><label class="required">' + $($(collectionHolder.children()[1]).children()[1]).children().length + '</label>' + newForm + '</div>';
+            $($(collectionHolder.children()[1]).children()[1]).append(newForm);
+//            $newLinkLi.before($newFormLi);
+        }
+    });
+</script>
+{% block body %}
+
+{% endblock %}
+
+{% block footer %}
+
+{% endblock footer %}
+
+{% block title %}Edition{% endblock title %}
+
+<!-- global scripts -->
+
+</body>
+</html>
+
+

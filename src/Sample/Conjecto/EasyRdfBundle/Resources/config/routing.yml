@@ -1,0 +1,3 @@
+conjecto_easy_rdf_homepage:
+    path:     /hello/{name}
+    defaults: { _controller: EasyRdfBundle:Default:index }

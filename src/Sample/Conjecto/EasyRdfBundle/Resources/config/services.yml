@@ -1,0 +1,36 @@
+services:
+#    conjecto_easy_rdf.example:
+#        class: Conjecto\EasyRdfBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
+    conjecto_easy_rdf.resourcemanager:
+        class: Conjecto\EasyRdfBundle\Model\ResourceManager
+        arguments: [%sparql_endpoint%]
+        calls:
+            - [ setAnnotationReader, [@annotation_reader] ]
+
+
+    conjecto_demo.form.type.person:
+        class: Conjecto\EasyRdfBundle\Form\Type\PersonType
+        arguments: [@ral.namespace_registry, @rm]
+        tags:
+            - { name: form.type, alias: resource_person }
+    conjecto_demo.form.type.address:
+        class: Conjecto\EasyRdfBundle\Form\Type\AddressType
+        arguments: [@ral.namespace_registry]
+        tags:
+            - { name: form.type, alias: resource_address }
+    conjecto_demo.form.type.rdfform:
+        class: Conjecto\EasyRdfBundle\Form\Type\RdfFormType
+        arguments: [@rm]
+        tags:
+            - { name: form.type, alias: rdf_form }
+
+    conjecto_demo.listerner.person_event_listener:
+        class: Conjecto\EasyRdfBundle\EventListener\PersonEventListener
+        tags:
+            - {name: ral.resource_event_listener, event: ral.pre_flush, method: onPreFlush, endpoint: ogbd}
+
+    conjecto_demo.listerner.person_event_subscriber:
+        class: Conjecto\EasyRdfBundle\EventListener\PersonEventSubscriber
+        tags:
+            - {name: ral.resource_event_subscriber, event: ral.pre_flush, method: onPreFlush, endpoint: ogbd}
