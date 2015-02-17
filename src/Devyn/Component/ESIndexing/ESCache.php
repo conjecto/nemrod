@@ -39,8 +39,6 @@ class ESCache
         $this->rm = $rm;
         $this->index = $index;
         $this->guessIndexingRequests();
-
-        var_dump($this->getRequest('uri', 'person', 'fullName'));
     }
 
     public function getRequest($uri, $class, $property = '')
@@ -59,17 +57,37 @@ class ESCache
         throw new \Exception('No matching found for ' . $class . ' and ' . $property);
     }
 
+    /**
+     * @return array
+     */
+    public function getRequests()
+    {
+        return $this->requests;
+    }
+
     protected function guessIndexingRequests()
     {
         $qb = $this->rm->getQueryBuilder();
 
         foreach ($this->index as $typeName => $settings) {
+
+            if (!isset($settings['class']) || empty($settings['class'])) {
+                throw new \Exception('You have to specify a class for ' . $typeName);
+            }
+            if (!isset($settings['frame']) ||empty($settings['frame'])) {
+                throw new \Exception('You have to specify a frame for ' . $typeName);
+            }
+            if (!isset($settings['properties']) || empty($settings['properties'])) {
+                throw new \Exception('You have to specify properties for ' . $typeName);
+            }
+
             $this->requests[$typeName]['class'] = $settings['class'];
             $this->requests[$typeName]['frame'] = $settings['frame'];
             $_qb = clone $qb;
             $_qb->reset();
             $_qb->construct('?s ?p ' . $settings['class'])->where('?s a ' . $settings['class']);
             $this->requests[$typeName]['guessResourceType'] = $_qb;
+
             foreach ($settings['properties'] as $key => $property) {
                 $_qb = clone $qb;
                 $_qb->reset();
@@ -77,7 +95,5 @@ class ESCache
                 $this->requests[$typeName]['guessIndexingRequest'][$key] = $_qb;
             }
         }
-
-        var_dump($this->requests);
     }
 }
