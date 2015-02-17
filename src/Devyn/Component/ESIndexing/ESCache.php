@@ -57,6 +57,37 @@ class ESCache
         throw new \Exception('No matching found for ' . $class . ' and ' . $property);
     }
 
+    public function parse($query)
+    {
+        $string = substr($query, strpos($query, '@context') + 8);
+        $paren_num = 0;
+        $chars = str_split($query);
+
+        $new_string = '';
+        foreach ($chars as $char) {
+            if($char == '{') {
+                $paren_num++;
+            }
+            else if ($char == '}') {
+                $paren_num--;
+            }
+            else if ($paren_num == 0) {
+                $new_string .= $char;
+            }
+        }
+
+        $new_string = trim($new_string);
+
+        $string = substr($query, 0, strpos($query, '@context')) . ' ' . $new_string;
+
+        var_dump($string);
+
+        $query = str_replace('@id', '_id', $query);
+        $query = str_replace('@type', '_type', $query);
+
+        return $query;
+    }
+
     /**
      * @return array
      */
