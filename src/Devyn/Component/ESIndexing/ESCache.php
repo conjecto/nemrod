@@ -41,20 +41,49 @@ class ESCache
         $this->guessIndexingRequests();
     }
 
-    public function getRequest($uri, $class, $property = '')
+    public function getRequest($index, $uri, $type, $property = '')
     {
         if (empty($property)) {
-            if (isset($this->requests[$class]['guessResourceType'])) {
-                return $this->requests[$class]['guessResourceType']->andWhere('?s ?p ' . $uri)->getSparqlQuery();
+            if (isset($this->requests[$index][$type]['guessResourceType'])) {
+                return $this->requests[$index][$type]['guessResourceType']->andWhere('?s ?p ' . $uri)->getSparqlQuery();
             }
-            throw new \Exception('No matching found for ' . $class);
+            throw new \Exception('No matching found for ' . $type);
         }
 
-        if (isset($this->requests[$class]['guessIndexingRequest'][$property])) {
-            return $this->requests[$class]['guessIndexingRequest'][$property]->andWhere('?s ?p ' . $uri)->getSparqlQuery();
+        if (isset($this->requests[$index][$type]['guessIndexingRequest'][$property])) {
+            return $this->requests[$index][$type]['guessIndexingRequest'][$property]->andWhere('?s ?p ' . $uri)->getSparqlQuery();
         }
 
-        throw new \Exception('No matching found for ' . $class . ' and ' . $property);
+        throw new \Exception('No matching found for ' . $type . ' and ' . $property);
+    }
+
+    public function getFramePart($index, $type, $part)
+    {
+        $frame = $this->requests[$index][$type]['frame'];
+        $framePart = substr($frame, strpos($frame, $part) + strlen($part));
+
+        $chars = str_split($framePart);
+        $paren_num = 0;
+        $first = true;
+        $result = '';
+
+        foreach ($chars as $char) {
+            if($char == '{') {
+                $first = false;
+                $paren_num++;
+            }
+            else if ($char == '}') {
+                $paren_num--;
+            }
+            else if (!$first) {
+                $result .= $char;
+            }
+            if ($paren_num == 0 && !$first) {
+                break;
+            }
+        }
+
+        return $result;
     }
 
     public function parse($query)
@@ -65,7 +94,7 @@ class ESCache
 
         $new_string = '';
         foreach ($chars as $char) {
-            if($char == '{') {
+                if($char == '{') {
                 $paren_num++;
             }
             else if ($char == '}') {
@@ -100,30 +129,31 @@ class ESCache
     {
         $qb = $this->rm->getQueryBuilder();
 
-        foreach ($this->index as $typeName => $settings) {
+        foreach ($this->index['indexes'] as $index => $types) {
+            foreach ($types['types'] as $type => $settings) {
+                if (!isset($settings['class']) || empty($settings['class'])) {
+                    throw new \Exception('You have to specify a class for ' . $type);
+                }
+                if (!isset($settings['frame']) || empty($settings['frame'])) {
+                    throw new \Exception('You have to specify a frame for ' . $type);
+                }
+                if (!isset($settings['properties']) || empty($settings['properties'])) {
+                    throw new \Exception('You have to specify properties for ' . $type);
+                }
 
-            if (!isset($settings['class']) || empty($settings['class'])) {
-                throw new \Exception('You have to specify a class for ' . $typeName);
-            }
-            if (!isset($settings['frame']) ||empty($settings['frame'])) {
-                throw new \Exception('You have to specify a frame for ' . $typeName);
-            }
-            if (!isset($settings['properties']) || empty($settings['properties'])) {
-                throw new \Exception('You have to specify properties for ' . $typeName);
-            }
-
-            $this->requests[$typeName]['class'] = $settings['class'];
-            $this->requests[$typeName]['frame'] = $settings['frame'];
-            $_qb = clone $qb;
-            $_qb->reset();
-            $_qb->construct('?s ?p ' . $settings['class'])->where('?s a ' . $settings['class']);
-            $this->requests[$typeName]['guessResourceType'] = $_qb;
-
-            foreach ($settings['properties'] as $key => $property) {
+                $this->requests[$index][$type]['class'] = $settings['class'];
+                $this->requests[$index][$type]['frame'] = $settings['frame'];
                 $_qb = clone $qb;
                 $_qb->reset();
-                $_qb->construct('?s ?p ' . $key)->where('?s a ' . $key);
-                $this->requests[$typeName]['guessIndexingRequest'][$key] = $_qb;
+                $_qb->construct('?s ?p ' . $settings['class'])->where('?s a ' . $settings['class']);
+                $this->requests[$index][$type]['guessResourceType'] = $_qb;
+
+                foreach ($settings['properties'] as $property => $values) {
+                    $_qb = clone $qb;
+                    $_qb->reset();
+                    $_qb->construct('?s ?p ' . $property)->where('?s a ' . $property);
+                    $this->requests[$index][$type]['guessIndexingRequest'][$property] = $_qb;
+                }
             }
         }
     }
