@@ -175,43 +175,32 @@ class RALExtension extends Extension
      * @param array $config
      * @param ContainerBuilder $container
      */
-    public function registerElasticaIndexes(array $config, ContainerBuilder $container){
+    public function registerElasticaIndexes(array $config, ContainerBuilder $container)
+    {
 
-        foreach($config['elasticsearch']['clients'] as $name => $client) {
+        foreach ($config['elasticsearch']['clients'] as $name => $client) {
             $container
-                ->setDefinition('ral.elasticsearch_client.'.$name, new DefinitionDecorator('ral.elasticsearch_client'))
+                ->setDefinition('ral.elasticsearch_client.' . $name, new DefinitionDecorator('ral.elasticsearch_client'))
                 ->setArguments(array(array(
                     'host' => $client['host'],
                     'port' => $client['port']
                 )));
-
         }
 
-        foreach($config['elasticsearch']['indexes'] as $name => $index) {
+        foreach ($config['elasticsearch']['indexes'] as $name => $types) {
 
-            //@todo use default client
-            $clientRef = null;
-            if (isset($index['client'])) {
-                $clientRef = new Reference('ral.elasticsearch_client.'.$index['client']);
+            $clientRef = new Reference('ral.elasticsearch_client.' . $types['client']);
+            $container
+                ->setDefinition('ral.elasticsearch_index.' . $name, new DefinitionDecorator('ral.elasticsearch_index'))
+                ->setArguments(array($clientRef, $name));
 
+            foreach ($types['types'] as $typeName => $settings) {
                 $container
-                    ->setDefinition('ral.elasticsearch_index.'.$name, new DefinitionDecorator('ral.elasticsearch_index'))
-                    ->setArguments(array($clientRef, $name));
-                }
-
-                foreach($index['types'] as $typeName => $type) {
-
-                    $clientRef = null;
-
-                        $clientRef = new Reference('ral.elasticsearch_type.'.$typeName);
-                    }
-                    $container
-                        ->setDefinition('ral.elasticsearch_type.'.$typeName, new DefinitionDecorator('ral.elasticsearch_index'))
-                        ->setArguments(array(new Reference('ral.elasticsearch_index.'.$name), $typeName));
-
+                    ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
+                    ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName));
             }
         }
-
+    }
 
 
     /**
