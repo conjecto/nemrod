@@ -23,6 +23,7 @@
         <parameter key="ral.elastica_index.class">Elastica\Index</parameter>
         <parameter key="ral.elastica_type.class">Elastica\Type</parameter>
         <parameter key="ral.elastica_cache.class">Devyn\Component\ESIndexing\ESCache</parameter>
+        <parameter key="ral.elastica_search.class">Devyn\Bridge\Elastica\Search</parameter>
 
     </parameters>
 
@@ -70,6 +71,8 @@
 
         </service>
         <service id="ral.elasticsearch_type" class="%ral.elastica_type.class%" abstract="true">
+        </service>
+        <service id="ral.elasticsearch_search" class="%ral.elastica_search.class%" abstract="true">
 
         </service>
 
