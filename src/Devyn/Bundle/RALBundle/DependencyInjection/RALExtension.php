@@ -195,9 +195,13 @@ class RALExtension extends Extension
                 ->setArguments(array($clientRef, $name));
 
             foreach ($types['types'] as $typeName => $settings) {
+                //type
                 $container
                     ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
                     ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName));
+                $container
+                    ->setDefinition('ral.elasticsearch_search.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_search'))
+                    ->setArguments(array(new Reference('ral.elasticsearch_type.' . $name .'.'.$typeName), $typeName));
             }
         }
     }
