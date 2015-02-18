@@ -7,6 +7,8 @@
  */
 
 namespace Devyn\Component\ESIndexing;
+
+use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Manager\Manager;
 
 /**
@@ -36,28 +38,47 @@ class ESCache
     protected $qb;
 
     /**
-     * @param string $type
-     * @param array $index
+     * @var int
+     */
+    public $varCounter = 0;
+
+    /**
+     * @var array
+     */
+    public $onePossiblePlace = [];
+
+    /**
+     * @param Manager $rm
+     * @param $index
+     * @throws \Exception
      */
     function __construct(Manager $rm, $index)
     {
         $this->rm = $rm;
         $this->index = $index;
-        $this->guessIndexingRequests();
         $this->qb = $this->rm->getQueryBuilder();
+        $this->guessRequests();
     }
 
+    /**
+     * @param $index
+     * @param $uri
+     * @param $type
+     * @param string $property
+     * @return mixed
+     * @throws \Exception
+     */
     public function getRequest($index, $uri, $type, $property = '')
     {
         if (empty($property)) {
             if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
-                return $this->requests[$index][$type]['guessTypeRequest']->bind('?s', $uri)->getSparqlQuery();
+                return $this->requests[$index][$type]['guessTypeRequest']->bind($uri, '?uri')->getSparqlQuery();
             }
             throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
         }
 
         if (isset($this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'])) {
-            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind('?s', $uri)->getSparqlQuery();
+            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind($uri, '?uri')->getSparqlQuery();
         }
 
         throw new \Exception('No matching found for index ' . $index . ' and type ' . $type . ' and property ' . $property);
@@ -71,10 +92,14 @@ class ESCache
         return $this->requests;
     }
 
-    protected function guessIndexingRequests()
+    /**
+     * @throws \Exception
+     */
+    protected function guessRequests()
     {
         foreach ($this->index['indexes'] as $index => $types) {
             foreach ($types['types'] as $type => $settings) {
+
                 if (!isset($settings['type']) || empty($settings['type'])) {
                     throw new \Exception('You have to specify a type for ' . $type);
                 }
@@ -84,124 +109,210 @@ class ESCache
                 if (!isset($settings['properties']) || empty($settings['properties'])) {
                     throw new \Exception('You have to specify properties for ' . $type);
                 }
-
-                $this->requests[$index][$type]['type'] = $settings['type'];
-                $this->requests[$index][$type]['frame'] = $this->getPropertyFrame($settings['frame'], $settings['type']);
-                $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type']);
-
-                foreach ($settings['properties'] as $property => $values) {
-                    $propertyFrame = $this->getPropertyFrame($this->requests[$index][$type]['frame'], $property);
-                    $this->requests[$index][$type]['properties'][$property]['frame'] = $propertyFrame;
-                    $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'] = $this->getPropertyRequest($this->getPropertyFromFrame($propertyFrame));
-                }
+                $this->fillTypes($index, $type, $settings);
             }
         }
     }
 
-    protected function getPropertyFromFrame($propertyFrame)
+    /**
+     * @param $index
+     * @param $type
+     * @param $settings
+     * @throws \Exception
+     */
+    protected function fillTypes($index, $type, $settings)
     {
-        $propertyFrame = strstr($propertyFrame, '{', true);
-        $propertyFrame = $this->strrstr($propertyFrame, ':', true);
-        $propertyFrame = str_replace('"', '', $propertyFrame);
+        $frame = json_decode($settings['frame'], true);
+        if ($frame == null || $frame == false) {
+            throw new \Exception('Invalid frame, the json is not correct');
+        }
 
-        return $propertyFrame;
+        $this->requests[$index][$type]['type'] = $settings['type'];
+        $this->requests[$index][$type]['context'] = $frame['@context'];
+        unset($frame['@context']);
+        $this->requests[$index][$type]['frame'] = $frame;
+        $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame);
+        $this->fillProperties($index, $type, $settings, $frame);
     }
 
-    protected function getTypeRequest($type)
+    /**
+     * @param $index
+     * @param $type
+     * @param $settings
+     * @param $frame
+     */
+    protected function fillProperties($index, $type, $settings, $frame)
     {
-        $qb = clone $this->rm->getQueryBuilder();
-        $qb->construct('?s ?p ' . $type)->where('?s a ' . $type);
+        $propertiesFrame = isset($frame['@type'][$settings['type']]['@type']) ? $propertiesFrame = $frame['@type'][$settings['type']]['@type'] : $propertiesFrame = array();
+        $frame['@type'] = [];
+
+        foreach ($settings['properties'] as $property => $values) {
+            $key = '';
+            foreach ($propertiesFrame as $key=>$propertyFrame) {
+                if (strstr($key, $property)) {
+                    $frame['@type'][$key] = $propertiesFrame[$key];
+                    break;
+                }
+            }
+            $this->requests[$index][$type]['properties'][$property]['frame'] = $frame;
+            $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'] = $this->getTypeRequest($key, $frame);
+        }
+    }
+
+    /**
+     * @param $type
+     * @param $frame
+     * @return \Devyn\Component\QueryBuilder\QueryBuilder
+     */
+    protected function getTypeRequest($type, $frame)
+    {
+        $qb = clone $this->qb;
+        $qb->construct();
+        //add the construct part
+
+        $hasExplicit = false;
+        foreach ($frame as $prop => $val) {
+            if ($prop === '@type') {
+                if (is_array($val)) {
+                    foreach ($val as $key => $value) {
+                        $qb->andWhere('?uri' . ' a ' . $key);
+                    }
+                }
+                else {
+                    $qb->andWhere('?uri' . ' a ' . $val);
+                }
+            }
+            else if ($prop === '@explicit' && $val === 'true') {
+                $hasExplicit = true;
+            }
+            else if ($prop === '@embed' ) {
+
+            }
+            // @default @omitDefault @null @embed are not usefull
+            else {
+                // union for optional trick
+                if (is_array($val)) {
+                    $uriChild = '?c' . (++$this->varCounter);
+                    $qb->addUnion(array("", '?uri' . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChild)));
+                }
+            }
+        }
+
+        if (!$hasExplicit) {
+            $qb->andWhere('?uri' . ' ?w' . (++$this->varCounter) . ' ?w' . (++$this->varCounter) . ' .');
+        }
+
         return $qb;
     }
 
-    protected function getPropertyRequest($property)
+    /**
+     * @param QueryBuilder $qb
+     * @param $child
+     * @param $uriChild
+     * @return string
+     */
+    protected function addChild($qb, $child, $uriChild)
     {
-        $qb = clone $this->rm->getQueryBuilder();
-        $qb->construct('?s ?p ' . $property)->where('?s a ' . $property);
-        return $qb;
-    }
+        // no child but in the frame for @explicit
+        if (!count($child)) {
+            return $uriChild;
+        }
+        else {
+            $stringedChild = $uriChild . ".";
+            $hasExplicit = false;
 
-    protected function strrstr($h, $n, $before = false) {
-        $rpos = strrpos($h, $n);
-        if ($rpos === false)
-            return false;
-        if ($before == false)
-            return substr($h, $rpos);
-        else
-            return substr($h, 0, $rpos);
-    }
-
-    protected function getPrefix($frame, $cutFrame)
-    {
-        $beginFrame = strstr($frame, $cutFrame, true);
-        $lastType = $this->strrstr($beginFrame, '@type');
-        $lastType = $this->strrstr($lastType, '"');
-        return $lastType;
-    }
-
-    protected function getPropertyFrame($frame, $property)
-    {
-        $cutFrame = strstr($frame, $property);
-        return $this->getPrefix($frame, $cutFrame) . $this->getParenthesis($cutFrame, true);
-    }
-
-    protected function getFramePart($index, $type, $part, $include = false)
-    {
-        $frame = $this->requests[$index][$type]['frame'];
-        $framePart = substr($frame, strpos($frame, $part) + strlen($part));
-
-        $result = $this->getParenthesis($framePart, $include);
-
-        return $result;
-    }
-
-    protected function getParenthesis($framePart, $include = false, $part = '')
-    {
-        $chars = str_split($framePart);
-        $paren_num = 0;
-        $first = true;
-        $result = '';
-
-        foreach ($chars as $char) {
-            if($char == '{') {
-                if ($include) {
-                    $result .= $char;
+            foreach ($child as $prop => $val) {
+                if ($prop === '@type') {
+                    $stringedChild = $stringedChild . " " . $uriChild . ' a ' . $val . " .";
                 }
-                $first = false;
-                $paren_num++;
-            }
-            else if ($char == '}') {
-                if ($include) {
-                    $result .= $char;
+                else if ($prop === '@explicit' && $val === 'true') {
+                    $hasExplicit = true;
                 }
-                $paren_num--;
+                else if ($prop === '@embed') {
+
+                }
+                // @default @omitDefault @null @embed are not usefull
+                else{
+                    // union for optional trick
+                    if (is_array($val)) {
+                        $uriChildOfChild = '?c' . (++$this->varCounter);
+                        $stringedChild = $stringedChild . " {} UNION {" . $uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild) . "} ";
+                    }
+                }
             }
-            else if (!$first) {
-                $result .= $char;
+
+            if (!$hasExplicit) {
+                $stringedChild = $stringedChild . " " . $uriChild . ' ?w' . (++$this->varCounter) . ' ?w' . (++$this->varCounter) . " .";
             }
-            if ($paren_num == 0 && !$first) {
-                break;
+
+            return $stringedChild;
+        }
+    }
+
+    /**
+     * @param $uri
+     * @param $type
+     * @param $frame
+     * @return null|string
+     */
+    protected function createUnionPart($uri, $type, $frame)
+    {
+        $rez = "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type ";
+
+        // each found must show the path  "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type "
+        // if not found return null, { path1 } UNION ( path2 }  ... if some found
+        // must parse all the frame and contruct by pop and push the request part, when found one add to rez and continue
+
+        $this->onePossiblePlace = [];
+        $buildingUnion = '?s a ' . $frame['@type'];
+
+        foreach ($frame as $prop => $val) {
+            if ($prop === '@type') {
             }
-            else if ($include && $first) {
-                $result .= $char;
+            else if ($prop === '@explicit' && $val === 'true') {
+
+            }
+            else if ($prop === '@embed' ) {
+
+            }
+            // @default @omitDefault @null are not usefull, @embed could be
+            else {
+                // union for optional trick
+                if (is_array($val) && count($val)) {
+                    $this->checkDeeper($uri, $type, $val, $buildingUnion . "; " . $prop);
+                }
             }
         }
-
-        if ($include) {
-            $result = $part . $result;
-        }
-
-        return $result;
+        return (count($this->onePossiblePlace))?"{ ".implode(" } UNION { ",$this->onePossiblePlace)." }":null;
     }
 
-    protected function parse($index, $type)
+    /**
+     * @param $uri
+     * @param $type
+     * @param $frame
+     * @param $buildingUnion
+     */
+    protected function checkDeeper($uri, $type, $frame, $buildingUnion)
     {
-        $query = $this->requests[$index][$type]['frame'];
-        $frame = '"' . $this->getFramePart('ogbd', 'person', '@context', true) . ',';
-        $query = str_replace($frame, '', $query);
-        $query = str_replace('@id', '_id', $query);
-        $query = str_replace('@type', '_type', $query);
+        foreach($frame as $prop => $val) {
+            if ($prop === '@type') {
+                if($val == $type) {
+                    $this->onePossiblePlace[] = $buildingUnion . " " . $uri . " .";
+                }
+            }
+            else if ($prop === '@explicit' && $val === 'true') {
 
-        return $query;
+            }
+            else if ($prop === '@embed' ) {
+
+            }
+            // @default @omitDefault @null are not usefull, @embed could be
+            else {
+                // union for optional trick
+                if (is_array($val) && count($val)) {
+                    $this->checkDeeper($uri, $type, $val, $buildingUnion . "/" . $prop);
+                }
+            }
+        }
     }
 }
