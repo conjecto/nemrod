@@ -212,6 +212,10 @@ class RALExtension extends Extension
                 $confManager->addMethodCall('setConfig',array($settings['type'], $settings));
             }
         }
+
+        $container
+            ->setDefinition('ral.elasticsearch_cache.ogbd', new DefinitionDecorator('ral.elasticsearch_cache'))
+            ->setArguments(array($config['elasticsearch']));
     }
 
 //    public function registerElasticaConfigsToManager(array $config, ContainerBuilder $container) {
