@@ -56,6 +56,9 @@ class RALExtension extends Extension
 
         //register elastica indexes and mappings
         $this->registerElasticaIndexes($config, $container);
+
+        //register elastica indexes and mappings (done in function registerElasticaIndexes for now)
+        //$this->registerElasticaConfigsToManager($config, $container);
     }
 
     /**
@@ -157,12 +160,11 @@ class RALExtension extends Extension
 
         //adding paths to annotation driver
         $annDriver = $container->getDefinition('ral.metadata_annotation_driver');
-        $annDriver->replaceArgument(1,$paths);
+        $annDriver->replaceArgument(1, $paths);
 
         $classes = $driver->getAllClassNames();
 
         foreach($classes as $class) {
-
             $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
             foreach($metadata->types as $type) {
                 $service->addMethodCall('set', array($type, $class));
@@ -203,10 +205,18 @@ class RALExtension extends Extension
                 $container
                     ->setDefinition('ral.elasticsearch_search.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_search'))
                     ->setArguments(array(new Reference('ral.elasticsearch_type.' . $name .'.'.$typeName), $typeName));
+
+                //@todo place this in a separate func ?
+                //registering config to configManager
+                $confManager = $container->getDefinition('ral.elasticsearch_config_manager');
+                $confManager->addMethodCall('setConfig',array($settings['type'], $settings));
             }
         }
     }
 
+//    public function registerElasticaConfigsToManager(array $config, ContainerBuilder $container) {
+//
+//    }
 
     /**
      * @return string

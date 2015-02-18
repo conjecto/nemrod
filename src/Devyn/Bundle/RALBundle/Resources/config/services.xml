@@ -23,7 +23,9 @@
         <parameter key="ral.elastica_index.class">Elastica\Index</parameter>
         <parameter key="ral.elastica_type.class">Elastica\Type</parameter>
         <parameter key="ral.elastica_search.class">Devyn\Bridge\Elastica\Search</parameter>
-
+        <parameter key="ral.elastica_config_manager.class">Elastica\ConfigManager</parameter>
+        <parameter key="ral.elastica_mapping_builder.class">Devyn\Bridge\Elastica\MappingBuilder</parameter>
+        <parameter key="ral.elastica_resetter.class">Devyn\Bridge\Elastica\Resetter</parameter>
     </parameters>
 
     <services>
@@ -63,13 +65,17 @@
         <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>
 
         <!-- elastica indexes, persisters, transformers... -->
-        <service id="ral.elasticsearch_client" class="%ral.elastica_client.class%" abstract="true">
+        <service id="ral.elasticsearch_client" class="%ral.elastica_client.class%" abstract="true" />
+        <service id="ral.elasticsearch_index" class="%ral.elastica_index.class%" abstract="true" />
+        <service id="ral.elasticsearch_type" class="%ral.elastica_type.class%" abstract="true" />
+        <service id="ral.elasticsearch_search" class="%ral.elastica_search.class%" abstract="true" />
+        <service id="ral.elasticsearch_config_manager" class="%ral.elastica_config_manager.class%" />
+        <service id="ral.elasticsearch_mapping_builder" class="%ral.elastica_mapping_builder.class%" >
+            <argument type="service" id="ral.elasticsearch_config_manager"/>
         </service>
-        <service id="ral.elasticsearch_index" class="%ral.elastica_index.class%" abstract="true">
-        </service>
-        <service id="ral.elasticsearch_type" class="%ral.elastica_type.class%" abstract="true">
-        </service>
-        <service id="ral.elasticsearch_search" class="%ral.elastica_search.class%" abstract="true">
+        <service id="ral.elasticsearch_resetter" class="%ral.elastica_resetter.class%" >
+            <argument type="service" id="ral.elasticsearch_config_manager"/>
+            <argument type="service" id="ral.elasticsearch_mapping_builder"/>
         </service>
 
     </services>
