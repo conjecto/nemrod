@@ -31,6 +31,11 @@ class ESCache
     protected $rm;
 
     /**
+     * @var \Devyn\Component\QueryBuilder\QueryBuilder
+     */
+    protected $qb;
+
+    /**
      * @param string $type
      * @param array $index
      */
@@ -39,19 +44,20 @@ class ESCache
         $this->rm = $rm;
         $this->index = $index;
         $this->guessIndexingRequests();
+        $this->qb = $this->rm->getQueryBuilder();
     }
 
     public function getRequest($index, $uri, $type, $property = '')
     {
         if (empty($property)) {
-            if (isset($this->requests[$index][$type]['guessResourceType'])) {
-                return $this->requests[$index][$type]['guessResourceType']->bind('?s', $uri)->getSparqlQuery();
+            if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
+                return $this->requests[$index][$type]['guessTypeRequest']->bind('?s', $uri)->getSparqlQuery();
             }
             throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
         }
 
-        if (isset($this->requests[$index][$type]['guessIndexingRequest'][$property])) {
-            return $this->requests[$index][$type]['guessIndexingRequest'][$property]->bind('?s', $uri)->getSparqlQuery();
+        if (isset($this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'])) {
+            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind('?s', $uri)->getSparqlQuery();
         }
 
         throw new \Exception('No matching found for index ' . $index . ' and type ' . $type . ' and property ' . $property);
@@ -81,28 +87,36 @@ class ESCache
 
                 $this->requests[$index][$type]['type'] = $settings['type'];
                 $this->requests[$index][$type]['frame'] = $this->getPropertyFrame($settings['frame'], $settings['type']);
-                $this->requests[$index][$type]['guessResourceType'] = $this->getTypeRequest($settings['type']);
+                $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type']);
 
                 foreach ($settings['properties'] as $property => $values) {
-                    $this->requests[$index][$type]['guessIndexingRequest'][$property]['frame'] = $this->getPropertyFrame($this->requests[$index][$type]['frame'], $property);
-                    $this->requests[$index][$type]['guessIndexingRequest'][$property]['request'] = $this->getPropertyRequest($property);
+                    $propertyFrame = $this->getPropertyFrame($this->requests[$index][$type]['frame'], $property);
+                    $this->requests[$index][$type]['properties'][$property]['frame'] = $propertyFrame;
+                    $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'] = $this->getPropertyRequest($this->getPropertyFromFrame($propertyFrame));
                 }
             }
         }
     }
 
+    protected function getPropertyFromFrame($propertyFrame)
+    {
+        $propertyFrame = strstr($propertyFrame, '{', true);
+        $propertyFrame = $this->strrstr($propertyFrame, ':', true);
+        $propertyFrame = str_replace('"', '', $propertyFrame);
+
+        return $propertyFrame;
+    }
+
     protected function getTypeRequest($type)
     {
-        return null;
-        $qb = $this->rm->getQueryBuilder();
+        $qb = clone $this->rm->getQueryBuilder();
         $qb->construct('?s ?p ' . $type)->where('?s a ' . $type);
         return $qb;
     }
 
     protected function getPropertyRequest($property)
     {
-        return null;
-        $qb = $this->rm->getQueryBuilder();
+        $qb = clone $this->rm->getQueryBuilder();
         $qb->construct('?s ?p ' . $property)->where('?s a ' . $property);
         return $qb;
     }
