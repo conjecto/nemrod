@@ -201,7 +201,7 @@ class RALExtension extends Extension
                 $container
                     ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
                     ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName))
-                    ->addTag('ral.elasticsearch_type', array($typeName));
+                    ;//->addTag('ral.elasticsearch_type', array($typeName));
 
                 //search service
                 $container
