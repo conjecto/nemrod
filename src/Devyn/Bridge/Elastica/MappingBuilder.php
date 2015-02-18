@@ -19,9 +19,13 @@ class MappingBuilder
     /** @var ConfigManager */
     protected $configManager;
 
-    public function __construct($configManager)
+    /** @var  TypeRegistry */
+    protected $typeRegistry;
+
+    public function __construct($configManager, $typeRegistry)
     {
         $this->configManager = $configManager;
+        $this->typeRegistry = $typeRegistry;
     }
 
     public function buildMapping($type){
@@ -30,7 +34,7 @@ class MappingBuilder
         if (!$mappingData) {
             throw new \Exception("no mapping for type");
         }
-        $mapping = new Mapping($type);
+        $mapping = new Mapping($this->typeRegistry->getType($type));
 
         //@todo build mapping
         //$mapping->

@@ -200,7 +200,9 @@ class RALExtension extends Extension
                 //type
                 $container
                     ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
-                    ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName));
+                    ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName))
+                    ->addTag('ral.elasticsearch_type', array($typeName));
+
                 //search service
                 $container
                     ->setDefinition('ral.elasticsearch_search.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_search'))
@@ -208,6 +210,7 @@ class RALExtension extends Extension
 
                 //@todo place this in a separate func ?
                 //registering config to configManager
+                $settings['type_service_id'] = 'ral.elasticsearch_type.' . $name .'.'.$typeName;
                 $confManager = $container->getDefinition('ral.elasticsearch_config_manager');
                 $confManager->addMethodCall('setConfig',array($settings['type'], $settings));
             }

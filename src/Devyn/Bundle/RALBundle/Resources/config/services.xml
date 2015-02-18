@@ -24,9 +24,10 @@
         <parameter key="ral.elastica_type.class">Elastica\Type</parameter>
         <parameter key="ral.elastica_cache.class">Devyn\Component\ESIndexing\ESCache</parameter>
         <parameter key="ral.elastica_search.class">Devyn\Bridge\Elastica\Search</parameter>
-        <parameter key="ral.elastica_config_manager.class">Elastica\ConfigManager</parameter>
+        <parameter key="ral.elastica_config_manager.class">Devyn\Bridge\Elastica\ConfigManager</parameter>
         <parameter key="ral.elastica_mapping_builder.class">Devyn\Bridge\Elastica\MappingBuilder</parameter>
         <parameter key="ral.elastica_resetter.class">Devyn\Bridge\Elastica\Resetter</parameter>
+        <parameter key="ral.elastica_type_registry.class">Devyn\Bridge\Elastica\TypeRegistry</parameter>
     </parameters>
 
     <services>
@@ -73,14 +74,16 @@
         <service id="ral.elasticsearch_config_manager" class="%ral.elastica_config_manager.class%" />
         <service id="ral.elasticsearch_mapping_builder" class="%ral.elastica_mapping_builder.class%" >
             <argument type="service" id="ral.elasticsearch_config_manager"/>
+            <argument type="service" id="ral.elasticsearch_type_registry" />
         </service>
         <service id="ral.elasticsearch_resetter" class="%ral.elastica_resetter.class%" >
             <argument type="service" id="ral.elasticsearch_config_manager"/>
             <argument type="service" id="ral.elasticsearch_mapping_builder"/>
         </service>
         <service id="ral.elasticsearch_cache" class="%ral.elastica_cache.class%" abstract="true">
-            <argument type="service" id="rm"/>
+            <argument type="service" id="rm" />
         </service>
+        <service id="ral.elasticsearch_type_registry" class="%ral.elastica_type_registry.class%" />
 
     </services>
 

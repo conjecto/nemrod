@@ -50,4 +50,9 @@ class ConfigManager
         }
         return $this->config[$type][$section];
     }
+
+    public function getTypes()
+    {
+        return array_keys($this->config);
+    }
 } 

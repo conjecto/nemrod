@@ -24,4 +24,19 @@ class Resetter
         $this->mappingBuilder = $mappingBuilder;
     }
 
+    /**
+     *
+     */
+    public function reset()
+    {
+        echo "u";
+        $types = $this->configManager->getTypes();
+
+        foreach($types as $type) {
+            $config = $this->mappingBuilder->buildMapping(type);
+            var_dump($config);
+        }
+
+    }
+
 } 
