@@ -852,7 +852,8 @@ class QueryBuilder
             $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
-        return $sparqlQuery . $this->getWhereSparqlQueryPart();
+        $where = $this->getWhereSparqlQueryPart();
+        return $sparqlQuery . !empty($where) ? $where : ' WHERE {} ';
     }
 
     /**
