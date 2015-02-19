@@ -3,6 +3,7 @@
 namespace Devyn\Component\RAL\Manager;
 use Devyn\Component\QueryBuilder\Query;
 use Devyn\Component\QueryBuilder\QueryBuilder;
+use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Devyn\Component\RAL\Resource\Resource;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyRdf\TypeMapper;
@@ -41,6 +42,9 @@ class Manager
 
     /** @var EventDispatcher */
     private $evd;
+
+    /** @var RdfNamespaceRegistry */
+    private $namespaceRegistry;
 
     /**
      * @param RepositoryFactory $repositoryFactory
@@ -100,6 +104,22 @@ class Manager
     public function setRepositoryFactory(RepositoryFactory $repo)
     {
         $this->repositoryFactory = $repo;
+    }
+
+    /**
+     * @param RdfNamespaceRegistry $nsRegistry
+     */
+    public function setNamespaceRegistry($nsRegistry)
+    {
+        $this->namespaceRegistry = $nsRegistry;
+    }
+
+    /**
+     * @return RdfNamespaceRegistry
+     */
+    public function getNamespaceRegistry()
+    {
+        return $this->namespaceRegistry;
     }
 
     /**

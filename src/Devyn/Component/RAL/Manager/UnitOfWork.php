@@ -321,7 +321,7 @@ class UnitOfWork {
                 }
                 $eventChangeSet[$uri]['insert'] = array();
             }
-            $eventChangeSet[$uri]['delete'] = $changes;
+            $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
         }
 
         foreach ($chSet[1] as $uri => $changes) {
@@ -335,12 +335,26 @@ class UnitOfWork {
                 }
                 $eventChangeSet[$uri]['delete'] = array();
             }
-            $eventChangeSet[$uri]['insert'] = $changes;
+            $eventChangeSet[$uri]['insert'] = $this->shortenPropertiesUris($changes);
         }
 
         return $eventChangeSet;
     }
 
+    /**
+     * Expands uris
+     * @param $phpRdfArray
+     */
+    private function shortenPropertiesUris($phpRdfArray)
+    {
+        $result = array();
+
+        foreach($phpRdfArray as $prop => $values) {
+            $result[$this->_rm->getNamespaceRegistry()->shorten($prop)] = $values;
+        }
+
+        return $result;
+    }
 
     /**
      * @param BaseResource $resource

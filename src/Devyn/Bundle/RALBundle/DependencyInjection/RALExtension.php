@@ -120,7 +120,8 @@ class RALExtension extends Extension
                 //adding metadatfactory
                 ->addMethodCall('setMetadataFactory', array(new Reference('ral.metadata_factory')))
                 //adding event dispatcher
-                ->addMethodCall('setEventDispatcher', array(new Reference('ral.resource_lifecycle_event_dispatcher.'.$name)));
+                ->addMethodCall('setEventDispatcher', array(new Reference('ral.resource_lifecycle_event_dispatcher.'.$name)))
+                ->addMethodCall('setNamespaceRegistry', array(new Reference('ral.namespace_registry')));
 
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
