@@ -9,7 +9,9 @@
 namespace Devyn\Component\ESIndexing;
 
 
+use Devyn\Bridge\Elastica\TypeRegistry;
 use Devyn\Component\RAL\Manager\Event\Events;
+use EasyRdf\RdfNamespace;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ManagerEventSubscriber implements EventSubscriberInterface
@@ -20,13 +22,19 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     protected $esCache;
 
     /**
+     * @var TypeRegistry
+     */
+    protected $typeRegistry;
+
+    /**
      * @var array
      */
     protected $changesRequests;
 
-    function __construct(ESCache $esCache)
+    function __construct(ESCache $esCache, TypeRegistry $typeRegistry)
     {
         $this->esCache = $esCache;
+        $this->typeRegistry = $typeRegistry;
     }
 
     /**
@@ -62,13 +70,25 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPreFlush($event)
     {
-        var_dump('onPreFlush');
+//        var_dump('onPreFlush');
 //        var_dump($event);
         $this->changesRequests = [];
         foreach ($event->getChanges() as $key => $change) {
-            $this->changesRequests[$key]['type'] = $change['type'];
-            $this->changesRequests[$key]['qb'] = $this->esCache->getRequest('ogbd', $key, 'person');
-            var_dump($this->esCache->getRequest('ogbd', $key, 'person')->getSparqlQuery());
+            $index = $this->typeRegistry->getType($change['type'])->getIndex()->getName();
+            $properties = array();
+            foreach (['insert', 'delete'] as $action) {
+                foreach ($change[$action] as $keyType => $actionType) {
+                    if (!in_array($keyType, $properties)) {
+                        $properties[] = $keyType;
+                    }
+                }
+            }
+
+            if ($this->esCache->isPropertyTypeExist($index, $change['type'], $properties)) {
+                if (!in_array($key, $this->changesRequests)) {
+                    $this->changesRequests[$key] = $change['type'];
+                }
+            }
         }
     }
 
@@ -77,14 +97,48 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPostFlush($event)
     {
-        var_dump('onPostFlush');
+//        var_dump('onPostFlush');
 //        var_dump($event);
 
-        foreach ($this->changesRequests as $key=>$change) {
-            $result = $change['qb']->getQuery()->execute();
-            var_dump($result);
+        $qb = $this->esCache->getRm()->getQueryBuilder();
+        $qb->reset();
+        $qb->construct("?uri a ?t")->where("?uri a ?t");
+        $uris = '';
+
+        foreach ($event->getUris() as $uri) {
+            $uris .= ' <' . $uri . '>';
         }
 
-        // es push
+        $qb->value('?uri', $uris);
+        $result = $qb->getQuery()->execute();
+
+        foreach ($event->getUris() as $uri) {
+            $types = $result->all($uri, 'rdf:type');
+            $newTypes = array();
+
+            foreach ($types as $type) {
+                $newType = RdfNamespace::shorten($type->getUri());
+                $newTypes[] = $newType;
+
+                $index = $this->typeRegistry->getType($newType);
+                if ($index != null) {
+                    $index = $index->getIndex()->getName();
+                }
+                if ($index && $this->esCache->isTypeIndexed($index, $newType)) {
+                    $_qb = $this->esCache->getRequest($index, $uri, $newType);
+//                    var_dump($_qb->getSparqlQuery());
+                    $result = $_qb->getQuery()->execute();
+//                    var_dump($result);
+                    // es push
+                }
+            }
+
+            if (array_key_exists($uri, $this->changesRequests)) {
+                $oldType = $this->changesRequests[$uri];
+                if (!in_array($oldType, $newTypes)) {
+                    // es delete old type
+                }
+            }
+        }
     }
 }

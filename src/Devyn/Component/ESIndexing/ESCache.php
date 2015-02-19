@@ -18,19 +18,19 @@ use Devyn\Component\RAL\Manager\Manager;
 class ESCache
 {
     /**
-     * @var array
-     */
-    protected $index;
-
-    /**
-     * @var array
-     */
-    protected $requests;
-
-    /**
      * @var Manager
      */
     protected $rm;
+
+    /**
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * @var array
+     */
+    protected $requests;    
 
     /**
      * @var \Devyn\Component\QueryBuilder\QueryBuilder
@@ -52,10 +52,10 @@ class ESCache
      * @param $index
      * @throws \Exception
      */
-    function __construct(Manager $rm, $index)
+    function __construct(Manager $rm, $config)
     {
         $this->rm = $rm;
-        $this->index = $index;
+        $this->config = $config;
         $this->qb = $this->rm->getQueryBuilder();
         $this->guessRequests();
     }
@@ -65,7 +65,7 @@ class ESCache
      * @param $uri
      * @param $type
      * @param string $property
-     * @return mixed
+     * @return QueryBuilder
      * @throws \Exception
      */
     public function getRequest($index, $uri, $type)
@@ -74,6 +74,25 @@ class ESCache
             return $this->requests[$index][$type]['guessTypeRequest']->bind("<$uri>", '?uri');
         }
         throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+    }
+
+    public function isPropertyTypeExist($index, $type, $properties)
+    {
+        if (is_array($properties)) {
+            foreach ($properties as $property) {
+                if ($this->isPropertyTypeExist($index, $type, $property)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return in_array($properties, $this->requests[$index][$type]['properties']);
+    }
+
+    public function isTypeIndexed($index, $type)
+    {
+        return isset($this->requests[$index][str_replace('http://xmlns.com/foaf/0.1/', 'foaf:', $type)]);
     }
 
     /**
@@ -85,11 +104,19 @@ class ESCache
     }
 
     /**
+     * @return Manager
+     */
+    public function getRm()
+    {
+        return $this->rm;
+    }
+
+    /**
      * @throws \Exception
      */
     protected function guessRequests()
     {
-        foreach ($this->index['indexes'] as $index => $types) {
+        foreach ($this->config['indexes'] as $index => $types) {
             foreach ($types['types'] as $type => $settings) {
 
                 if (!isset($settings['type']) || empty($settings['type'])) {
@@ -119,11 +146,12 @@ class ESCache
             throw new \Exception('Invalid frame, the json is not correct');
         }
 
-        $this->requests[$index][$type]['type'] = $settings['type'];
-        $this->requests[$index][$type]['context'] = $frame['@context'];
+        $this->requests[$index][$settings['type']]['context'] = $frame['@context'];
         unset($frame['@context']);
-        $this->requests[$index][$type]['frame'] = $frame;
-        $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame);
+        $this->requests[$index][$settings['type']]['frame'] = $frame;
+        $properties = array();
+        $this->requests[$index][$settings['type']]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame, $properties);
+        $this->requests[$index][$settings['type']]['properties'] = $properties;
     }
 
     /**
@@ -131,7 +159,7 @@ class ESCache
      * @param $frame
      * @return \Devyn\Component\QueryBuilder\QueryBuilder
      */
-    protected function getTypeRequest($type, $frame)
+    protected function getTypeRequest($type, $frame, &$properties)
     {
         $qb = clone $this->qb;
         $qb->construct();
@@ -162,6 +190,8 @@ class ESCache
                 // union for optional trick
                 if (is_array($val)) {
                     $uriChild = '?c' . (++$this->varCounter);
+                    $qb->addConstruct('?uri ' . $prop . ' ' . $uriChild);
+                    $properties[] = $prop;
                     $qb->addUnion(array("", '?uri' . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChild)));
                 }
             }
