@@ -8,6 +8,7 @@
 
 namespace Devyn\Bridge\Elastica;
 
+use Elastica\Type;
 use Elastica\Type\Mapping;
 
 /**
@@ -34,11 +35,12 @@ class MappingBuilder
         if (!$mappingData) {
             throw new \Exception("no mapping for type");
         }
-        $mapping = new Mapping($this->typeRegistry->getType($type));
 
-        //@todo build mapping
-        //$mapping->
+        /** @var Type $typeObj */
+        $typeObj = $this->typeRegistry->getType($type);
+        $typeObj->setMapping($mappingData);
 
-        return $mapping;
+        var_dump($typeObj->getMapping());
+        return $typeObj->getMapping();
     }
 }

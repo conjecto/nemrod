@@ -12,7 +12,6 @@ class ResetterCommand extends ContainerAwareCommand
 
     protected function configure()
     {
-        echo "t";
         $this
             ->setName('ral:elastica:populate')
             ->setDescription('Remise à zéro et population des index elastica')
@@ -22,7 +21,6 @@ class ResetterCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        echo "w";
         $this->getContainer()->get('ral.elasticsearch_resetter')->reset();
     }
 

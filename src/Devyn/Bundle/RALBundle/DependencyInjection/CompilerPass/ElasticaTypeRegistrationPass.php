@@ -35,13 +35,14 @@ class ElasticaTypeRegistrationPass implements CompilerPassInterface
 
         $typesSevices = $container->findTaggedServiceIds('ral.elasticsearch_type');
 
-        //foreach ($typesSevices as $id => $tagAttributes) {
+        foreach ($typesSevices as $id => $tagAttributes) {
 
-            //echo $id;
-            //$definition->addMethodCall('registerType', array($id, new Reference($id) )
-            //);
+            foreach ($tagAttributes as $tagAttr) {
 
-        //}
+                $definition->addMethodCall('registerType', array($tagAttr['type'], new Reference($id)));
+            }
+
+        }
 
     }
 

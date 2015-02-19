@@ -1,6 +1,7 @@
 <?php
 
 namespace Devyn\Bridge\Elastica;
+use Elastica\Type;
 
 /**
  * Class Resetter: resets all
@@ -29,14 +30,12 @@ class Resetter
      */
     public function reset()
     {
-        echo "u";
         $types = $this->configManager->getTypes();
 
+        /** @var Type $type */
         foreach($types as $type) {
-            $config = $this->mappingBuilder->buildMapping(type);
-            var_dump($config);
+            $this->mappingBuilder->buildMapping($type);
         }
-
     }
 
 } 
