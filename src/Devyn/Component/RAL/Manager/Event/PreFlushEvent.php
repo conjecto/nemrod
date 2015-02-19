@@ -15,7 +15,8 @@ use Symfony\Component\EventDispatcher\Event;
  * Class PreFlushEvent
  * @package Devyn\Component\RAL\Manager\Event
  */
-class PreFlushEvent extends Event{
+class PreFlushEvent extends Event
+{
 
     protected $changes;
 
