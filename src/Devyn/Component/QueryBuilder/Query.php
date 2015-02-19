@@ -230,9 +230,11 @@ class Query
     /**
      * Execute the query
      *
-     * @return Graph|Result
+     * @param null $hydratation
+     * @param array $options
+     * @return Graph|Result|null
      */
-    public function execute($hydratation = null/*self::HYDRATE_ARRAY*/, $options = array())
+    public function execute($hydratation = null, $options = array())
     {
         if ($this->state == self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
@@ -240,6 +242,7 @@ class Query
         }
 
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
+        $this->result = $this->resultToGraph($this->result);
 
         if (($hydrator = $this->newHydrator($hydratation)) != null) {
             $this->result = $hydrator->hydrateResources($options);
@@ -261,6 +264,11 @@ class Query
         }
 
         $this->result = $this->rm->getClient()->update($this->completeSparqlQuery);
+        $this->result = $this->resultToGraph($this->result);
+
+        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+            $this->result = $hydrator->hydrateResources($options);
+        }
 
         return $this->result;
     }
@@ -379,5 +387,21 @@ class Query
     public function getRm()
     {
         return $this->rm;
+    }
+
+    private function resultToGraph($result)
+    {
+        //@todo fix this
+        if ($result instanceof Graph) {
+            return $result;
+        }
+
+        $graph = new Graph(null);
+
+        foreach ($result as $row) {
+            $graph->add($row->subject, $row->predicate, $row->object);
+        }
+
+        return $graph;
     }
 }

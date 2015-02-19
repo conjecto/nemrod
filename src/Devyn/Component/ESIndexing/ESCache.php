@@ -18,19 +18,19 @@ use Devyn\Component\RAL\Manager\Manager;
 class ESCache
 {
     /**
-     * @var array
-     */
-    protected $index;
-
-    /**
-     * @var array
-     */
-    protected $requests;
-
-    /**
      * @var Manager
      */
     protected $rm;
+
+    /**
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * @var array
+     */
+    protected $requests;    
 
     /**
      * @var \Devyn\Component\QueryBuilder\QueryBuilder
@@ -52,10 +52,10 @@ class ESCache
      * @param $index
      * @throws \Exception
      */
-    function __construct(Manager $rm, $index)
+    function __construct(Manager $rm, $config)
     {
         $this->rm = $rm;
-        $this->index = $index;
+        $this->config = $config;
         $this->qb = $this->rm->getQueryBuilder();
         $this->guessRequests();
     }
@@ -65,23 +65,34 @@ class ESCache
      * @param $uri
      * @param $type
      * @param string $property
-     * @return mixed
+     * @return QueryBuilder
      * @throws \Exception
      */
-    public function getRequest($index, $uri, $type, $property = '')
+    public function getRequest($index, $uri, $type)
     {
-        if (empty($property)) {
-            if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
-                return $this->requests[$index][$type]['guessTypeRequest']->bind($uri, '?uri')->getSparqlQuery();
+        if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
+            return $this->requests[$index][$type]['guessTypeRequest']->bind("<$uri>", '?uri');
+        }
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+    }
+
+    public function isPropertyTypeExist($index, $type, $properties)
+    {
+        if (is_array($properties)) {
+            foreach ($properties as $property) {
+                if ($this->isPropertyTypeExist($index, $type, $property)) {
+                    return true;
+                }
             }
-            throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+            return false;
         }
 
-        if (isset($this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'])) {
-            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind($uri, '?uri')->getSparqlQuery();
-        }
+        return in_array($properties, $this->requests[$index][$type]['properties']);
+    }
 
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type . ' and property ' . $property);
+    public function isTypeIndexed($index, $type)
+    {
+        return isset($this->requests[$index][str_replace('http://xmlns.com/foaf/0.1/', 'foaf:', $type)]);
     }
 
     /**
@@ -93,11 +104,19 @@ class ESCache
     }
 
     /**
+     * @return Manager
+     */
+    public function getRm()
+    {
+        return $this->rm;
+    }
+
+    /**
      * @throws \Exception
      */
     protected function guessRequests()
     {
-        foreach ($this->index['indexes'] as $index => $types) {
+        foreach ($this->config['indexes'] as $index => $types) {
             foreach ($types['types'] as $type => $settings) {
 
                 if (!isset($settings['type']) || empty($settings['type'])) {
@@ -109,7 +128,7 @@ class ESCache
                 if (!isset($settings['properties']) || empty($settings['properties'])) {
                     throw new \Exception('You have to specify properties for ' . $type);
                 }
-                $this->fillTypes($index, $type, $settings);
+                $this->fillTypeRequests($index, $type, $settings);
             }
         }
     }
@@ -120,43 +139,19 @@ class ESCache
      * @param $settings
      * @throws \Exception
      */
-    protected function fillTypes($index, $type, $settings)
+    protected function fillTypeRequests($index, $type, $settings)
     {
         $frame = json_decode($settings['frame'], true);
-        if ($frame == null || $frame == false) {
+        if (!$frame) {
             throw new \Exception('Invalid frame, the json is not correct');
         }
 
-        $this->requests[$index][$type]['type'] = $settings['type'];
-        $this->requests[$index][$type]['context'] = $frame['@context'];
+        $this->requests[$index][$settings['type']]['context'] = $frame['@context'];
         unset($frame['@context']);
-        $this->requests[$index][$type]['frame'] = $frame;
-        $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame);
-        $this->fillProperties($index, $type, $settings, $frame);
-    }
-
-    /**
-     * @param $index
-     * @param $type
-     * @param $settings
-     * @param $frame
-     */
-    protected function fillProperties($index, $type, $settings, $frame)
-    {
-        $propertiesFrame = isset($frame['@type'][$settings['type']]['@type']) ? $propertiesFrame = $frame['@type'][$settings['type']]['@type'] : $propertiesFrame = array();
-        $frame['@type'] = [];
-
-        foreach ($settings['properties'] as $property => $values) {
-            $key = '';
-            foreach ($propertiesFrame as $key=>$propertyFrame) {
-                if (strstr($key, $property)) {
-                    $frame['@type'][$key] = $propertiesFrame[$key];
-                    break;
-                }
-            }
-            $this->requests[$index][$type]['properties'][$property]['frame'] = $frame;
-            $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'] = $this->getTypeRequest($key, $frame);
-        }
+        $this->requests[$index][$settings['type']]['frame'] = $frame;
+        $properties = array();
+        $this->requests[$index][$settings['type']]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame, $properties);
+        $this->requests[$index][$settings['type']]['properties'] = $properties;
     }
 
     /**
@@ -164,7 +159,7 @@ class ESCache
      * @param $frame
      * @return \Devyn\Component\QueryBuilder\QueryBuilder
      */
-    protected function getTypeRequest($type, $frame)
+    protected function getTypeRequest($type, $frame, &$properties)
     {
         $qb = clone $this->qb;
         $qb->construct();
@@ -175,10 +170,12 @@ class ESCache
             if ($prop === '@type') {
                 if (is_array($val)) {
                     foreach ($val as $key => $value) {
+                        $qb->addConstruct('?uri' . ' a ' . $key);
                         $qb->andWhere('?uri' . ' a ' . $key);
                     }
                 }
                 else {
+                    $qb->addConstruct('?uri' . ' a ' . $val);
                     $qb->andWhere('?uri' . ' a ' . $val);
                 }
             }
@@ -193,6 +190,8 @@ class ESCache
                 // union for optional trick
                 if (is_array($val)) {
                     $uriChild = '?c' . (++$this->varCounter);
+                    $qb->addConstruct('?uri ' . $prop . ' ' . $uriChild);
+                    $properties[] = $prop;
                     $qb->addUnion(array("", '?uri' . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChild)));
                 }
             }
