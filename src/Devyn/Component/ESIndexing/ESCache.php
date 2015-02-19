@@ -70,15 +70,18 @@ class ESCache
      */
     public function getRequest($index, $uri, $type, $property = '')
     {
+        $this->requests[$index][$type]['guessTypeRequest']->reset();
+        $this->requests[$index][$type]['guessTypeRequest']->construct('?uri a foaf:Person');
+        return $this->requests[$index][$type]['guessTypeRequest']->where('?uri a foaf:Person . VALUES ?uri { <http://www.ogbd.fr/2012/Notaire/100> }');
         if (empty($property)) {
             if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
-                return $this->requests[$index][$type]['guessTypeRequest']->bind($uri, '?uri')->getSparqlQuery();
+                return $this->requests[$index][$type]['guessTypeRequest']->bind($uri, '?uri');
             }
             throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
         }
 
         if (isset($this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'])) {
-            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind($uri, '?uri')->getSparqlQuery();
+            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind($uri, '?uri');
         }
 
         throw new \Exception('No matching found for index ' . $index . ' and type ' . $type . ' and property ' . $property);
@@ -109,7 +112,7 @@ class ESCache
                 if (!isset($settings['properties']) || empty($settings['properties'])) {
                     throw new \Exception('You have to specify properties for ' . $type);
                 }
-                $this->fillTypes($index, $type, $settings);
+                $this->fillTypeRequests($index, $type, $settings);
             }
         }
     }
@@ -120,10 +123,10 @@ class ESCache
      * @param $settings
      * @throws \Exception
      */
-    protected function fillTypes($index, $type, $settings)
+    protected function fillTypeRequests($index, $type, $settings)
     {
         $frame = json_decode($settings['frame'], true);
-        if ($frame == null || $frame == false) {
+        if (!$frame) {
             throw new \Exception('Invalid frame, the json is not correct');
         }
 
@@ -132,7 +135,7 @@ class ESCache
         unset($frame['@context']);
         $this->requests[$index][$type]['frame'] = $frame;
         $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame);
-        $this->fillProperties($index, $type, $settings, $frame);
+        $this->fillPropertyRequests($index, $type, $settings, $frame);
     }
 
     /**
@@ -141,7 +144,7 @@ class ESCache
      * @param $settings
      * @param $frame
      */
-    protected function fillProperties($index, $type, $settings, $frame)
+    protected function fillPropertyRequests($index, $type, $settings, $frame)
     {
         $propertiesFrame = isset($frame['@type'][$settings['type']]['@type']) ? $propertiesFrame = $frame['@type'][$settings['type']]['@type'] : $propertiesFrame = array();
         $frame['@type'] = [];
@@ -175,10 +178,12 @@ class ESCache
             if ($prop === '@type') {
                 if (is_array($val)) {
                     foreach ($val as $key => $value) {
+                        $qb->addConstruct('?uri' . ' a ' . $key);
                         $qb->andWhere('?uri' . ' a ' . $key);
                     }
                 }
                 else {
+                    $qb->addConstruct('?uri' . ' a ' . $key);
                     $qb->andWhere('?uri' . ' a ' . $val);
                 }
             }
