@@ -888,7 +888,7 @@ class QueryBuilder
         }
 
         $where = $this->getWhereSparqlQueryPart();
-        return $sparqlQuery . !empty($where) ? $where : ' WHERE {} ';
+        return $sparqlQuery . (!empty($where) ? $where : ' WHERE {} ');
     }
 
     /**
@@ -901,7 +901,7 @@ class QueryBuilder
         $array['optional'] = $this->getReducedSparqlQueryPart('optional', array('pre' => '', 'separator' => '. ', 'post' => ' '));
         $array['filter'] = $this->getReducedSparqlQueryPart('filter', array('pre' => '', 'separator' => '. ', 'post' => ' '));
         $array['bind'] = $this->getReducedSparqlQueryPart('bind', array('pre' => '', 'separator' => '. ', 'post' => ' '));
-        $array['value'] = $this->getReducedSparqlQueryPart('value', array('pre' => 'VALUE ', 'separator' => '. ', 'post' => ' '));
+        $array['value'] = $this->getReducedSparqlQueryPart('value', array('pre' => 'VALUES ', 'separator' => '. ', 'post' => ' '));
 
         $concat = false;
         $added = "";
