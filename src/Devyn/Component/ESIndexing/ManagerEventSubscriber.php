@@ -68,6 +68,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         foreach ($event->getChanges() as $key => $change) {
             $this->changesRequests[$key]['type'] = $change['type'];
             $this->changesRequests[$key]['qb'] = $this->esCache->getRequest('ogbd', $key, 'person');
+            var_dump($this->esCache->getRequest('ogbd', $key, 'person')->getSparqlQuery());
         }
     }
 

@@ -68,23 +68,12 @@ class ESCache
      * @return mixed
      * @throws \Exception
      */
-    public function getRequest($index, $uri, $type, $property = '')
+    public function getRequest($index, $uri, $type)
     {
-        $this->requests[$index][$type]['guessTypeRequest']->reset();
-        $this->requests[$index][$type]['guessTypeRequest']->construct('?uri a foaf:Person');
-        return $this->requests[$index][$type]['guessTypeRequest']->where('?uri a foaf:Person . VALUES ?uri { <http://www.ogbd.fr/2012/Notaire/100> }');
-        if (empty($property)) {
-            if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
-                return $this->requests[$index][$type]['guessTypeRequest']->bind($uri, '?uri');
-            }
-            throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+        if (isset($this->requests[$index][$type]['guessTypeRequest'])) {
+            return $this->requests[$index][$type]['guessTypeRequest']->bind("<$uri>", '?uri');
         }
-
-        if (isset($this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'])) {
-            return $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest']->bind($uri, '?uri');
-        }
-
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type . ' and property ' . $property);
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
     }
 
     /**
@@ -135,31 +124,6 @@ class ESCache
         unset($frame['@context']);
         $this->requests[$index][$type]['frame'] = $frame;
         $this->requests[$index][$type]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame);
-        $this->fillPropertyRequests($index, $type, $settings, $frame);
-    }
-
-    /**
-     * @param $index
-     * @param $type
-     * @param $settings
-     * @param $frame
-     */
-    protected function fillPropertyRequests($index, $type, $settings, $frame)
-    {
-        $propertiesFrame = isset($frame['@type'][$settings['type']]['@type']) ? $propertiesFrame = $frame['@type'][$settings['type']]['@type'] : $propertiesFrame = array();
-        $frame['@type'] = [];
-
-        foreach ($settings['properties'] as $property => $values) {
-            $key = '';
-            foreach ($propertiesFrame as $key=>$propertyFrame) {
-                if (strstr($key, $property)) {
-                    $frame['@type'][$key] = $propertiesFrame[$key];
-                    break;
-                }
-            }
-            $this->requests[$index][$type]['properties'][$property]['frame'] = $frame;
-            $this->requests[$index][$type]['properties'][$property]['guessPropertyRequest'] = $this->getTypeRequest($key, $frame);
-        }
     }
 
     /**
@@ -183,7 +147,7 @@ class ESCache
                     }
                 }
                 else {
-                    $qb->addConstruct('?uri' . ' a ' . $key);
+                    $qb->addConstruct('?uri' . ' a ' . $val);
                     $qb->andWhere('?uri' . ' a ' . $val);
                 }
             }

@@ -60,6 +60,7 @@ class QueryBuilder
         'optional' => array(),
         'filter' => array(),
         'bind' => array(),
+        'value' => array(),
         'orderBy' => array(),
         'groupBy' => array(),
         'distinct' => false
@@ -419,6 +420,16 @@ class QueryBuilder
         return $this;
     }
 
+    public function value($key, $value)
+    {
+        return $this->addValuesToQuery($key, $value, false);
+    }
+
+    public function addValue($key, $value)
+    {
+        return $this->addValuesToQuery($key, $value, true);
+    }
+
     /**
      * @return string
      */
@@ -663,6 +674,30 @@ class QueryBuilder
         return $this->add('where', new Expr\Union($arrayPredicates), $append);
     }
 
+    protected function addValuesToQuery($key, $value, $append)
+    {
+        if (is_array($value) && is_array($key)) {
+            foreach ($value as $valKey=>$val) {
+                return $this->addValueToQuery($key[$valKey], $val, $append);
+            }
+        }
+        else if (is_string($value) && is_string($key)) {
+            return $this->addValueToQuery($key, $value, $append);
+        }
+    }
+
+    protected function addValueToQuery($key, $value, $append)
+    {
+        if (empty($value)) {
+            throw new InvalidArgumentException('You must specify a correct value');
+        }
+        if (empty($key)) {
+            throw new InvalidArgumentException('You must specify correct type');
+        }
+
+        return $this->add('value', new Expr\Value($key, $value), $append);
+    }
+
     /**
      * @param $value
      * @param $key
@@ -676,7 +711,7 @@ class QueryBuilder
         }
 
         if (is_string($value)) {
-            return $this->add('bind', new Expr\Bind('"' . $value . '"' . ' AS ' . $key), $append);
+            return $this->add('bind', new Expr\Bind('(' . $value . ')' . ' AS ' . $key), $append);
         }
         else {
             return $this->add('bind', new Expr\Bind(is_array($value) ? $value : func_get_args()), $append);
@@ -866,6 +901,7 @@ class QueryBuilder
         $array['optional'] = $this->getReducedSparqlQueryPart('optional', array('pre' => '', 'separator' => '. ', 'post' => ' '));
         $array['filter'] = $this->getReducedSparqlQueryPart('filter', array('pre' => '', 'separator' => '. ', 'post' => ' '));
         $array['bind'] = $this->getReducedSparqlQueryPart('bind', array('pre' => '', 'separator' => '. ', 'post' => ' '));
+        $array['value'] = $this->getReducedSparqlQueryPart('value', array('pre' => 'VALUE ', 'separator' => '. ', 'post' => ' '));
 
         $concat = false;
         $added = "";
