@@ -116,6 +116,7 @@ class Manager
 
     /**
      * @return RdfNamespaceRegistry
+     *
      */
     public function getNamespaceRegistry()
     {

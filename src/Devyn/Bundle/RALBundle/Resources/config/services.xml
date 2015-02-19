@@ -28,6 +28,8 @@
         <parameter key="ral.elastica_mapping_builder.class">Devyn\Bridge\Elastica\MappingBuilder</parameter>
         <parameter key="ral.elastica_resetter.class">Devyn\Bridge\Elastica\Resetter</parameter>
         <parameter key="ral.elastica_type_registry.class">Devyn\Bridge\Elastica\TypeRegistry</parameter>
+        <parameter key="ral.elastica_index_registry.class">Devyn\Bridge\Elastica\IndexRegistry</parameter>
+        <parameter key="ral.elastica_populator.class">Devyn\Bridge\Elastica\Populator</parameter>
     </parameters>
 
     <services>
@@ -84,6 +86,13 @@
             <argument type="service" id="rm" />
         </service>
         <service id="ral.elasticsearch_type_registry" class="%ral.elastica_type_registry.class%" />
+        <service id="ral.elasticsearch_index_registry" class="%ral.elastica_index_registry.class%" />
+        <service id="ral.elasticsearch_populator" class="%ral.elastica_populator.class%">
+            <argument type="service" id="rm" />
+            <argument type="service" id="ral.elasticsearch_index_registry" />
+            <argument type="service" id="ral.elasticsearch_type_registry" />
+            <argument type="service" id="ral.elasticsearch_resetter" />
+        </service>
 
     </services>
 

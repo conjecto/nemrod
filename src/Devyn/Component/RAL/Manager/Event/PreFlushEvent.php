@@ -43,6 +43,4 @@ class PreFlushEvent extends Event
     {
         $this->changes = $changes;
     }
-
-
 } 

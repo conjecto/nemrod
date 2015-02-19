@@ -11,6 +11,7 @@
 
 namespace Devyn\Bundle\RALBundle;
 
+use Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass\ElasticaIndexRegistrationPass;
 use Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass\ElasticaTypeRegistrationPass;
 use Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass\EventListenerRegistrationPass;
 use Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler\RdfNamespacePass;
@@ -34,5 +35,6 @@ class RALBundle extends Bundle
         parent::build($container);
         $container->addCompilerPass(new EventListenerRegistrationPass());
         $container->addCompilerPass(new ElasticaTypeRegistrationPass());
+        $container->addCompilerPass(new ElasticaIndexRegistrationPass());
     }
 }

@@ -2,22 +2,21 @@
 /**
  * Created by PhpStorm.
  * User: maxime
- * Date: 18/02/2015
- * Time: 17:15
+ * Date: 19/02/2015
+ * Time: 15:17
  */
 
 namespace Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass;
-
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class ElasticaTypeRegistrationPass
+ * Class ElasticaIndexRegistrationPass
  * @package Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass
  */
-class ElasticaTypeRegistrationPass implements CompilerPassInterface
+class ElasticaIndexRegistrationPass implements CompilerPassInterface
 {
 
     /**
@@ -43,6 +42,4 @@ class ElasticaTypeRegistrationPass implements CompilerPassInterface
 
         }
     }
-
-
 } 

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: maxime
+ * Date: 19/02/2015
+ * Time: 17:13
+ */
 
 namespace Devyn\Bundle\RALBundle\Command;
 
@@ -7,19 +13,19 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ResetterCommand extends ContainerAwareCommand
+class PopulatorCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
         $this
-            ->setName('ral:elastica:reset')
-            ->setDescription('Remise à zéro des index elastica')
+            ->setName('ral:elastica:populate')
+            ->setDescription('(Remise à zéro et) population des index elastica')
             ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('ral.elasticsearch_resetter')->reset();
+        $this->getContainer()->get('ral.elasticsearch_populator')->populate();
     }
 } 

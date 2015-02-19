@@ -38,9 +38,9 @@ class MappingBuilder
 
         /** @var Type $typeObj */
         $typeObj = $this->typeRegistry->getType($type);
+        $typeObj->delete();
         $typeObj->setMapping($mappingData);
 
-        var_dump($typeObj->getMapping());
         return $typeObj->getMapping();
     }
 }

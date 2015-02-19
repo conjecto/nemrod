@@ -195,7 +195,8 @@ class RALExtension extends Extension
             $clientRef = new Reference('ral.elasticsearch_client.' . $types['client']);
             $container
                 ->setDefinition('ral.elasticsearch_index.' . $name, new DefinitionDecorator('ral.elasticsearch_index'))
-                ->setArguments(array($clientRef, $name));
+                ->setArguments(array($clientRef, $name))
+                ->addTag('ral.elasticsearch_name', array('name' => $name));
 
             foreach ($types['types'] as $typeName => $settings) {
                 //type
