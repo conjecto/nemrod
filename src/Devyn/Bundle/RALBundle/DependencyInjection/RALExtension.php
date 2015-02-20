@@ -202,7 +202,7 @@ class RALExtension extends Extension
                 //type
                 $container
                     ->setDefinition('ral.elasticsearch_type.' . $name .'.'.$typeName, new DefinitionDecorator('ral.elasticsearch_type'))
-                    ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $typeName))
+                    ->setArguments(array(new Reference('ral.elasticsearch_index.' . $name), $settings['type']))
                     ->addTag('ral.elasticsearch_type', array('type' => $settings['type']));
 
                 //search service
@@ -222,10 +222,6 @@ class RALExtension extends Extension
             ->setDefinition('ral.elasticsearch_cache.ogbd', new DefinitionDecorator('ral.elasticsearch_cache'))
             ->setArguments(array($config['elasticsearch']));
     }
-
-//    public function registerElasticaConfigsToManager(array $config, ContainerBuilder $container) {
-//
-//    }
 
     /**
      * @return string

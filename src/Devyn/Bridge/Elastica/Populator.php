@@ -11,7 +11,8 @@ namespace Devyn\Bridge\Elastica;
 use Devyn\Component\RAL\Manager\Manager;
 use Elastica\Type;
 
-class Populator {
+class Populator
+{
 
     /** @var  Manager */
     protected $resourceManager;
@@ -25,6 +26,12 @@ class Populator {
     /** @var  Resetter */
     protected $resetter;
 
+    /**
+     * @param $resourceManager
+     * @param $indexManager
+     * @param $typeRegistry
+     * @param $resetter
+     */
     public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter)
     {
         $this->resourceManager = $resourceManager;
@@ -49,5 +56,4 @@ class Populator {
             //$typ->;
         }
     }
-
 }

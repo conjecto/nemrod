@@ -19,6 +19,10 @@ class Resetter
      */
     private $mappingBuilder;
 
+    /**
+     * @param $configManager
+     * @param $mappingBuilder
+     */
     public function __construct($configManager, $mappingBuilder)
     {
         $this->configManager = $configManager;

@@ -8,6 +8,7 @@
 
 namespace Devyn\Bridge\Elastica;
 
+use Elastica\Exception\ResponseException;
 use Elastica\Type;
 use Elastica\Type\Mapping;
 
@@ -23,13 +24,23 @@ class MappingBuilder
     /** @var  TypeRegistry */
     protected $typeRegistry;
 
+    /**
+     * @param $configManager
+     * @param $typeRegistry
+     */
     public function __construct($configManager, $typeRegistry)
     {
         $this->configManager = $configManager;
         $this->typeRegistry = $typeRegistry;
     }
 
-    public function buildMapping($type){
+    /**
+     * @param $type
+     * @return array
+     * @throws \Exception
+     */
+    public function buildMapping($type)
+    {
 
         $mappingData = $this->configManager->getConfig($type, 'properties');
         if (!$mappingData) {
@@ -38,7 +49,13 @@ class MappingBuilder
 
         /** @var Type $typeObj */
         $typeObj = $this->typeRegistry->getType($type);
-        $typeObj->delete();
+
+        try {
+            $typeObj->delete();
+        } catch (ResponseException $e) {
+
+        }
+
         $typeObj->setMapping($mappingData);
 
         return $typeObj->getMapping();
