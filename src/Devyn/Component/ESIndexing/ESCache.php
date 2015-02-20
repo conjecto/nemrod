@@ -52,11 +52,15 @@ class ESCache
      * @param $index
      * @throws \Exception
      */
-    function __construct(Manager $rm, $config)
+    function __construct(Manager $rm)
     {
         $this->rm = $rm;
-        $this->config = $config;
         $this->qb = $this->rm->getQueryBuilder();
+    }
+
+    public function setConfig($config)
+    {
+        $this->config = $config;
         $this->guessRequests();
     }
 
@@ -109,6 +113,15 @@ class ESCache
     {
         if (isset($this->requests[$index][$type]['frame'])) {
             return $this->requests[$index][$type]['frame'];
+        }
+
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+    }
+
+    public function getTypeName($index, $type)
+    {
+        if (isset($this->requests[$index][$type]['name'])) {
+            return $this->requests[$index][$type]['name'];
         }
 
         throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
@@ -174,6 +187,7 @@ class ESCache
             throw new \Exception('Invalid frame, the json is not correct');
         }
 
+        $this->requests[$index][$settings['type']]['name'] = $type;
         $this->requests[$index][$settings['type']]['frame'] = $settings['frame'];
         $this->requests[$index][$settings['type']]['context'] = $frame['@context'];
         unset($frame['@context']);

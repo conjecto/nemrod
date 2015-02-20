@@ -13,6 +13,9 @@ use Devyn\Bridge\Elastica\TypeRegistry;
 use Devyn\Component\RAL\Manager\Event\Events;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Serialiser\JsonLd;
+use Elastica\Document;
+use Elastica\Type;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ManagerEventSubscriber implements EventSubscriberInterface
@@ -28,14 +31,20 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     protected $typeRegistry;
 
     /**
+     * @var Container
+     */
+    protected $container;
+
+    /**
      * @var array
      */
     protected $changesRequests;
 
-    function __construct(ESCache $esCache, TypeRegistry $typeRegistry)
+    function __construct(ESCache $esCache, TypeRegistry $typeRegistry, Container $container)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
+        $this->container = $container;
     }
 
     /**
@@ -84,8 +93,6 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $this->changesRequests[$key]['properties'] = $properties;
             }
         }
-//        $index = $this->typeRegistry->getType($change['type'])->getIndex()->getName();
-//        $this->esCache->isPropertyTypeExist($index, $change['type'], $properties)
     }
 
     /**
@@ -130,14 +137,26 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $json = json_encode($graph);
                     $json = str_replace('@id', '_id', $json);
                     $json = str_replace('@type', '_type', $json);
-                    // es push json
+                    /**
+                     * @var Type $esType
+                     */
+                    $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
+                    $esType->addDocument(new Document($uri, $json, $newType, $index));
                 }
             }
 
             if (array_key_exists($uri, $this->changesRequests)) {
                 $oldType = $this->changesRequests[$uri]['type'];
                 if (!in_array($oldType, $newTypes)) {
-                    // es delete old type
+                    $index = $this->typeRegistry->getType($oldType);
+                    if ($index != null) {
+                        $index = $index->getIndex()->getName();
+                        /**
+                         * @var Type $esType
+                         */
+                        $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $oldType));
+                        $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
+                    }
                 }
             }
         }

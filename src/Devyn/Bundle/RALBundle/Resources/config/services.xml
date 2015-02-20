@@ -84,7 +84,7 @@
             <argument type="service" id="ral.elasticsearch_config_manager"/>
             <argument type="service" id="ral.elasticsearch_mapping_builder"/>
         </service>
-        <service id="ral.elasticsearch_cache" class="%ral.elastica_cache.class%" abstract="true">
+        <service id="ral.elasticsearch_cache" class="%ral.elastica_cache.class%">
             <argument type="service" id="rm" />
         </service>
         <service id="ral.elasticsearch_type_registry" class="%ral.elastica_type_registry.class%" />

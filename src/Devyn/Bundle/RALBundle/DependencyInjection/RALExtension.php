@@ -218,9 +218,8 @@ class RALExtension extends Extension
             }
         }
 
-        $container
-            ->setDefinition('ral.elasticsearch_cache.ogbd', new DefinitionDecorator('ral.elasticsearch_cache'))
-            ->setArguments(array($config['elasticsearch']));
+        $cacheDefinition = $container->getDefinition('ral.elasticsearch_cache');
+        $cacheDefinition->addMethodCall('setConfig', array($config['elasticsearch']));
     }
 
     /**
