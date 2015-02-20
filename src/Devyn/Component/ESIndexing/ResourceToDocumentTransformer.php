@@ -57,7 +57,7 @@ class ResourceToDocumentTransformer
             if (!isset($graph['@graph'][0])) {
                 return null;
             }
-            $json = json_encode($graph);
+            $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
 

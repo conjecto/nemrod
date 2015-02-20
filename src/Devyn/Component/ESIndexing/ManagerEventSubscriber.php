@@ -100,6 +100,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPostFlush($event)
     {
+        $resourceToDocumentTransformer = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->container->get('ral.type_mapper'));
         $qb = $this->esCache->getRm()->getQueryBuilder();
         $qb->reset();
         $qb->construct("?uri a ?t")->where("?uri a ?t");
@@ -131,19 +132,11 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 }
 
                 if ($index && $this->esCache->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    $graph = $this->esCache->getRequest($index, $uri, $newType)->getQuery()->execute();
-                    $jsonLd = $jsonLdSerializer->serialise($graph, 'jsonld', ['context' => $this->esCache->getTypeContext($index, $newType), 'frame' => $this->esCache->getTypeFrame($index, $newType)]);
-                    $graph = json_decode($jsonLd, true);
-                    if (isset($graph['@graph'][0])) {
-                        $json = json_encode($graph['@graph'][0]);
-                        $json = str_replace('@id', '_id', $json);
-                        $json = str_replace('@type', '_type', $json);
-                        /**
-                         * @var Type $esType
-                         */
-                        $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
-                        $esType->addDocument(new Document($uri, $json, $newType, $index));
-                    }
+                    /**
+                     * @var Type $esType
+                     */
+                    $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
+                    $esType->addDocument($resourceToDocumentTransformer->transform($uri, $newType));
                 }
             }
 
