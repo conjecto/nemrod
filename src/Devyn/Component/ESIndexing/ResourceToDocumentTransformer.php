@@ -10,6 +10,8 @@ namespace Devyn\Component\ESIndexing;
 
 
 use Devyn\Bridge\Elastica\TypeRegistry;
+use EasyRdf\Graph;
+use EasyRdf\Resource;
 use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;
 
@@ -58,8 +60,30 @@ class ResourceToDocumentTransformer
         return null;
     }
 
-    public function reverseTransform()
+    public function reverseTransform(Document $document)
     {
+        if ($document) {
+            $uri = $document->getParam('_id');
+            $data = $document->getData();
+            $data = json_decode($data, true);
 
+            if (!isset($data['@graph'][0])) {
+                return null;
+            }
+
+            $data = json_encode($data['@graph'][0]);
+            $data = str_replace('_type', 'rdf:type', $data);
+            $data = json_decode($data, true);
+            unset($data['_id']);
+
+            $graph = new Graph($uri);
+            foreach ($data as $property => $value) {
+                $graph->add($uri, $property, $value);
+            }
+            $res = new Resource($uri, $graph);
+            return $res;
+        }
+
+        return null;
     }
 }
