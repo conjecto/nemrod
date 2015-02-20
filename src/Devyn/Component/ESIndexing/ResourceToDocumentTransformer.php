@@ -10,6 +10,7 @@ namespace Devyn\Component\ESIndexing;
 
 
 use Devyn\Bridge\Elastica\TypeRegistry;
+use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 use EasyRdf\Serialiser\JsonLd;
@@ -27,10 +28,16 @@ class ResourceToDocumentTransformer
      */
     protected $typeRegistry;
 
-    function __construct(ESCache $esCache, TypeRegistry $typeRegistry)
+    /**
+     * @var TypeMapperRegistry
+     */
+    protected $typeMapperRegistry;
+
+    function __construct(ESCache $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
+        $this->typeMapperRegistry = $typeMapperRegistry;
     }
 
     public function transform($uri, $type)
@@ -80,8 +87,12 @@ class ResourceToDocumentTransformer
             foreach ($data as $property => $value) {
                 $graph->add($uri, $property, $value);
             }
-            $res = new Resource($uri, $graph);
-            return $res;
+            $phpClass = $this->typeMapperRegistry->get($data['rdf:type']);
+            if ($phpClass) {
+                $res = new $phpClass($uri, $graph);
+                return $res;
+            }
+            return new \Devyn\Component\RAL\Resource\Resource($uri, $graph);
         }
 
         return null;
