@@ -54,4 +54,12 @@ class TypeMapperRegistry
     public function onKernelRequest(GetResponseEvent $request) {
         // empty method to allow kernel request event in service definition
     }
+
+    /**
+     * Dummy method to be called on commands start.
+     */
+    public function onConsoleCommand()
+    {
+
+    }
 }

@@ -37,6 +37,7 @@
         <!-- namespace  -->
         <service id="ral.namespace_registry" class="%ral.namespace_registry.class%">
             <tag name="kernel.event_listener" event="kernel.request" />
+            <tag name="kernel.event_listener" event="console.command" />
         </service>
         <service id="namespace_registry" alias="ral.namespace_registry" />
 
@@ -54,6 +55,7 @@
         <!-- type mapper  -->
         <service id="ral.type_mapper" class="%ral.type_mapper.class%">
             <tag name="kernel.event_listener" event="kernel.request" />
+            <tag name="kernel.event_listener" event="console.command"/>
         </service>
 
         <!-- metadatafactory -->
