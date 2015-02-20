@@ -95,7 +95,8 @@ class Manager
      */
     public function getRepository($className = null)
     {
-        //TypeMapper::set($className,"Devyn\\Component\\RAL\\Resource\\Resource");
+        $type = TypeMapper::get($className);
+        if (!$type)TypeMapper::get($className, "Devyn\\Component\\RAL\\Resource\\Resource");
         return $this->repositoryFactory->getRepository($className, $this);
     }
 
