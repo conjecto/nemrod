@@ -10,6 +10,9 @@ namespace Devyn\Component\ESIndexing;
 
 
 use Devyn\Bridge\Elastica\TypeRegistry;
+use Devyn\Component\RAL\Registry\TypeMapperRegistry;
+use EasyRdf\Graph;
+use EasyRdf\Resource;
 use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;
 
@@ -25,10 +28,16 @@ class ResourceToDocumentTransformer
      */
     protected $typeRegistry;
 
-    function __construct(ESCache $esCache, TypeRegistry $typeRegistry)
+    /**
+     * @var TypeMapperRegistry
+     */
+    protected $typeMapperRegistry;
+
+    function __construct(ESCache $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
+        $this->typeMapperRegistry = $typeMapperRegistry;
     }
 
     public function transform($uri, $type)
@@ -48,7 +57,7 @@ class ResourceToDocumentTransformer
             if (!isset($graph['@graph'][0])) {
                 return null;
             }
-            $json = json_encode($graph);
+            $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
 
@@ -58,8 +67,34 @@ class ResourceToDocumentTransformer
         return null;
     }
 
-    public function reverseTransform()
+    public function reverseTransform(Document $document)
     {
+        if ($document) {
+            $uri = $document->getParam('_id');
+            $data = $document->getData();
+            $data = json_decode($data, true);
 
+            if (!isset($data['@graph'][0])) {
+                return null;
+            }
+
+            $data = json_encode($data['@graph'][0]);
+            $data = str_replace('_type', 'rdf:type', $data);
+            $data = json_decode($data, true);
+            unset($data['_id']);
+
+            $graph = new Graph($uri);
+            foreach ($data as $property => $value) {
+                $graph->add($uri, $property, $value);
+            }
+            $phpClass = $this->typeMapperRegistry->get($data['rdf:type']);
+            if ($phpClass) {
+                $res = new $phpClass($uri, $graph);
+                return $res;
+            }
+            return new \Devyn\Component\RAL\Resource\Resource($uri, $graph);
+        }
+
+        return null;
     }
 }
