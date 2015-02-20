@@ -23,6 +23,11 @@ class ESCache
     protected $rm;
 
     /**
+     * @var \Devyn\Component\QueryBuilder\QueryBuilder
+     */
+    protected $qb;
+
+    /**
      * @var array
      */
     protected $config;
@@ -30,12 +35,7 @@ class ESCache
     /**
      * @var array
      */
-    protected $requests;    
-
-    /**
-     * @var \Devyn\Component\QueryBuilder\QueryBuilder
-     */
-    protected $qb;
+    protected $requests;
 
     /**
      * @var int
@@ -47,12 +47,6 @@ class ESCache
      */
     public $onePossiblePlace = [];
 
-        public function setConfig($config)
-    {
-        $this->config = $config;
-        $this->guessRequests();
-    }
-
     /**
      * @param Manager $rm
      */
@@ -60,6 +54,12 @@ class ESCache
     {
         $this->rm = $rm;
         $this->qb = $this->rm->getQueryBuilder();
+    }
+
+    public function setConfig($config)
+    {
+        $this->config = $config;
+        $this->guessRequests();
     }
 
     /**
@@ -109,37 +109,17 @@ class ESCache
 
     public function getTypeFrame($index, $type)
     {
-        if (isset($this->requests[$index][$type]['frame'])) {
-            return $this->requests[$index][$type]['frame'];
-        }
-
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+        return $this->getTypeKey($index, $type, 'frame');
     }
 
     public function getTypeName($index, $type)
     {
-        if (isset($this->requests[$index][$type]['name'])) {
-            return $this->requests[$index][$type]['name'];
-        }
-
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+        return $this->getTypeKey($index, $type, 'name');
     }
 
     public function getTypeContext($index, $type)
     {
-        if (isset($this->requests[$index][$type]['context'])) {
-            return $this->requests[$index][$type]['context'];
-        }
-
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
-    }
-
-    /**
-     * @return array
-     */
-    public function getRequests()
-    {
-        return $this->requests;
+        return $this->getTypeKey($index, $type, 'context');
     }
 
     /**
@@ -148,6 +128,15 @@ class ESCache
     public function getRm()
     {
         return $this->rm;
+    }
+
+    protected function getTypeKey($index, $type, $key)
+    {
+        if (isset($this->requests[$index][$type][$key])) {
+            return $this->requests[$index][$type][$key];
+        }
+
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
     }
 
     /**
