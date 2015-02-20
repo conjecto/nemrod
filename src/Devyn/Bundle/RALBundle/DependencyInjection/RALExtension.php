@@ -3,6 +3,7 @@
 namespace Devyn\Bundle\RALBundle\DependencyInjection;
 
 use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Devyn\Component\RAL\Resource\Resource;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -219,6 +220,7 @@ class RALExtension extends Extension
         }
 
         $cacheDefinition = $container->getDefinition('ral.elasticsearch_cache');
+        $cacheDefinition->addMethodCall('setResourceManager', array(new Reference('rm')));
         $cacheDefinition->addMethodCall('setConfig', array($config['elasticsearch']));
     }
 

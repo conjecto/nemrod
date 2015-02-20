@@ -9,6 +9,7 @@
 namespace Devyn\Bridge\Elastica;
 
 use Devyn\Component\RAL\Manager\Manager;
+use Elastica\Document;
 use Elastica\Type;
 
 class Populator
@@ -53,6 +54,22 @@ class Populator
             echo $key;
             $repo = $this->resourceManager->getRepository($key)->findAll();
             echo count($repo);
+
+            $te = $repo->get('rdf:first');
+            $repo = $repo->get('rdf:rest');
+            $cnt = 0 ;
+
+            /** @var Resource $add */
+            while ($te ) {
+                $doc = array("ogbd:nom" =>$te->get("ogbd:nom")->getValue(), );
+//            /** @var Resource $add */
+
+                $this->typeRegistry->getType($key)->addDocument(new Document($te->getUri(),$doc,$key));
+                $te = $repo->get('rdf:first');
+                $repo = $repo->get('rdf:rest');
+            }
+
+
             //$typ->;
         }
     }

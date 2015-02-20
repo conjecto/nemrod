@@ -47,21 +47,19 @@ class ESCache
      */
     public $onePossiblePlace = [];
 
-    /**
-     * @param Manager $rm
-     * @param $index
-     * @throws \Exception
-     */
-    function __construct(Manager $rm)
-    {
-        $this->rm = $rm;
-        $this->qb = $this->rm->getQueryBuilder();
-    }
-
-    public function setConfig($config)
+        public function setConfig($config)
     {
         $this->config = $config;
         $this->guessRequests();
+    }
+
+    /**
+     * @param Manager $rm
+     */
+    public function setResourceManager(Manager $rm)
+    {
+        $this->rm = $rm;
+        $this->qb = $this->rm->getQueryBuilder();
     }
 
     /**
