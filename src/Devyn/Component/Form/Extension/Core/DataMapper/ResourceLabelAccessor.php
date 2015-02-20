@@ -96,4 +96,40 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
 
         return $value;
     }
-} 
+
+    /**
+     * Returns whether a value can be written at a given property path.
+     *
+     * Whenever this method returns true, {@link setValue()} is guaranteed not
+     * to throw an exception when called with the same arguments.
+     *
+     * @param object|array $objectOrArray The object or array to check
+     * @param string|PropertyPathInterface $propertyPath The property path to check
+     *
+     * @return bool    Whether the value can be set
+     *
+     * @throws Exception\InvalidArgumentException If the property path is invalid
+     */
+    public function isWritable($objectOrArray, $propertyPath)
+    {
+        return true;
+    }
+
+    /**
+     * Returns whether a property path can be read from an object graph.
+     *
+     * Whenever this method returns true, {@link getValue()} is guaranteed not
+     * to throw an exception when called with the same arguments.
+     *
+     * @param object|array $objectOrArray The object or array to check
+     * @param string|PropertyPathInterface $propertyPath The property path to check
+     *
+     * @return bool    Whether the property path can be read
+     *
+     * @throws Exception\InvalidArgumentException If the property path is invalid
+     */
+    public function isReadable($objectOrArray, $propertyPath)
+    {
+        return true;
+    }
+}

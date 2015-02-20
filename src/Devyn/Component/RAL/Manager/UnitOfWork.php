@@ -228,7 +228,7 @@ class UnitOfWork {
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
             //@todo perform "ask" on db to check if resource is already there
-            throw new Exception("Resource already exist");
+            //throw new Exception("Resource already exist");
         }
 
         //@todo relevant do do this here ?

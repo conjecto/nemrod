@@ -264,6 +264,7 @@ class Query
         }
 
         $this->result = $this->rm->getClient()->update($this->completeSparqlQuery);
+
         $this->result = $this->resultToGraph($this->result);
 
         if (($hydrator = $this->newHydrator($hydratation)) != null) {

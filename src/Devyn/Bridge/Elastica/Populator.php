@@ -8,6 +8,7 @@
 
 namespace Devyn\Bridge\Elastica;
 
+use Devyn\Component\ESIndexing\ResourceToDocumentTransformer;
 use Devyn\Component\RAL\Manager\Manager;
 use Elastica\Document;
 use Elastica\Type;
@@ -33,12 +34,13 @@ class Populator
      * @param $typeRegistry
      * @param $resetter
      */
-    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter)
+    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $esCache)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
         $this->typeRegistry = $typeRegistry;
         $this->resetter = $resetter;
+        $this->esCache = $esCache;
     }
 
     /**
@@ -58,13 +60,13 @@ class Populator
             $te = $repo->get('rdf:first');
             $repo = $repo->get('rdf:rest');
             $cnt = 0 ;
+            $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry);
 
             /** @var Resource $add */
             while ($te ) {
-                $doc = array("ogbd:nom" =>$te->get("ogbd:nom")->getValue(), );
+                //$doc = array("ogbd:nom" =>$te->get("ogbd:nom")->getValue(), );
 //            /** @var Resource $add */
-
-                $this->typeRegistry->getType($key)->addDocument(new Document($te->getUri(),$doc,$key));
+                $this->typeRegistry->getType($key)->addDocument($trans->transform($te->getUri(), $key));
                 $te = $repo->get('rdf:first');
                 $repo = $repo->get('rdf:rest');
             }
