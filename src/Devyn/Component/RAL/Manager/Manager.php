@@ -6,6 +6,7 @@ use Devyn\Component\QueryBuilder\QueryBuilder;
 use Devyn\Component\RAL\Registry\RdfNamespaceRegistry;
 use Devyn\Component\RAL\Resource\Resource;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use EasyRdf\Sparql\Client;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;

@@ -12,6 +12,7 @@ namespace Devyn\Component\ESIndexing;
 use Devyn\Bridge\Elastica\TypeRegistry;
 use Devyn\Component\RAL\Manager\Event\Events;
 use EasyRdf\RdfNamespace;
+use EasyRdf\Serialiser\JsonLd;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ManagerEventSubscriber implements EventSubscriberInterface
@@ -70,26 +71,21 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPreFlush($event)
     {
-//        var_dump('onPreFlush');
-//        var_dump($event);
         $this->changesRequests = [];
         foreach ($event->getChanges() as $key => $change) {
-            $index = $this->typeRegistry->getType($change['type'])->getIndex()->getName();
-            $properties = array();
             foreach (['insert', 'delete'] as $action) {
+                $properties = array();
                 foreach ($change[$action] as $keyType => $actionType) {
                     if (!in_array($keyType, $properties)) {
                         $properties[] = $keyType;
                     }
                 }
-            }
-
-            if ($this->esCache->isPropertyTypeExist($index, $change['type'], $properties)) {
-                if (!in_array($key, $this->changesRequests)) {
-                    $this->changesRequests[$key] = $change['type'];
-                }
+                $this->changesRequests[$key]['type'] = $change['type'];
+                $this->changesRequests[$key]['properties'] = $properties;
             }
         }
+//        $index = $this->typeRegistry->getType($change['type'])->getIndex()->getName();
+//        $this->esCache->isPropertyTypeExist($index, $change['type'], $properties)
     }
 
     /**
@@ -97,22 +93,24 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPostFlush($event)
     {
-//        var_dump('onPostFlush');
-//        var_dump($event);
-
         $qb = $this->esCache->getRm()->getQueryBuilder();
         $qb->reset();
         $qb->construct("?uri a ?t")->where("?uri a ?t");
         $uris = '';
 
-        foreach ($event->getUris() as $uri) {
+        foreach ($this->changesRequests as $uri => $infos) {
             $uris .= ' <' . $uri . '>';
+        }
+
+        if (empty($uris)) {
+            return;
         }
 
         $qb->value('?uri', $uris);
         $result = $qb->getQuery()->execute();
+        $jsonLdSerializer = new JsonLd();
 
-        foreach ($event->getUris() as $uri) {
+        foreach ($this->changesRequests as $uri => $infos) {
             $types = $result->all($uri, 'rdf:type');
             $newTypes = array();
 
@@ -124,17 +122,20 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 if ($index != null) {
                     $index = $index->getIndex()->getName();
                 }
-                if ($index && $this->esCache->isTypeIndexed($index, $newType)) {
-                    $_qb = $this->esCache->getRequest($index, $uri, $newType);
-//                    var_dump($_qb->getSparqlQuery());
-                    $result = $_qb->getQuery()->execute();
-//                    var_dump($result);
-                    // es push
+
+                if ($index && $this->esCache->isTypeIndexed($index, $newType, $infos['properties'])) {
+                    $graph = $this->esCache->getRequest($index, $uri, $newType)->getQuery()->execute();
+                    $jsonLd = $jsonLdSerializer->serialise($graph, 'jsonld', ['context' => $this->esCache->getTypeContext($index, $newType), 'frame' => $this->esCache->getTypeFrame($index, $newType)]);
+                    $graph = json_decode($jsonLd, true)['@graph'][0];
+                    $json = json_encode($graph);
+                    $json = str_replace('@id', '_id', $json);
+                    $json = str_replace('@type', '_type', $json);
+                    // es push json
                 }
             }
 
             if (array_key_exists($uri, $this->changesRequests)) {
-                $oldType = $this->changesRequests[$uri];
+                $oldType = $this->changesRequests[$uri]['type'];
                 if (!in_array($oldType, $newTypes)) {
                     // es delete old type
                 }

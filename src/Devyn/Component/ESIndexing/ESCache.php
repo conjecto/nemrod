@@ -90,9 +90,37 @@ class ESCache
         return in_array($properties, $this->requests[$index][$type]['properties']);
     }
 
-    public function isTypeIndexed($index, $type)
+    public function isTypeIndexed($index, $type, $properties = array())
     {
-        return isset($this->requests[$index][str_replace('http://xmlns.com/foaf/0.1/', 'foaf:', $type)]);
+        if (empty($properties)) {
+            return isset($this->requests[$index][$type]);
+        }
+
+        foreach ($properties as $property) {
+            if (in_array($property, $this->requests[$index][$type]['properties'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getTypeFrame($index, $type)
+    {
+        if (isset($this->requests[$index][$type]['frame'])) {
+            return $this->requests[$index][$type]['frame'];
+        }
+
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+    }
+
+    public function getTypeContext($index, $type)
+    {
+        if (isset($this->requests[$index][$type]['context'])) {
+            return $this->requests[$index][$type]['context'];
+        }
+
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
     }
 
     /**
@@ -146,9 +174,9 @@ class ESCache
             throw new \Exception('Invalid frame, the json is not correct');
         }
 
+        $this->requests[$index][$settings['type']]['frame'] = $settings['frame'];
         $this->requests[$index][$settings['type']]['context'] = $frame['@context'];
         unset($frame['@context']);
-        $this->requests[$index][$settings['type']]['frame'] = $frame;
         $properties = array();
         $this->requests[$index][$settings['type']]['guessTypeRequest'] = $this->getTypeRequest($settings['type'], $frame, $properties);
         $this->requests[$index][$settings['type']]['properties'] = $properties;
