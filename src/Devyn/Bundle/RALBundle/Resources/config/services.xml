@@ -30,6 +30,7 @@
         <parameter key="ral.elastica_type_registry.class">Devyn\Bridge\Elastica\TypeRegistry</parameter>
         <parameter key="ral.elastica_index_registry.class">Devyn\Bridge\Elastica\IndexRegistry</parameter>
         <parameter key="ral.elastica_populator.class">Devyn\Bridge\Elastica\Populator</parameter>
+        <parameter key="ral.elasticsearch_manager_event_subscriber.class">Devyn\Component\ESIndexing\ManagerEventSubscriber</parameter>
     </parameters>
 
     <services>
@@ -95,7 +96,12 @@
             <argument type="service" id="ral.elasticsearch_type_registry" />
             <argument type="service" id="ral.elasticsearch_resetter" />
         </service>
-
+        <service id="ral.elasticsearch_manager_event_subscriber" class="%ral.elasticsearch_manager_event_subscriber.class%">
+            <tag name="ral.resource_event_subscriber" event="ral.pre_flush" method="onPreFlush" endpoint="ogbd" />
+            <argument type="service" id="ral.elasticsearch_cache" />
+            <argument type="service" id="ral.elasticsearch_type_registry" />
+            <argument type="service" id="service_container" />
+        </service>
     </services>
 
 </container>
