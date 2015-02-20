@@ -44,8 +44,10 @@ class ResourceToDocumentTransformer
             $jsonLdSerializer = new JsonLd();
             $graph = $this->esCache->getRequest($index, $uri, $type)->getQuery()->execute();
             $jsonLd = $jsonLdSerializer->serialise($graph, 'jsonld', ['context' => $this->esCache->getTypeContext($index, $type), 'frame' => $this->esCache->getTypeFrame($index, $type)]);
-            var_dump($jsonLd);
-            $graph = json_decode($jsonLd, true)['@graph'][0];
+            $graph = json_decode($jsonLd, true);
+            if (!isset($graph['@graph'][0])) {
+                return null;
+            }
             $json = json_encode($graph);
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
