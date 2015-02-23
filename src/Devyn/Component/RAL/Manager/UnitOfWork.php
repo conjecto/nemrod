@@ -340,8 +340,8 @@ class UnitOfWork {
     }
 
     /**
-     * Expands uris
      * @param $phpRdfArray
+     * @return array
      */
     private function shortenPropertiesUris($phpRdfArray)
     {
@@ -464,11 +464,13 @@ class UnitOfWork {
         $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
+
             //bnodes are taken separately
             if (!empty($properties)) {
                 $index = (isset($options['correspondence'][$resource])) ? $options['correspondence'][$resource] : $resource ;
 
                 foreach ($properties as $property => $values) {
+
                     if (!empty($values)) {
                         foreach ($values as $value) {
                             //special case of a removed resource
@@ -514,8 +516,17 @@ class UnitOfWork {
     private function containsObject($object, $objectsList)
     {
         foreach($objectsList as $obj) {
-            if (($obj['type'] == $object['type']) && ($obj['value'] == $object['value'])){
-                return true;
+            if ($obj['type'] == $object['type']){
+                if ($obj['type'] == 'uri') {
+                    $objValue = ($this->_rm->getNamespaceRegistry()->shorten($obj['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($obj['value']) : $obj['value'] ;
+                    $objectValue = ($this->_rm->getNamespaceRegistry()->shorten($object['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($object['value']) : $object['value'] ;
+
+                    if ( $objValue == $objectValue) {return true;}
+                }
+
+                else if ($obj['value'] == $object['value']) {
+                    return true;
+                }
             }
         }
         return false;
@@ -578,7 +589,7 @@ class UnitOfWork {
      */
     private function generateURI($options = array())
     {
-        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "ogbd:" ;
+        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "og_bd:" ;
 
         return uniqid($prefix);
     }

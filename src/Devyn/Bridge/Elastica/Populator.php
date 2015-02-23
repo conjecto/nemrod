@@ -10,6 +10,7 @@ namespace Devyn\Bridge\Elastica;
 
 use Devyn\Component\ESIndexing\ResourceToDocumentTransformer;
 use Devyn\Component\RAL\Manager\Manager;
+use Devyn\Component\RAL\Registry\TypeMapperRegistry;
 use Elastica\Document;
 use Elastica\Type;
 
@@ -28,18 +29,22 @@ class Populator
     /** @var  Resetter */
     protected $resetter;
 
+    /** @var  TypeMapperRegistry */
+    protected $typeMapperRegistry;
+
     /**
      * @param $resourceManager
      * @param $indexManager
      * @param $typeRegistry
      * @param $resetter
      */
-    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $esCache)
+    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $esCache)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
         $this->typeRegistry = $typeRegistry;
         $this->resetter = $resetter;
+        $this->typeMapperRegistry = $typeMapperRegistry;
         $this->esCache = $esCache;
     }
 
@@ -54,25 +59,16 @@ class Populator
         /** @var Type $typ */
         foreach($types as $key => $typ) {
             echo $key;
-            $repo = $this->resourceManager->getRepository($key)->findAll();
-            echo count($repo);
+            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->getQuery()->execute();
 
-            $te = $repo->get('rdf:first');
-            $repo = $repo->get('rdf:rest');
-            $cnt = 0 ;
-            $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry);
+            $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->typeMapperRegistry);
 
             /** @var Resource $add */
-            while ($te ) {
-                //$doc = array("ogbd:nom" =>$te->get("ogbd:nom")->getValue(), );
-//            /** @var Resource $add */
-                $this->typeRegistry->getType($key)->addDocument($trans->transform($te->getUri(), $key));
-                $te = $repo->get('rdf:first');
-                $repo = $repo->get('rdf:rest');
+            foreach($result as $res ) {
+                echo $res->getUri();
+                $this->typeRegistry->getType($key)->addDocument($trans->transform($res->getUri(), $key));
+
             }
-
-
-            //$typ->;
         }
     }
 }

@@ -241,6 +241,7 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
+        echo $this->completeSparqlQuery;
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
         $this->result = $this->resultToGraph($this->result);
 
@@ -263,6 +264,7 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
+        echo htmlspecialchars($this->completeSparqlQuery);
         $this->result = $this->rm->getClient()->update($this->completeSparqlQuery);
 
         $this->result = $this->resultToGraph($this->result);

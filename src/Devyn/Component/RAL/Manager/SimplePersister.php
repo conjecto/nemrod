@@ -121,8 +121,6 @@ class SimplePersister implements PersisterInterface
      */
     public function update($uri, $delete, $insert, $where)
     {
-        var_dump($delete);
-        var_dump($insert);//die();
         list($deleteTriples, $whereTriples) = $this->phpRdfToSparqlBody($delete, true);
         list($insertTriples) = $this->phpRdfToSparqlBody($insert);
 

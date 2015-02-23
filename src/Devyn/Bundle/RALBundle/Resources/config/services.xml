@@ -93,6 +93,7 @@
             <argument type="service" id="ral.elasticsearch_index_registry" />
             <argument type="service" id="ral.elasticsearch_type_registry" />
             <argument type="service" id="ral.elasticsearch_resetter" />
+            <argument type="service" id="ral.type_mapper" />
             <argument type="service" id="ral.elasticsearch_cache" />
         </service>
         <service id="ral.elasticsearch_manager_event_subscriber" class="%ral.elasticsearch_manager_event_subscriber.class%">
