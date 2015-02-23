@@ -32,12 +32,16 @@ class Resetter
     /**
      *
      */
-    public function reset()
+    public function reset($type = null)
     {
-        $types = $this->configManager->getTypes();
+        if (!$type) {
+            $types = $this->configManager->getTypes();
 
-        /** @var Type $type */
-        foreach($types as $type) {
+            /** @var Type $type */
+            foreach ($types as $type) {
+                $this->mappingBuilder->buildMapping($type);
+            }
+        } else {
             $this->mappingBuilder->buildMapping($type);
         }
     }

@@ -52,21 +52,32 @@ class Populator
      * Populates elastica index for a specific type
      * @param $type
      */
-    public function populate($type = null)
+    public function populate($type = null, $reset = true)
     {
-        $types = $this->typeRegistry->getTypes();
+        if ($type) {
+            $types = array ($type => $this->typeRegistry->getType($type));
+        } else {
+            $types = $this->typeRegistry->getTypes();
+        }
 
         /** @var Type $typ */
         foreach($types as $key => $typ) {
+
+            if ($reset) {
+                $this->resetter->reset($key);
+            }
             echo $key;
-            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->getQuery()->execute();
+            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct("?s a ".$key)->where("?s a ".$key)->getQuery()
+                ->execute();
 
             $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->typeMapperRegistry);
 
             /** @var Resource $add */
-            foreach($result as $res ) {
-                echo $res->getUri();
-                $this->typeRegistry->getType($key)->addDocument($trans->transform($res->getUri(), $key));
+            foreach($result->resources() as $res ) {
+                //echo $res->getUri();
+                $doc = $trans->transform($res->getUri(), $key);
+                    if ($doc)
+                $this->typeRegistry->getType($key)->addDocument($doc, $key);
 
             }
         }

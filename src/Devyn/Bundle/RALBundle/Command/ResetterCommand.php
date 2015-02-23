@@ -20,6 +20,9 @@ class ResetterCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('ral.elasticsearch_resetter')->reset();
+
+        $type = $input->getArgument('type');
+
+        $this->getContainer()->get('ral.elasticsearch_resetter')->reset($type);
     }
 } 

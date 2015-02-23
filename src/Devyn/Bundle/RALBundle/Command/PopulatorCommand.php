@@ -11,6 +11,7 @@ namespace Devyn\Bundle\RALBundle\Command;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PopulatorCommand extends ContainerAwareCommand
@@ -21,11 +22,18 @@ class PopulatorCommand extends ContainerAwareCommand
             ->setName('ral:elastica:populate')
             ->setDescription('(Remise à zéro et) population des index elastica')
             ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
+            ->addOption('reset', null, InputOption::VALUE_NONE, 'reset index')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('ral.elasticsearch_populator')->populate();
+        $reset = false;
+        if ($input->getOption('reset')) {
+            $reset = true;
+        }
+        $type = $input->getArgument('type');
+
+        $this->getContainer()->get('ral.elasticsearch_populator')->populate($type, $reset);
     }
 } 
