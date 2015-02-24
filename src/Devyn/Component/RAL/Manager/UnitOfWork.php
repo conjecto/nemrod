@@ -93,14 +93,16 @@ class UnitOfWork {
      */
     public function registerResource($resource, $fromStore = true)
     {
-        $this->registeredResources[$resource->getUri()] = $resource ;
-        if (method_exists($resource, "setRm")) {
-            $resource->setRm($this->_rm);
+        if (!$this->isRegistered($resource)) {
             $this->registeredResources[$resource->getUri()] = $resource;
+            if (method_exists($resource, "setRm")) {
+                $resource->setRm($this->_rm);
+                $this->registeredResources[$resource->getUri()] = $resource;
 //        }
 //
 //        if ($fromStore && method_exists($resource, "setRm")) {
-            $this->initialSnapshots->takeSnapshot($resource);
+                $this->initialSnapshots->takeSnapshot($resource);
+            }
         }
     }
 
