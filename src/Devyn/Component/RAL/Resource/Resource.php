@@ -93,13 +93,12 @@ class Resource extends BaseResource
         //first trrying to get first step value
         $result = parent::get($first, $type, $lang);
 
-
         if (is_array($result)) {
             if (count($result)){
                 return $result[0];
             }
             return null;
-        } else if ($this->_rm->isResource($result)) { //we get a resource
+        } else if ($result instanceof \EasyRdf\Resource) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource

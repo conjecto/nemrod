@@ -93,16 +93,17 @@ class UnitOfWork {
      */
     public function registerResource($resource, $fromStore = true)
     {
-        if (!$this->isRegistered($resource)) {
+        //echo $resource->getUri()." is a ".get_class($resource)."<br />";
+        if (!$this->isRegistered($resource)) { //echo "not registered<br />";
+            $resource->setRm($this->_rm);
+
             $this->registeredResources[$resource->getUri()] = $resource;
-            if (method_exists($resource, "setRm")) {
-                $resource->setRm($this->_rm);
-                $this->registeredResources[$resource->getUri()] = $resource;
-//        }
-//
-//        if ($fromStore && method_exists($resource, "setRm")) {
-                $this->initialSnapshots->takeSnapshot($resource);
-            }
+            $this->initialSnapshots->takeSnapshot($resource);
+            return $resource;
+        } else {
+            //echo "registered<br />";
+            $tmp = $this->retrieveResource($resource->getUri());
+            return $tmp;
         }
     }
 
