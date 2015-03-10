@@ -95,7 +95,7 @@ class UnitOfWork {
     {
         //echo $resource->getUri()." is a ".get_class($resource)."<br />";
         if (!$this->isRegistered($resource)) { //echo "not registered<br />";
-            $resource->setRm($this->_rm);
+            if ($resource instanceof BaseResource) $resource->setRm($this->_rm);
 
             $this->registeredResources[$resource->getUri()] = $resource;
             $this->initialSnapshots->takeSnapshot($resource);
@@ -360,9 +360,12 @@ class UnitOfWork {
     /**
      * @param BaseResource $resource
      */
-    public function remove(BaseResource $resource)
+    public function remove($resource)
     {
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
+        //@todo look for uplinks for that resource + manage
+        $this->removeUplinks($resource);
 
         if (isset ($this->registeredResources[$resource->getUri()])){
             $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
@@ -571,6 +574,26 @@ class UnitOfWork {
     {
         //iterating through graph
         $this->initialSnapshots->removeSnapshot($resource);
+    }
+
+    private function removeUplinks($resource)
+    {
+        /** @var Graph $result */
+        $result = $this->_rm->createQueryBuilder()
+            ->construct("?s a ?t; ?p <".$resource->getUri().">")
+            ->where("?s a ?t; ?p <".$resource->getUri().">")
+            ->getQuery()
+        ->execute();
+
+        $resources = $result->resources();
+        /** @var \EasyRdf\Resource $re */
+        foreach ($resources as $re) {
+
+            $this->registerResource($re);
+            foreach ($result->properties($re->getUri()) as $prop)
+                if ($prop != "rdf:type") $re->delete($prop);
+        }
+        //var_dump($result);die();
     }
 
     /**
