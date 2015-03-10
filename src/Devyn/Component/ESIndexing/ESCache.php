@@ -252,6 +252,7 @@ class ESCache
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
                     $stringedChild = $stringedChild . " " . $uriChild . ' a ' . $val . " .";
+                    $qb->addConstruct($uriChild . ' a ' . $val);
                 }
                 else if ($prop === '@explicit' && $val === 'true') {
                     $hasExplicit = true;
@@ -265,6 +266,7 @@ class ESCache
                     if (is_array($val)) {
                         $uriChildOfChild = '?c' . (++$this->varCounter);
                         $stringedChild = $stringedChild . " {} UNION {" . $uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild) . "} ";
+                        $qb->addConstruct($uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild));
                     }
                 }
             }

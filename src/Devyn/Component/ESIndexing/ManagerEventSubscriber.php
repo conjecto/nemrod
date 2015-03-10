@@ -136,7 +136,10 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                      * @var Type $esType
                      */
                     $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
-                    $esType->addDocument($resourceToDocumentTransformer->transform($uri, $newType));
+                    $document = $resourceToDocumentTransformer->transform($uri, $newType);
+                    if ($document) {
+                        $esType->addDocument($document);
+                    }
                 }
             }
 
