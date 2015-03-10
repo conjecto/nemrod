@@ -38,7 +38,7 @@ class SnapshotContainer extends Graph
      * @param BaseResource $resource
      * @return BaseResource
      */
-    public function takeSnapshot(BaseResource $resource)
+    public function takeSnapshot($resource)
     {
         $res = $this->resource($resource->getUri());
 
@@ -97,7 +97,7 @@ class SnapshotContainer extends Graph
      * @param BaseResource $resource
      * @return \EasyRdf\Resource
      */
-    public function getSnapshot(BaseResource $resource)
+    public function getSnapshot($resource)
     {
         //check if $resource is known by getting type.
         //if uri is not known or result is null, resource is not known
