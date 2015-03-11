@@ -1,8 +1,8 @@
 <?php
 namespace Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource;
 
-use Devyn\Component\RAL\Resource\Resource as BaseResource;
-use Devyn\Component\RAL\Annotation\Resource;
+use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
+use Conjecto\RAL\ResourceManager\Annotation\Resource;
 
 /**
  * Class ExampleResource

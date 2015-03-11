@@ -9,7 +9,7 @@
 namespace Conjecto\EasyRdfBundle\Form\Type;
 
 
-use Devyn\Component\Form\Extension\Core\Type\ResourceFormType;
+use Conjecto\RAL\Form\Extension\Core\Type\ResourceFormType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -38,7 +38,7 @@ class PersonType extends ResourceFormType
         //$builder->add('ogbd:bestFriend', 'resource', array("class" => 'foaf:Person', 'label' => 'association'));
         $builder->add('vcard:hasAddress', 'resource_address',
             array('label' => 'Emplacement',
-                "data_class" => 'Devyn\Component\RAL\Resource\Resource',
+                "data_class" => 'Conjecto\RAL\ResourceManager\Resource\Resource',
                 "empty_data" => function (FormInterface $form) {
                     //@todo make it as a "subresource" method
                     //$res = $form->getRoot()->getData()->getGraph()->resource($this->rm->getUnitOfWork()->nextBNode(), array('vcard:hasAddress'));

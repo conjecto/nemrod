@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>    
-        <parameter key="rdf.serialization_visitor.class">Devyn\Bridge\EasyRdf\Serializer\RdfSerializationVisitor</parameter>
+        <parameter key="rdf.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="rdf.jsonld.frame.loader.filesystem.class">Devyn\Bundle\RdfFrameworkBundle\Loader\JsonLdFrameLoader</parameter>
         <parameter key="rdf.resource.param_convecter.class">Devyn\Component\ParamConverter\ResourceParamConverter</parameter>
     </parameters>

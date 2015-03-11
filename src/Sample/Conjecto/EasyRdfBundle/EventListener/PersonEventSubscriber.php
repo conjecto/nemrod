@@ -9,7 +9,7 @@
 namespace Conjecto\EasyRdfBundle\EventListener;
 
 
-use Devyn\Component\RAL\Manager\Event\Events;
+use Conjecto\RAL\ResourceManager\Manager\Event\Events;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PersonEventSubscriber implements EventSubscriberInterface{
@@ -57,7 +57,7 @@ class PersonEventSubscriber implements EventSubscriberInterface{
      */
     public function onPostFlush($event)
     {
-        var_dump($event->getUris());
+        //var_dump($event->getUris());
     }
 
 } 

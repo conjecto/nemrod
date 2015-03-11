@@ -9,7 +9,7 @@
 namespace Conjecto\EasyRdfBundle\Form\Type;
 
 
-use Devyn\Component\Form\Extension\Core\Type\ResourceFormType;
+use Conjecto\RAL\Form\Extension\Core\Type\ResourceFormType;
 use Symfony\Component\Form\FormBuilderInterface;
 
 class AddressType extends ResourceFormType

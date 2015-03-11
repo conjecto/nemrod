@@ -1,5 +1,5 @@
 {
-    "name": "conjecto/devyn-framework",
+    "name": "conjecto/ral",
     "type": "library",
     "description": "The Devyn Semantic framework",
     "keywords": ["framework"],
@@ -24,7 +24,7 @@
         "phpunit/phpunit": "4.3.*"
     },
     "autoload": {
-        "psr-0": { "Devyn\\": "src/" },
+        "psr-0": { "Conjecto\\": "src/" },
         "classmap": [],
         "files": [ ]
     },

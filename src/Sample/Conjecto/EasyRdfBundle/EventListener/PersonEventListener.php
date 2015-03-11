@@ -2,8 +2,8 @@
 
 namespace Conjecto\EasyRdfBundle\EventListener;
 
-use Devyn\Component\RAL\Manager\Event\PreFlushEvent;
-use Devyn\Component\RAL\Manager\Event\ResourceLifeCycleEvent;
+use Conjecto\RAL\ResourceManager\Manager\Event\PreFlushEvent;
+use Conjecto\RAL\ResourceManager\Manager\Event\ResourceLifeCycleEvent;
 use Symfony\Component\EventDispatcher\Event;
 
 class PersonEventListener

@@ -2,7 +2,7 @@
 
 namespace Devyn\Bundle\RdfFrameworkBundle\DependencyInjection;
 
-use Devyn\Component\RAL\Mapping\Driver\AnnotationDriver;
+use Conjecto\RAL\ResourceManager\Mapping\Driver\AnnotationDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;

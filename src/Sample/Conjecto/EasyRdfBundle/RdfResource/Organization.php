@@ -8,8 +8,8 @@
 
 namespace Conjecto\EasyRdfBundle\RdfResource;
 
-use Devyn\Component\RAL\Resource\Resource as BaseResource;
-use Devyn\Component\RAL\Annotation\Rdf; //Resource;
+use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
+use Conjecto\RAL\ResourceManager\Annotation\Rdf; //Resource;
 
 /**
  * Class ExampleResource

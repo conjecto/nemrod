@@ -8,7 +8,7 @@
 
 namespace Conjecto\EasyRdfBundle\Form\Type;
 
-use Devyn\Component\RAL\Manager\Manager;
+use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Form\FormBuilderInterface;
