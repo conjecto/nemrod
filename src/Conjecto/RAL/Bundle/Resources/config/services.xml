@@ -34,9 +34,9 @@
 
 
         <!-- -->
-        <parameter key="rdf.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
-        <parameter key="rdf.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Bundle\Loader\JsonLdFrameLoader</parameter>
-        <parameter key="rdf.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
+        <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
+        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Bundle\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
 
     </parameters>
 
@@ -111,12 +111,12 @@
         </service>
 
 
-        <service id="rdf.jsonld.frame.loader.filesystem" class="%rdf.jsonld.frame.loader.filesystem.class%" public="false">
+        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false">
             <argument type="service" id="templating.locator" />
             <argument type="service" id="templating.name_parser" />
         </service>
-        <service id="jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
-        <service id="resource.param_converter" class="%rdf.resource.param_convecter.class%">
+        <service id="ral.jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
+        <service id="resource.param_converter" class="%ral.resource.param_convecter.class%">
             <tag name="request.param_converter" priority="1" converter="resource" />
             <argument type="service" id="service_container" />
         </service>

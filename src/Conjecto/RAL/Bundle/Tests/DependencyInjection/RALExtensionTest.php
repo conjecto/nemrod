@@ -1,7 +1,7 @@
 <?php
-namespace Devyn\Bundle\RALBundle\Tests\DependencyInjection;
+namespace Conjecto\RAL\Bundle\Tests\DependencyInjection;
 
-use Devyn\Bundle\RALBundle\DependencyInjection\RALExtension;
+use Conjecto\RAL\Bundle\DependencyInjection\RALExtension;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -19,9 +19,9 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         //have to manually register annotation
-        AnnotationRegistry::registerFile('../../../../Component/RAL/Annotation/Resource.php');
+        AnnotationRegistry::registerFile('../../../ResourceManager/Annotation/Rdf/Resource.php');
         $this->container = new ContainerBuilder();
-        $this->container->setParameter('kernel.bundles', array('Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
+        $this->container->setParameter('kernel.bundles', array('Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
         $this->extension = new RALExtension();
         $this->container->registerExtension($this->extension);
 
@@ -66,6 +66,36 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array("set",array('foo:Class','Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')),$calls[0]);
     }
 
+
+    /**
+     * Load namespaces in namespace registry
+     */
+    public function testNamespaces()
+    {
+        $configs = array(
+            array(
+                'namespaces' => array(
+                    'foo'    => 'http://purl.org/ontology/foo/',
+                    'bar'    => 'http://www.w3.org/ns/bar#'
+                )
+            )
+        );
+
+        $container = new ContainerBuilder();
+        $extension = new FrameworkExtension();
+        $extension->load($configs, $container);
+        $definition = $container->getDefinition('rdf.namespace.registry');
+        $this->assertEquals(array(
+            array("set", array("foo", 'http://purl.org/ontology/foo/')),
+            array("set", array("bar", 'http://www.w3.org/ns/bar#')),
+        ), $definition->getMethodCalls());
+    }
+
+    public function testResourceMapping()
+    {
+
+    }
+
     protected function tearDown()
     {
         $this->container = null;
@@ -85,4 +115,4 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
     {
         return $this->container->hasAlias($id);
     }
-} 
+}
