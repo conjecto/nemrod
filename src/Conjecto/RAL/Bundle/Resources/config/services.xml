@@ -110,7 +110,7 @@
             <argument type="service" id="service_container" />
         </service>
 
-
+        <!-- Serialization -->
         <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false">
             <argument type="service" id="templating.locator" />
             <argument type="service" id="templating.name_parser" />
