@@ -9,7 +9,7 @@ use JMS\Serializer\Metadata\Driver\AnnotationDriver as BaseAnnotationDriver;
 /**
  * Extending AnnotationDriver to handle JsonLD options
  *
- * @package Devyn\Bundle\RdfFrameworkBundle\Serializer\Metadata\Driver
+ * @package Conjecto\RAL\Bundle\Serializer\Metadata\Driver;
  */
 class AnnotationDriver extends BaseAnnotationDriver
 {

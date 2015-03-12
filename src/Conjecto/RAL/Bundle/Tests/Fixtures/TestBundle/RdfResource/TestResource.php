@@ -1,5 +1,5 @@
 <?php
-namespace Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource;
+namespace Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle\RdfResource;
 
 use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
 use Conjecto\RAL\ResourceManager\Annotation\Resource;

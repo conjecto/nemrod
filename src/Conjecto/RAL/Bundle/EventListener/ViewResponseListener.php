@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 
 /**
  * Class ViewResponseListener
- * @package Devyn\Bundle\RdfFrameworkBundle\EventListener
+ * @package Conjecto\RAL\Bundle\EventListener
  */
 class ViewResponseListener
 {

@@ -6,7 +6,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Class SerializerMappingDriverPass
- * @package Devyn\Bundle\RdfFrameworkBundle\DependencyInjection\Compiler
+ * @package Conjecto\RAL\Bundle\DependencyInjection\Compiler
  */
 class SerializerMappingDriverPass implements CompilerPassInterface
 {

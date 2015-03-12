@@ -10,7 +10,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
  * Class RdfNamespaceRegistry
- * @package Devyn\Bridge\EasyRdf\RdfNamespace
+ * @package Conjecto\RAL\ResourceManager\Registry
  */
 class RdfNamespaceRegistry
 {

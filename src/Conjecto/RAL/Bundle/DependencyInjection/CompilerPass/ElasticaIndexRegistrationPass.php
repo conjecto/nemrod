@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Class ElasticaIndexRegistrationPass
- * @package Devyn\Bundle\RALBundle\DependencyInjection\CompilerPass
+ * @package Conjecto\RAL\Bundle\DependencyInjection\CompilerPass
  */
 class ElasticaIndexRegistrationPass implements CompilerPassInterface
 {

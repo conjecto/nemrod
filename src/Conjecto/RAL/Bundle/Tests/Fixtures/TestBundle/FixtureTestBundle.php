@@ -1,5 +1,5 @@
 <?php
-namespace Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle;
+namespace Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

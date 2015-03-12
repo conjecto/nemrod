@@ -63,7 +63,7 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('ral.type_mapper');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array("set",array('foo:Class','Devyn\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')),$calls[0]);
+        $this->assertEquals(array("set",array('foo:Class','Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')),$calls[0]);
     }
 
 

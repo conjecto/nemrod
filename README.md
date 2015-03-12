@@ -1,7 +1,7 @@
 README
 ======
 
-What is Devyn?
+What is RAL?
 -----------------
 
 Requirements

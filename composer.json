@@ -1,7 +1,7 @@
 {
     "name": "conjecto/ral",
     "type": "library",
-    "description": "The Devyn Semantic framework",
+    "description": "The RAL Semantic framework",
     "keywords": ["framework"],
     "homepage": "http://conjecto.com",
     "license": "MIT",

@@ -31,7 +31,7 @@ class ResourcePropertyPathMapperTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->nsRegistry = $this->getMock('Devyn\Component\RdfNamespace\RdfNamespaceRegistry');
+        $this->nsRegistry = $this->getMock('Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry');
         $this->mapper = new ResourcePropertyPathMapper($this->nsRegistry);
     }
 

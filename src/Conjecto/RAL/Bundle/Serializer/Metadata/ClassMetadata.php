@@ -8,7 +8,7 @@ use Metadata\MergeableInterface;
 /**
  * Extend Serializer ClassMetadata to handle extra options
  *
- * @package Devyn\Bundle\RdfFrameworkBundle\Serializer\Metadata
+ * @package Conjecto\RAL\Bundle\Serializer\Metadata;
  */
 class ClassMetadata extends BaseClassMetadata
 {

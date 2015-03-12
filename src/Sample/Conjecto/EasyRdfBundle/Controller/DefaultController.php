@@ -2,7 +2,6 @@
 
 namespace Conjecto\EasyRdfBundle\Controller;
 
-//use Devyn\Bridge\EasyRdf\Resource\Resource;
 use Conjecto\EasyRdfBundle\Form\PersonType;
 use Conjecto\EasyRdfBundle\RdfResource\Person;
 use Conjecto\RAL\QueryBuilder\QueryBuilder;

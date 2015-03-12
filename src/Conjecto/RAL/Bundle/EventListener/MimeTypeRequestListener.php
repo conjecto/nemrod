@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
  * Class MimeTypeRequestListener
- * @package Devyn\Bundle\RdfFrameworkBundle\EventListener
+ * @package Conjecto\RAL\Bundle\EventListener
  */
 class MimeTypeRequestListener
 {
