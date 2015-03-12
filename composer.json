@@ -15,7 +15,9 @@
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
         "easyrdf/easyrdf": "dev-master",
-		"ml/json-ld": "~1.0"
+		"ml/json-ld": "~1.0",
+        "jms/serializer": "0.17.*@dev",
+        "ruflin/elastica": "~1.4@dev"
     },
     "replace": {
 
