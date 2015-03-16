@@ -1,5 +1,5 @@
 <?php
-namespace Conjecto\RAL\Bundle\Serializer\Metadata\Driver;
+namespace Conjecto\RAL\JsonLDSerializer\Metadata\Driver;
 
 use Conjecto\RAL\Bundle\Serializer\Annotation\JsonLd;
 use Conjecto\RAL\Bundle\Serializer\Metadata\ClassMetadata;

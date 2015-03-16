@@ -1,5 +1,5 @@
 <?php
-namespace Conjecto\RAL\Bundle\Serializer\Metadata;
+namespace Conjecto\RAL\JsonLDSerializer\Metadata;
 
 use JMS\Serializer\Metadata\ClassMetadata as BaseClassMetadata;
 use JMS\Serializer\Exception\InvalidArgumentException;

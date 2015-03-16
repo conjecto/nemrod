@@ -32,16 +32,15 @@
         <parameter key="ral.elastica_populator.class">Conjecto\RAL\ElasticSearch\Populator</parameter>
         <parameter key="ral.elasticsearch_manager_event_subscriber.class">Conjecto\RAL\ElasticSearch\ManagerEventSubscriber</parameter>
 
-
-        <!-- -->
+        <!-- JsonLDSerializer -->
         <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
-        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Bundle\Loader\JsonLdFrameLoader</parameter>
-        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
+        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\JsonLDSerializer\Loader\JsonLdFrameLoader</parameter>
 
+        <!-- ParamConverter -->
+        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
     </parameters>
 
     <services>
-
         <!-- namespace  -->
         <service id="ral.namespace_registry" class="%ral.namespace_registry.class%">
             <tag name="kernel.event_listener" event="kernel.request" />
@@ -116,6 +115,8 @@
             <argument type="service" id="templating.name_parser" />
         </service>
         <service id="ral.jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
+
+        <!-- ParamConverter -->
         <service id="resource.param_converter" class="%ral.resource.param_convecter.class%">
             <tag name="request.param_converter" priority="1" converter="resource" />
             <argument type="service" id="service_container" />

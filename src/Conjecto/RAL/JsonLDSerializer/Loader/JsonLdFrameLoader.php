@@ -1,11 +1,15 @@
 <?php
 
-namespace Conjecto\RAL\Bundle\Loader;
+namespace Conjecto\RAL\JsonLDSerializer\Loader;
 
 use Symfony\Component\Config\FileLocatorInterface;
 use Symfony\Component\Templating\TemplateNameParserInterface;
 use Symfony\Component\Templating\TemplateReferenceInterface;
 
+/**
+ * FilesystemLoader extends the default Twig filesystem loader
+ * to work with the Symfony paths and jsonld frames references.
+ */
 class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 {
     protected $locator;
@@ -23,15 +27,24 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
         $this->locator = $locator;
         $this->parser = $parser;
-        $this->cache = array();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * The name parameter might also be a TemplateReferenceInterface.
+     */
+    public function exists($name)
+    {
+        return parent::exists((string) $name);
     }
 
     /**
      * Return the decoded frame
      */
-    public function load($name)
+    public function load($name, $assoc = true)
     {
-        return json_decode($this->getSource($name));
+        return json_decode($this->getSource($name), $assoc);
     }
 
     /**
@@ -60,7 +73,15 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         try {
             $file = parent::findTemplate($logicalName);
         } catch (\Twig_Error_Loader $e) {
-            // catch error ?
+            $previous = $e;
+
+            // for BC
+            try {
+                $template = $this->parser->parse($template);
+                $file = $this->locator->locate($template);
+            } catch (\Exception $e) {
+                $previous = $e;
+            }
         }
 
         if (false === $file || null === $file) {
