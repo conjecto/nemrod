@@ -13,6 +13,7 @@ use Conjecto\RAL\QueryBuilder\Internal\Hydratation\AbstractHydrator;
 use Conjecto\RAL\QueryBuilder\Internal\Hydratation\ArrayHydrator;
 use Conjecto\RAL\QueryBuilder\Internal\Hydratation\CollectionHydrator;
 use Conjecto\RAL\ResourceManager\Manager\Manager;
+use EasyRdf\Collection;
 use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;
 
@@ -249,6 +250,12 @@ class Query
             $this->result = $hydrator->hydrateResources($options);
         }
 
+        if ($this->result instanceof Collection) {
+            $this->rm->getUnitOfWork()->blackListCollection($this->result);
+            for ($cnt = 1 ; $cnt <= count($this->result); $cnt++) {
+                $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
+            }
+        }
         return $this->result;
     }
 

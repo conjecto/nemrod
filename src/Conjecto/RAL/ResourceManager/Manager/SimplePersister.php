@@ -117,9 +117,10 @@ class SimplePersister implements PersisterInterface
 
     /**
      * @param $uri
-     * @param array $delete
-     * @param array $insert
-     * @param array $where
+     * @param $delete
+     * @param $insert
+     * @param $where
+     * @return Graph|Result
      */
     public function update($uri, $delete, $insert, $where)
     {
@@ -153,7 +154,7 @@ class SimplePersister implements PersisterInterface
 
         $q = $qb->getQuery();
         //echo htmlspecialchars( $q->getSparqlQuery());
-        $result = $q->update();//$this->updateQuery("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");
+        $result = $q->update();
 
         return $result;
     }
@@ -366,10 +367,14 @@ class SimplePersister implements PersisterInterface
             $coll->append($re);
         }
 
-        $this->blackListCollection ($coll);
+        $this->_rm->blackListCollection ($coll);
 
         foreach ($res as $re) {
-            $this->_rm->getUnitOfWork()->registerResource($re);
+            if ($this->_rm->getUnitOfWork()->isManaged($re)) {
+                $this->_rm->getUnitOfWork()->replaceResourceInstance($re);
+            } else {
+                $this->_rm->getUnitOfWork()->registerResource($re);
+            }
         }
 
         return $coll;

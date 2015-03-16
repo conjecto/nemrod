@@ -288,7 +288,10 @@ class UnitOfWork {
             }
         }
 
-        $chSt = $this->diff($this->getSnapshotForResource($this->registeredResources), $this->mergeRdfPhp($concernedResources), array('correspondence' => $this->uriCorrespondances));
+        $chSt = $this->diff(
+            $this->getSnapshotForResource($this->registeredResources),
+            $this->mergeRdfPhp($concernedResources),
+            array('correspondence' => $this->uriCorrespondances));
 
         //triggering pre-flush event
         $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt)));
@@ -470,7 +473,7 @@ class UnitOfWork {
         $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
-
+            if ($this->isManagementBlackListed($resource)) {continue;}
             //bnodes are taken separately
             if (!empty($properties)) {
                 $index = (isset($options['correspondence'][$resource])) ? $options['correspondence'][$resource] : $resource ;
@@ -480,6 +483,7 @@ class UnitOfWork {
                     if (!empty($values)) {
                         foreach ($values as $value) {
                             //special case of a removed resource
+                            if ($this->isManagementBlackListed($value['value'])){echo 1234;continue; }
                             if (isset ($this->status[$resource]) && $this->status[$resource] == self::STATUS_REMOVED) {
                                 $tmpMinus[$index]['all'] = array() ;
                             }
@@ -515,6 +519,52 @@ class UnitOfWork {
     }
 
     /**
+     * Replaces an already managed resource instance with an
+     * @param \EasyRdf\Resource $resource1
+     * @param \EasyRdf\Resource $resource2
+     */
+    public function replaceResourceInstance($resource)
+    {
+        $resource1 = $this->retrieveResource($resource->getUri());
+        $uri1 = $resource1->getUri();
+        $uri2 = $resource->getUri();
+
+        if ($uri1 != $uri2) {
+            //@todo create appropriate exception
+            throw new \Exception("Resources do not match");
+        }
+$snc = $this->getSnapshotForResource(array($resource));
+        //we compute a diff over two resources (same as if we were to save changes to store)
+        $changeSet = $this->diff(
+            array($uri1 => $resource1->getGraph()->toRdfPhp()[$uri1]),
+            array($uri1 => $resource->getGraph()->toRdfPhp()[$uri1]),
+            array('correspondence' => $this->uriCorrespondances)
+        );
+
+//        echo $uri2;
+//        echo "<pre>";
+//        print_r(array($resource1->getGraph()->toRdfPhp()[$uri1]));
+//        echo "</pre>";
+//        echo "--";
+//        echo "<pre>";
+//        print_r(array($resource->getGraph()->toRdfPhp()[$uri1]));
+//        echo "</pre>";
+//        echo "ch :";
+//        echo "<pre>";
+//        print_r($changeSet);
+//
+//        echo "</pre>";
+//        echo "--------------------";
+        //1st element of array is the set of properties that are to be transfered to new instance
+        foreach($changeSet[0] as $properties){
+
+        }
+        //2nd element of array is the set of properties that are to be removed from new instance
+
+
+    }
+
+    /**
      * @param $object
      * @param $objectsList
      * @return boolean
@@ -522,6 +572,7 @@ class UnitOfWork {
     private function containsObject($object, $objectsList)
     {
         foreach($objectsList as $obj) {
+
             if ($obj['type'] == $object['type']){
                 if ($obj['type'] == 'uri') {
                     $objValue = ($this->_rm->getNamespaceRegistry()->shorten($obj['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($obj['value']) : $obj['value'] ;
@@ -545,17 +596,21 @@ class UnitOfWork {
      */
     private function getSnapshotForResource($resources)
     {
+        //var_dump($this->blackListedResources);die();
         $snapshot = array();
         foreach ($resources as $resource) {
-            if ($this->initialSnapshots->getSnapshot($resource)) {
-                $bigSnapshot = $this->initialSnapshots->getSnapshot($resource)->getGraph()->toRdfPhp();
+            $snap = $this->initialSnapshots->getSnapshot($resource);
+            if ($snap) {
+                $bigSnapshot = $snap->getGraph()->toRdfPhp();
 
                 $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
                 //getting snapshots also for blank nodes
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+
                     foreach ($values as $value) {
-                        if ($value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']])) {
+                        //var_dump($value);
+                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']])) {
                             $snapshot[$value['value']] = $bigSnapshot[$value['value']];
                         }
                     }
@@ -650,6 +705,29 @@ class UnitOfWork {
     public function isManaged(BaseResource $resource)
     {
         return (isset($this->registeredResources[$resource->getUri()]));
+    }
+
+    /**
+     * @param Collection $coll
+     */
+    public function blackListCollection($coll)
+    {
+        //going to first element.
+        $coll->rewind();
+        $ptr = $coll ;
+        $head = $ptr->get('rdf:first');
+        $next = $ptr->get('rdf:rest');
+
+        $this->managementBlackList($coll->getUri());
+        //putting all structure collection on a blacklist
+        while ($head) {
+            $this->managementBlackList($next->getUri());
+            $head = $next->get('rdf:first');
+            $next = $next->get('rdf:rest');
+        }
+
+        //and resetting pointer of collection
+        $coll->rewind();
     }
 
 }

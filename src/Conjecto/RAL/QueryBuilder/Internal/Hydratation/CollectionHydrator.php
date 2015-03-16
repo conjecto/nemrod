@@ -22,13 +22,14 @@ class CollectionHydrator extends AbstractHydrator
         $resources = $this->graph->allOfType($options['rdf:type']);
 
         $collectionUri = uniqid('collection:');
-        $this->rm->getUnitOfWork()->managementBlackList($collectionUri);
+
         $collection = new Collection($collectionUri, $this->graph);
 
         //building collection
         foreach ($resources as $resource) {
             $collection->append($resource);
         }
+        $this->rm->getUnitOfWork()->blackListCollection($collection);
 
         foreach ($resources as $resource) {
             $this->rm->getUnitOfWork()->registerResource($resource);
