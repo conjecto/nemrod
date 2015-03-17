@@ -16,12 +16,12 @@
         "symfony/symfony": "~2.3",
         "easyrdf/easyrdf": "dev-master",
 		"ml/json-ld": "~1.0",
-        "jms/serializer": "0.17.*@dev",
-        "ruflin/elastica": "~1.4@dev",
+        "jms/serializer": "~0.16",
+        "ruflin/elastica": "~1.4.3",
 
-        "jms/serializer-bundle": "~0.13@dev",
-        "sensio/framework-extra-bundle": "~3.0@dev",
-        "doctrine/orm": "~2.5@dev"
+        "jms/serializer-bundle": "~0.13",
+        "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
+        "doctrine/orm": "~2.2,>=2.2.3,<2.5"
     },
     "replace": {
 
