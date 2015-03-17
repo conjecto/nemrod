@@ -367,7 +367,7 @@ class SimplePersister implements PersisterInterface
             $coll->append($re);
         }
 
-        $this->_rm->blackListCollection ($coll);
+        $this->_rm->getUnitOfWork()->blackListCollection ($coll);
 
         foreach ($res as $re) {
             if ($this->_rm->getUnitOfWork()->isManaged($re)) {
@@ -383,7 +383,7 @@ class SimplePersister implements PersisterInterface
     /**
      * @param Collection $coll
      */
-    private function blackListCollection(Collection $coll)
+    public function blackListCollection(Collection $coll)
     {
         //going to first element.
         $coll->rewind();

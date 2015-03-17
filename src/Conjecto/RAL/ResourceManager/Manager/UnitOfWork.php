@@ -288,10 +288,7 @@ class UnitOfWork {
             }
         }
 
-        $chSt = $this->diff(
-            $this->getSnapshotForResource($this->registeredResources),
-            $this->mergeRdfPhp($concernedResources),
-            array('correspondence' => $this->uriCorrespondances));
+        $chSt = $this->getChangeSet($concernedResources);
 
         //triggering pre-flush event
         $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt)));
@@ -435,6 +432,7 @@ class UnitOfWork {
         /** @var Resource $resource */
         foreach ($resources as $resource) {
             $entries = $resource->getGraph()->toRdfPhp();
+
             if(!isset($merged[$resource->getUri()]) && isset($entries[$resource->getUri()])) {
                 $merged[$resource->getUri()] = $entries[$resource->getUri()];
             }
@@ -442,6 +440,19 @@ class UnitOfWork {
         }
 
         return $merged;
+    }
+
+    /**
+     * Computes and return changes for a set of resources
+     * @param $resource
+     * @return array
+     */
+    private function getChangeSet($resources)
+    {
+        return $this->diff(
+            $this->getSnapshotForResource($this->registeredResources),
+            $this->mergeRdfPhp($resources),
+            array('correspondence' => $this->uriCorrespondances));
     }
 
     /**
@@ -525,7 +536,11 @@ class UnitOfWork {
      */
     public function replaceResourceInstance($resource)
     {
+        /** @var BaseResource $resource1 */
         $resource1 = $this->retrieveResource($resource->getUri());
+
+        if (!$resource1) return null;
+
         $uri1 = $resource1->getUri();
         $uri2 = $resource->getUri();
 
@@ -533,35 +548,32 @@ class UnitOfWork {
             //@todo create appropriate exception
             throw new \Exception("Resources do not match");
         }
-$snc = $this->getSnapshotForResource(array($resource));
-        //we compute a diff over two resources (same as if we were to save changes to store)
+
+        //computing a diff over two resources (same as if we were to save changes to store)
         $changeSet = $this->diff(
-            array($uri1 => $resource1->getGraph()->toRdfPhp()[$uri1]),
-            array($uri1 => $resource->getGraph()->toRdfPhp()[$uri1]),
+            $this->getSnapshotForResource(array($resource)),
+            $this->mergeRdfPhp(array($resource1)),
             array('correspondence' => $this->uriCorrespondances)
         );
 
-//        echo $uri2;
-//        echo "<pre>";
-//        print_r(array($resource1->getGraph()->toRdfPhp()[$uri1]));
-//        echo "</pre>";
-//        echo "--";
-//        echo "<pre>";
-//        print_r(array($resource->getGraph()->toRdfPhp()[$uri1]));
-//        echo "</pre>";
-//        echo "ch :";
-//        echo "<pre>";
-//        print_r($changeSet);
-//
-//        echo "</pre>";
-//        echo "--------------------";
         //1st element of array is the set of properties that are to be transfered to new instance
-        foreach($changeSet[0] as $properties){
-
+        if (isset($changeSet[0][$uri1])) {
+            foreach ($changeSet[0][$uri1] as $property => $values) {
+                foreach ($values as $value) {
+                    $resource->delete($property, $value);
+                }
+            }
         }
+
         //2nd element of array is the set of properties that are to be removed from new instance
-
-
+        if (isset($changeSet[1][$uri1])) {
+            foreach ($changeSet[1][$uri1] as $property => $values) {
+                foreach ($values as $value) {
+                    $resource->add($property, $value['value']);
+                }
+            }
+        }
+        $this->registeredResources[$uri1] = $resource;
     }
 
     /**
@@ -596,7 +608,6 @@ $snc = $this->getSnapshotForResource(array($resource));
      */
     private function getSnapshotForResource($resources)
     {
-        //var_dump($this->blackListedResources);die();
         $snapshot = array();
         foreach ($resources as $resource) {
             $snap = $this->initialSnapshots->getSnapshot($resource);
@@ -609,7 +620,6 @@ $snc = $this->getSnapshotForResource(array($resource));
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
 
                     foreach ($values as $value) {
-                        //var_dump($value);
                         if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] == 'bnode' && isset ($bigSnapshot[$value['value']])) {
                             $snapshot[$value['value']] = $bigSnapshot[$value['value']];
                         }
@@ -631,6 +641,10 @@ $snc = $this->getSnapshotForResource(array($resource));
         $this->initialSnapshots->removeSnapshot($resource);
     }
 
+    /**
+     * Queries for all resources pointing to the current one, and declares resources.
+     * @param $resource
+     */
     private function removeUplinks($resource)
     {
         /** @var Graph $result */
@@ -648,7 +662,6 @@ $snc = $this->getSnapshotForResource(array($resource));
             foreach ($result->properties($re->getUri()) as $prop)
                 if ($prop != "rdf:type") $re->delete($prop);
         }
-        //var_dump($result);die();
     }
 
     /**

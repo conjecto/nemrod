@@ -128,13 +128,14 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function set($a, $b)
+    public function set($property, $value)
     {
         //resource: check if managed (for further save
-        if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            $this->_rm->persist($b);
+        if($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            $this->_rm->persist($value);
         }
-        $out = parent::set($a, $b);
+
+        $out = parent::set($property, $value);
 
         return $out ;
     }
@@ -154,13 +155,13 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function add($a, $b)
+    public function add($property, $value)
     {
         //resource: check if managed (for further save
-        if($b instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            $this->_rm->persist($b);
+        if($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            $this->_rm->persist($property);
         }
-        $out = parent::add($a, $b);
+        $out = parent::add($property, $value);
         return $out;
     }
 
