@@ -21,6 +21,6 @@ class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase {
         $serialized = $serializer->serialize($resource, '@namespace/frame.jsonld');
         $decoded = json_decode($serialized, true);
 
-        $this->assertEquals($resource->getUri(), $decoded['@graph'][0]['@id']);
+        $this->assertEquals($resource->get('foaf:name'), $decoded['@graph'][0]['foaf:name']);
     }
 }

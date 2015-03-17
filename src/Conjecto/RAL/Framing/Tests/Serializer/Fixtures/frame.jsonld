@@ -1,3 +1,5 @@
 {
-    "@explicit": true
+    "@explicit": true,
+    "@type": {},
+    "foaf:name": {}
 }
