@@ -59,7 +59,9 @@ class RALExtension extends Extension
         $this->registerResourceManagers($config, $container);
 
         //register elastica indexes and mappings
-        $this->registerElasticaIndexes($config, $container);
+        if(isset($config['elasticsearch'])) {
+            $this->registerElasticaIndexes($config, $container);
+        }
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
@@ -187,7 +189,6 @@ class RALExtension extends Extension
      */
     public function registerElasticaIndexes(array $config, ContainerBuilder $container)
     {
-
         foreach ($config['elasticsearch']['clients'] as $name => $client) {
             $container
                 ->setDefinition('ral.elasticsearch_client.' . $name, new DefinitionDecorator('ral.elasticsearch_client'))

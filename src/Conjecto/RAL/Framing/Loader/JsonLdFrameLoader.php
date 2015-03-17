@@ -17,7 +17,11 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
      */
     public function load($name, $assoc = true)
     {
-        return json_decode($this->getSource($name), $assoc);
+        $decoded = json_decode($this->getSource($name), $assoc);
+        if($decoded === null) {
+            throw new \Twig_Error_Loader(sprintf('Unable to decode frame "%s".', $name));
+        }
+        return $decoded;
     }
 
     /**

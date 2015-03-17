@@ -5,7 +5,7 @@ use Conjecto\RAL\ResourceManager\Manager\Manager;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 
-class ConstructedGraphProvider implements GraphProviderInterface
+class ConstructedGraphProvider extends SimpleGraphProvider
 {
     /**
      * @var Manager
@@ -29,18 +29,46 @@ class ConstructedGraphProvider implements GraphProviderInterface
      */
     public function getGraph(Resource $resource, $frame = null)
     {
-        $qb = $this->getQueryBuilder($frame);
-        $qb->bind("<".$resource->getUri().">", '?uri');
-        return $qb->getQuery()->execute();
+        if($frame && $this->getProperties($frame)) {
+            // if there is a qualified frame, build a new graph to integrate full
+            $qb = $this->getQueryBuilder($frame, $resource);
+            $qb->bind("<".$resource->getUri().">", '?uri');
+            return $qb->getQuery()->execute();
+        } else {
+            // else return resource graph
+            return parent::getGraph($resource, $frame);
+        }
+    }
+
+    /**
+     * Return properties from frame root
+     * @param array $frame
+     * @return array
+     */
+    protected function getProperties($frame)
+    {
+        $properties = array();
+        foreach($frame as $key => $val) {
+            if(substr($key, 0, 1) != '@') {
+                $properties[] = $key;
+            }
+        }
+        return $properties;
     }
 
     /**
      * @param $frame
      */
-    protected function getQueryBuilder($frame)
+    protected function getQueryBuilder($frame, $resource)
     {
-        $qb = clone $this->rm->getQueryBuilder();
+        $rm = $this->rm;
+        if($resource instanceof \Conjecto\RAL\ResourceManager\Resource\Resource) {
+            $rm = $resource->getRm();
+        }
+
+        $qb = clone $rm->getQueryBuilder();
         $qb->construct();
+        $properties = array();
         //add the construct part
 
         foreach ($frame as $prop => $val) {
@@ -61,10 +89,15 @@ class ConstructedGraphProvider implements GraphProviderInterface
             if (substr($prop, 0, 1) != '@' && is_array($val)) {
                 $uriChild = '?c' . (++$this->varCounter);
                 $qb->addConstruct('?uri ' . $prop . ' ' . $uriChild);
-                //$properties[] = $prop;
                 $qb->addUnion(array("", '?uri' . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChild)));
+                $properties[] = $prop;
             }
+        }
 
+        if(empty($frame['@explicit'])) {
+            $triple = '?uri' . ' ?w' . (++$this->varCounter) . ' ?w' . (++$this->varCounter);
+            $qb->andWhere($triple);
+            $qb->addConstruct($triple);
         }
 
         return $qb;
@@ -84,32 +117,24 @@ class ConstructedGraphProvider implements GraphProviderInterface
         }
         else {
             $stringedChild = $uriChild . ".";
-            $hasExplicit = false;
 
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild . " " . $uriChild . ' a ' . $val . " .";
+                    $stringedChild = $stringedChild . " " . $uriChild . ' a ' . $val ;
                     $qb->addConstruct($uriChild . ' a ' . $val);
                 }
-                else if ($prop === '@explicit' && $val === 'true') {
-                    $hasExplicit = true;
-                }
-                else if ($prop === '@embed') {
-
-                }
-                // @default @omitDefault @null @embed are not usefull
-                else{
-                    // union for optional trick
-                    if (is_array($val)) {
-                        $uriChildOfChild = '?c' . (++$this->varCounter);
-                        $stringedChild = $stringedChild . " {} UNION {" . $uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild) . "} ";
-                        $qb->addConstruct($uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild));
-                    }
+                // union for optional trick
+                if (substr($prop, 0, 1) != '@' && is_array($val)) {
+                    $uriChildOfChild = '?c' . (++$this->varCounter);
+                    $stringedChild = $stringedChild . " {} UNION {" . $uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild) . "} ";
+                    $qb->addConstruct($uriChild . ' ' . $prop . ' ' . $this->addChild($qb, $val, $uriChildOfChild));
                 }
             }
 
-            if (!$hasExplicit) {
-                $stringedChild = $stringedChild . " " . $uriChild . ' ?w' . (++$this->varCounter) . ' ?w' . (++$this->varCounter) . " .";
+            if(empty($child['@explicit'])) {
+                $triple = $uriChild . ' ?w' . (++$this->varCounter) . ' ?w' . (++$this->varCounter);
+                $stringedChild = $stringedChild . " . " .$triple;
+                $qb->addConstruct($triple);
             }
 
             return $stringedChild;
@@ -134,20 +159,9 @@ class ConstructedGraphProvider implements GraphProviderInterface
         $buildingUnion = '?s a ' . $frame['@type'];
 
         foreach ($frame as $prop => $val) {
-            if ($prop === '@type') {
-            }
-            else if ($prop === '@explicit' && $val === 'true') {
-
-            }
-            else if ($prop === '@embed' ) {
-
-            }
-            // @default @omitDefault @null are not usefull, @embed could be
-            else {
-                // union for optional trick
-                if (is_array($val) && count($val)) {
-                    $this->checkDeeper($uri, $type, $val, $buildingUnion . "; " . $prop);
-                }
+            // union for optional trick
+            if(substr($prop, 0, 1) != '@' && is_array($val) && count($val)) {
+                $this->checkDeeper($uri, $type, $val, $buildingUnion . "; " . $prop);
             }
         }
         return (count($this->onePossiblePlace))?"{ ".implode(" } UNION { ",$this->onePossiblePlace)." }":null;
@@ -167,18 +181,9 @@ class ConstructedGraphProvider implements GraphProviderInterface
                     $this->onePossiblePlace[] = $buildingUnion . " " . $uri . " .";
                 }
             }
-            else if ($prop === '@explicit' && $val === 'true') {
-
-            }
-            else if ($prop === '@embed' ) {
-
-            }
-            // @default @omitDefault @null are not usefull, @embed could be
-            else {
-                // union for optional trick
-                if (is_array($val) && count($val)) {
-                    $this->checkDeeper($uri, $type, $val, $buildingUnion . "/" . $prop);
-                }
+            // union for optional trick
+            if (substr($prop, 0, 1) != '@' && is_array($val) && count($val)) {
+                $this->checkDeeper($uri, $type, $val, $buildingUnion . "/" . $prop);
             }
         }
     }

@@ -58,11 +58,10 @@ class JsonLdSerializer {
             $frame["@id"] = $resource->getUri();
         }
 
-        $options['frame'] = json_encode($frame, JSON_FORCE_OBJECT);
-
         // get the graph form the GraphProvider
-        $graph = $this->provider->getGraph($resource, $options['frame']);
+        $graph = $this->provider->getGraph($resource, $frame);
 
+        $options['frame'] = json_encode($frame, JSON_FORCE_OBJECT);
         return $graph->serialise("jsonld", $options);
     }
 
@@ -79,7 +78,7 @@ class JsonLdSerializer {
         if($frame) {
             $frame = $this->loader->load($frame);
         } else {
-            $frame = new \stdClass();
+            $frame = array();
         }
 
         // merge context from namespace registry

@@ -35,6 +35,7 @@
         <!-- Framing -->
         <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Framing\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="ral.jsonld.graph_provider.class">Conjecto\RAL\Framing\Provider\ConstructedGraphProvider</parameter>
         <parameter key="ral.jsonld.serializer.class">Conjecto\RAL\Framing\Serializer\JsonLdSerializer</parameter>
 
         <!-- ParamConverter -->
@@ -111,9 +112,17 @@
         </service>
 
         <!-- Framing -->
-        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false" />
+        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false"/>
         <service id="ral.jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
-        <service id="ral.jsonld.serializer" class="%ral.jsonld.serializer.class%" />
+        <service id="ral.jsonld.graph_provider" class="%ral.jsonld.graph_provider.class%" >
+            <argument type="service" id="rm" />
+        </service>
+        <service id="ral.jsonld.serializer" class="%ral.jsonld.serializer.class%">
+            <argument type="service" id="ral.namespace_registry" />
+            <argument type="service" id="ral.jsonld.frame.loader" />
+            <argument type="service" id="ral.jsonld.graph_provider" />
+        </service>
+
 
         <!-- ParamConverter -->
         <service id="resource.param_converter" class="%ral.resource.param_convecter.class%">
