@@ -19,7 +19,9 @@
         "jms/serializer": "0.17.*@dev",
         "ruflin/elastica": "~1.4@dev",
 
-        "jms/serializer-bundle": "~0.13@dev"
+        "jms/serializer-bundle": "~0.13@dev",
+        "sensio/framework-extra-bundle": "~3.0@dev",
+        "doctrine/orm": "~2.5@dev"
     },
     "replace": {
 

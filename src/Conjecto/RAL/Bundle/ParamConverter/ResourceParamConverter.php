@@ -8,7 +8,6 @@
 
 namespace Conjecto\RAL\Bundle\ParamConverter;
 
-
 use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;

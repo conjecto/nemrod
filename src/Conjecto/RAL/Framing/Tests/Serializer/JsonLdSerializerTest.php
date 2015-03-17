@@ -7,7 +7,15 @@ use Conjecto\RAL\Framing\Serializer\JsonLdSerializer;
 use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Graph;
 
-class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase {
+/**
+ * Class JsonLdSerializerTest
+ * @package Conjecto\RAL\Framing\Tests\Loader
+ */
+class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase
+{
+    /**
+     * @throws \Twig_Error_Loader
+     */
     public function testSerialize() {
         $loader = new JsonLdFrameLoader();
         $loader->addPath(__DIR__.'/Fixtures', 'namespace');
