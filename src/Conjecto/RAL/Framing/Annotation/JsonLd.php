@@ -1,6 +1,6 @@
 <?php
 
-namespace Conjecto\RAL\JsonLDSerializer\Annotation;
+namespace Conjecto\RAL\Framing\Annotation;
 
 /**
  * Serializer JsonLd annotation

@@ -32,9 +32,10 @@
         <parameter key="ral.elastica_populator.class">Conjecto\RAL\ElasticSearch\Populator</parameter>
         <parameter key="ral.elasticsearch_manager_event_subscriber.class">Conjecto\RAL\ElasticSearch\ManagerEventSubscriber</parameter>
 
-        <!-- JsonLDSerializer -->
+        <!-- Framing -->
         <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
-        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\JsonLDSerializer\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Framing\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="ral.jsonld.serializer.class">Conjecto\RAL\Framing\Serializer\JsonLdSerializer</parameter>
 
         <!-- ParamConverter -->
         <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
@@ -109,12 +110,10 @@
             <argument type="service" id="service_container" />
         </service>
 
-        <!-- Serialization -->
-        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false">
-            <argument type="service" id="templating.locator" />
-            <argument type="service" id="templating.name_parser" />
-        </service>
+        <!-- Framing -->
+        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false" />
         <service id="ral.jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
+        <service id="ral.jsonld.serializer" class="%ral.jsonld.serializer.class%" />
 
         <!-- ParamConverter -->
         <service id="resource.param_converter" class="%ral.resource.param_convecter.class%">

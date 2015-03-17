@@ -1,6 +1,6 @@
 <?php
 
-namespace Conjecto\RAL\JsonLDSerializer\Loader;
+namespace Conjecto\RAL\Framing\Loader;
 
 use Symfony\Component\Config\FileLocatorInterface;
 use Symfony\Component\Templating\TemplateNameParserInterface;
@@ -12,33 +12,6 @@ use Symfony\Component\Templating\TemplateReferenceInterface;
  */
 class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 {
-    protected $locator;
-    protected $parser;
-
-    /**
-     * Constructor.
-     *
-     * @param FileLocatorInterface        $locator A FileLocatorInterface instance
-     * @param TemplateNameParserInterface $parser  A TemplateNameParserInterface instance
-     */
-    public function __construct(FileLocatorInterface $locator, TemplateNameParserInterface $parser)
-    {
-        parent::__construct(array());
-
-        $this->locator = $locator;
-        $this->parser = $parser;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * The name parameter might also be a TemplateReferenceInterface.
-     */
-    public function exists($name)
-    {
-        return parent::exists((string) $name);
-    }
-
     /**
      * Return the decoded frame
      */
@@ -70,21 +43,10 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
         $file = null;
         $previous = null;
+
         try {
             $file = parent::findTemplate($logicalName);
         } catch (\Twig_Error_Loader $e) {
-            $previous = $e;
-
-            // for BC
-            try {
-                $template = $this->parser->parse($template);
-                $file = $this->locator->locate($template);
-            } catch (\Exception $e) {
-                $previous = $e;
-            }
-        }
-
-        if (false === $file || null === $file) {
             throw new \Twig_Error_Loader(sprintf('Unable to find frame "%s".', $logicalName), -1, null, $previous);
         }
 

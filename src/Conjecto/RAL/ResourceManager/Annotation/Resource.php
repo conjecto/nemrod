@@ -1,6 +1,6 @@
 <?php
 
-namespace Conjecto\RAL\ResourceManager\Annotation\Rdf;
+namespace Conjecto\RAL\ResourceManager\Annotation;
 
 /**
  * @Annotation

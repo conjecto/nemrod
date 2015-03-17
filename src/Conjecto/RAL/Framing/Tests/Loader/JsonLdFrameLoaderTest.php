@@ -1,0 +1,24 @@
+<?php
+namespace Conjecto\RAL\Framing\Tests\Loader;
+
+use Conjecto\RAL\Framing\Loader\JsonLdFrameLoader;
+
+/**
+ * Class JsonLdFrameLoaderTest
+ * @package Conjecto\RAL\Framing\Tests\Loader
+ */
+class JsonLdFrameLoaderTest extends \PHPUnit_Framework_TestCase
+{
+    /**
+     * @throws \Twig_Error_Loader
+     */
+    public function testLoad() {
+        $loader = new JsonLdFrameLoader();
+        $loader->addPath(__DIR__.'/Fixtures', 'namespace');
+
+        $expected = array('@id' => "http://example.org/test#example");
+
+        // Twig-style
+        $this->assertEquals($expected, $loader->load('@namespace/frame.jsonld'));
+    }
+}

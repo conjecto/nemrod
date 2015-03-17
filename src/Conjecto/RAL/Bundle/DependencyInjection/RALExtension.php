@@ -251,6 +251,10 @@ class RALExtension extends Extension
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
         }
+
+        if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
+            $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
+        }
     }
 
     /**

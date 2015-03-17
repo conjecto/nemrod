@@ -6,7 +6,7 @@
  * Time: 11:55
  */
 
-namespace Conjecto\RAL\ResourceManager\Annotation\Rdf;
+namespace Conjecto\RAL\ResourceManager\Annotation;
 
 /**
  * @Annotation
@@ -23,4 +23,4 @@ final class Property {
     public $value;
 
     public $cascade = array();
-} 
+}
