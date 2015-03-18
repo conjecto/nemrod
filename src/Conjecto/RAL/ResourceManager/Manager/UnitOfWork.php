@@ -33,6 +33,14 @@ class UnitOfWork {
     const STATUS_TEMP = 4 ;
 
     /**
+     * List of status for
+     */
+    const STATUS_TRIPLE_UNKNOWN = "unknown";
+    const STATUS_TRIPLE_ADDED = "added";
+    const STATUS_TRIPLE_REMOVED = "removed";
+    const STATUS_TRIPLE_UNCHANGED = "unchanged";
+
+    /**
      * registered resources
      * @var  ArrayCollection $registeredResources
      */
@@ -288,7 +296,10 @@ class UnitOfWork {
             }
         }
 
-        $chSt = $this->getChangeSet($concernedResources);
+        $chSt = $this->diff(
+            $this->getSnapshotForResource($this->registeredResources),
+            $this->mergeRdfPhp($concernedResources),
+            array('correspondence' => $this->uriCorrespondances));
 
         //triggering pre-flush event
         $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt)));
@@ -443,19 +454,6 @@ class UnitOfWork {
     }
 
     /**
-     * Computes and return changes for a set of resources
-     * @param $resource
-     * @return array
-     */
-    private function getChangeSet($resources)
-    {
-        return $this->diff(
-            $this->getSnapshotForResource($this->registeredResources),
-            $this->mergeRdfPhp($resources),
-            array('correspondence' => $this->uriCorrespondances));
-    }
-
-    /**
      * Returns a pair of graphs consisting of (1st argument without content of 2nd argument, 2nd argument without
      * content of 1st argument)
      * @param $rdfArray1
@@ -536,10 +534,14 @@ class UnitOfWork {
      */
     public function replaceResourceInstance($resource)
     {
+        //@todo rework this.
+        return null;
+
         /** @var BaseResource $resource1 */
         $resource1 = $this->retrieveResource($resource->getUri());
 
-        if (!$resource1) return null;
+        if (!$resource1)
+            return null;
 
         $uri1 = $resource1->getUri();
         $uri2 = $resource->getUri();
@@ -557,10 +559,14 @@ class UnitOfWork {
         );
 
         //1st element of array is the set of properties that are to be transfered to new instance
+
+        echo "$uri1 s<pre>";print_r($this->getSnapshotForResource(array($resource)));echo "</pre>";
+        echo "$uri1 m<pre>";print_r($this->mergeRdfPhp(array($resource1)));echo "</pre>";
+        echo "$uri1<pre>";print_r($changeSet);echo "</pre>";
         if (isset($changeSet[0][$uri1])) {
             foreach ($changeSet[0][$uri1] as $property => $values) {
                 foreach ($values as $value) {
-                    $resource->delete($property, $value);
+                    $resource->delete($property, $value, false);
                 }
             }
         }
@@ -569,10 +575,13 @@ class UnitOfWork {
         if (isset($changeSet[1][$uri1])) {
             foreach ($changeSet[1][$uri1] as $property => $values) {
                 foreach ($values as $value) {
-                    $resource->add($property, $value['value']);
+                    $resource->add($property, $value, false);
                 }
             }
         }
+        /** @var \EasyRdf\Resource $old */
+        //$old = $this->registeredResources[$uri1];
+
         $this->registeredResources[$uri1] = $resource;
     }
 

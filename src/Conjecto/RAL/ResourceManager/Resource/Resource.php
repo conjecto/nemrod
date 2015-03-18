@@ -137,6 +137,11 @@ class Resource extends BaseResource
 
         $out = parent::set($property, $value);
 
+        $managed = $this->getManagedResource();
+        if ($managed !== $this) { echo "SET $property $value";die();
+            $managed->set($property, $value);
+        }
+
         return $out ;
     }
 
@@ -155,15 +160,36 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function add($property, $value)
+    public function add($property, $value, $propagate = true)
     {
         //resource: check if managed (for further save
         if($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
+        $managed = $this->getManagedResource();
+        if (($managed !== $this) && ($propagate) ) {
+            $managed->add($property, $value);
+        }
+
         return $out;
     }
+
+    /**
+     * @return int|void
+     */
+    public function delete($property, $value = null, $propagate = true)
+    {
+
+        $out = parent::delete($property, $value);
+        $managed = $this->getManagedResource();
+        if (($managed !== $this) && ($propagate)) {
+            $managed->delete($property, $value);
+        }
+
+        return $out;
+    }
+
 
     /**
      * @return Manager
@@ -192,6 +218,16 @@ class Resource extends BaseResource
             $rest = substr($path, $firstSep+1);
         }
         return array($first, $rest);
+    }
+
+    /**
+     *
+     */
+    public function getManagedResource()
+    {
+        if (!isset($this->_rm)) return $this;
+        $manResource = $this->_rm->getUnitOfWork()->retrieveResource($this->getUri());
+        return $manResource;
     }
 
 } 
