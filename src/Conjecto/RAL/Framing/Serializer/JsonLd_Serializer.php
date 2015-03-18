@@ -6,6 +6,9 @@ use Conjecto\RAL\Framing\Provider\GraphProviderInterface;
 use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Resource;
+use Metadata\MetadataFactory;
+use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
  * Class JsonLdSerializer
@@ -29,13 +32,29 @@ class JsonLdSerializer {
     protected $provider;
 
     /**
+     * @var MetadataFactory
+     */
+    protected $metadataFactory;
+
+    /**
+     * @var string
+     */
+    protected $frame;
+
+    /**
+     * @var array
+     */
+    protected $options = array();
+
+    /**
      * @param JsonLdFrameLoader $loader
      */
-    function __construct(RdfNamespaceRegistry $nsRegistry, JsonLdFrameLoader $loader, GraphProviderInterface $provider)
+    function __construct(RdfNamespaceRegistry $nsRegistry, JsonLdFrameLoader $loader, GraphProviderInterface $provider, MetadataFactory $metadataFactory)
     {
         $this->nsRegistry = $nsRegistry;
         $this->loader = $loader;
         $this->provider = $provider;
+        $this->metadataFactory = $metadataFactory;
     }
 
     /**
@@ -45,6 +64,16 @@ class JsonLdSerializer {
      */
     public function serialize($resource, $frame = null, $options = array())
     {
+        $frame = $frame ? $frame : $this->frame;
+        $options = $options ? $options : $this->options;
+
+        // if no frame provided try to find the default one in the resource metadata
+        if(!$frame) {
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
+            $frame = $metadata->getFrame();
+            $options = array_merge($metadata->getOptions(), $options);
+        }
+
         // load the frame
         $frame = $this->loadFrame($frame);
 
@@ -93,4 +122,24 @@ class JsonLdSerializer {
         return $frame;
     }
 
+    /**
+     * @param FilterControllerEvent $event
+     */
+    public function onKernelController(FilterControllerEvent $event) {
+        list($controller, $method) = $event->getController();
+        $classMetadata = $this->metadataFactory->getMetadataForClass(get_class($controller));
+        $methodMetadata = $classMetadata->methodMetadata[$method];
+
+        if($methodMetadata->frame) {
+            $this->frame = $methodMetadata->frame;
+        } elseif($classMetadata->frame) {
+            $this->frame = $classMetadata->frame;
+        }
+
+        if($methodMetadata->options) {
+            $this->options = $methodMetadata->options;
+        } elseif($classMetadata->options) {
+            $this->options = $classMetadata->options;
+        }
+    }
 }
