@@ -138,7 +138,7 @@ class Resource extends BaseResource
         $out = parent::set($property, $value);
 
         $managed = $this->getManagedResource();
-        if ($managed !== $this) { echo "SET $property $value";die();
+        if ($managed && ($managed !== $this)) {
             $managed->set($property, $value);
         }
 
@@ -168,7 +168,7 @@ class Resource extends BaseResource
         }
         $out = parent::add($property, $value);
         $managed = $this->getManagedResource();
-        if (($managed !== $this) && ($propagate) ) {
+        if (($managed) && ($managed !== $this) && ($propagate) ) {
             $managed->add($property, $value);
         }
 

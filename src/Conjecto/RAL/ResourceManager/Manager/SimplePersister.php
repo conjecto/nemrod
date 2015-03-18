@@ -167,7 +167,7 @@ class SimplePersister implements PersisterInterface
      * @internal param bool $asArray
      * @return Collection|void
      */
-    public function constructCollection(array $criteria, array $options)
+    public function constructSet(array $criteria, array $options, $hydrate = Query::HYDRATE_ARRAY)
     {
         //end statments for query (order by, etc)
         $queryFinal = "";
@@ -221,33 +221,51 @@ class SimplePersister implements PersisterInterface
             $qb->setMaxResults($options['limit']);
         }
 
-        $graph = $qb->getQuery()->execute();
+        $result = $qb->getQuery()->execute($hydrate, array('rdf:type' => $criteria['rdf:type']));
 
-        if (!$graph instanceof Graph) {
-            $graph = $this->resultToGraph($graph);
+        if ($result instanceof Result) {
+            $result = $this->resultToGraph($result);
         }
 
-        if ($this->isEmpty($graph)){
+        if ($this->isEmpty($result)){
             return null;
         }
 
-        $collection = null;
-
+        $output = null;
 
         //extraction of collection is done by unit of work
         if (!empty($criteria['rdf:type'])) {
-            if (is_array($criteria['rdf:type'])) {
-                $collection = $this->extractResources($graph, $criteria['rdf:type'][0]);
-            } else {
-                $collection = $this->extractResources($graph, $criteria['rdf:type']);
+            if ($hydrate == Query::HYDRATE_COLLECTION) {
+                if (is_array($criteria['rdf:type'])) {
+                    $rdfTtype = $criteria['rdf:type'][0];
+                } else {
+                    $rdfTtype = $criteria['rdf:type'];
+                }
+                $output = $this->extractResources($result, $rdfTtype);
+            } else if ($hydrate == Query::HYDRATE_ARRAY) {
+                foreach ($result as $re) {
+                    $this->declareResource($re);
+                }
+                $output = $result;
             }
-        } else {
-            return null;
         }
 
-        return $collection;
+        return $output;
     }
 
+    /**
+     * Declares a resource to unit of work. Either the resource is already managed, and the UOW performs an update, or
+     * the resource is not managed, and is registered.
+     * @param $resource
+     */
+    private function declareResource($resource)
+    {
+        if ($this->_rm->getUnitOfWork()->isManaged($resource)) {
+            $this->_rm->getUnitOfWork()->replaceResourceInstance($resource);
+        } else {
+            $this->_rm->getUnitOfWork()->registerResource($resource);
+        }
+    }
 
     /**
      * @param $criteria
@@ -370,11 +388,7 @@ class SimplePersister implements PersisterInterface
         $this->_rm->getUnitOfWork()->blackListCollection ($coll);
 
         foreach ($res as $re) {
-            if ($this->_rm->getUnitOfWork()->isManaged($re)) {
-                $this->_rm->getUnitOfWork()->replaceResourceInstance($re);
-            } else {
-                $this->_rm->getUnitOfWork()->registerResource($re);
-            }
+            $this->declareResource($re);
         }
 
         return $coll;

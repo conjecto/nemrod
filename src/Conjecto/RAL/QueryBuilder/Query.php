@@ -271,7 +271,6 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
-        //echo htmlspecialchars($this->completeSparqlQuery);
         $this->result = $this->rm->getClient()->update($this->completeSparqlQuery);
 
         $this->result = $this->resultToGraph($this->result);

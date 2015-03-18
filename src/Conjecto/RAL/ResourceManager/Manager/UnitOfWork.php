@@ -106,7 +106,7 @@ class UnitOfWork {
             if ($resource instanceof BaseResource) $resource->setRm($this->_rm);
 
             $this->registeredResources[$resource->getUri()] = $resource;
-            $this->initialSnapshots->takeSnapshot($resource);
+            if ($fromStore) $this->initialSnapshots->takeSnapshot($resource);
             return $resource;
         } else {
             //echo "registered<br />";
@@ -218,7 +218,7 @@ class UnitOfWork {
      */
     public function findBy(array $criteria, array $options)
     {
-        return $this->persister->constructCollection($criteria, $options);
+        return $this->persister->constructSet($criteria, $options);
     }
 
     public function dumpRegistered()

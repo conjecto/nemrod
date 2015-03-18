@@ -24,7 +24,7 @@ interface PersisterInterface
      * @param array $options
      * @return mixed
      */
-    public function constructCollection(array $criteria, array $options);
+    public function constructSet(array $criteria, array $options);
 
     public function constructBNode($owningUri, $property);
 
