@@ -51,7 +51,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             array_merge(array('namespaces' => array(
                 'foo' => array('uri' => 'http://purl.org/ontology/foo/'),
                 'bar' => array('uri' => 'http://www.w3.org/ns/bar#')
-            )), self::getBundleDefaultConfig()),
+            ),    'endpoints' => array
+
+            ()), self::getBundleDefaultConfig()),
             $config
         );
     }

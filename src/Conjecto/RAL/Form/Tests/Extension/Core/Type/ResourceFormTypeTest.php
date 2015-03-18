@@ -11,7 +11,8 @@
 
 namespace Conjecto\RAL\Form\Tests\Extension\Core\Type;
 
-use Symfony\Component\Form\Tests\Extension\Core\Type\BaseTypeTest;
+use Symfony\Component\Form\Test\TypeTestCase;
+//use Symfony\Component\Form\Tests\Extension\Core\Type\BaseTypeTest;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\CallbackTransformer;
@@ -19,10 +20,10 @@ use Symfony\Component\Form\Tests\Fixtures\Author;
 use Symfony\Component\Form\Tests\Fixtures\FixedDataTransformer;
 use Symfony\Component\Form\FormError;
 
-class FormTypeTest extends BaseTypeTest
+class FormTypeTest extends TypeTestCase
 {
     protected function getTestedType()
     {
-        return 'resource_form';
+        return 'form.type.resource_form';
     }
 }

@@ -19,13 +19,14 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         //have to manually register annotation
-        AnnotationRegistry::registerFile('../../../ResourceManager/Annotation/Rdf/Resource.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../../ResourceManager/Annotation/Rdf/Resource.php');
         $this->container = new ContainerBuilder();
         $this->container->setParameter('kernel.bundles', array('Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
+        $this->container->setParameter('kernel.root_dir', __DIR__."../../../");
         $this->extension = new RALExtension();
         $this->container->registerExtension($this->extension);
 
-        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'))));
+        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'),'elasticsearch' => array())));
 
     }
 
@@ -77,14 +78,15 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
                 'namespaces' => array(
                     'foo'    => 'http://purl.org/ontology/foo/',
                     'bar'    => 'http://www.w3.org/ns/bar#'
-                )
+                ),
+                'elasticsearch' => array()
             )
         );
 
-        $container = new ContainerBuilder();
-        $extension = new FrameworkExtension();
-        $extension->load($configs, $container);
-        $definition = $container->getDefinition('rdf.namespace.registry');
+        $extension = new RALExtension();
+        $extension->load($configs, $this->container);
+        $definition = $this->container->getDefinition('ral.namespace_registry');
+
         $this->assertEquals(array(
             array("set", array("foo", 'http://purl.org/ontology/foo/')),
             array("set", array("bar", 'http://www.w3.org/ns/bar#')),

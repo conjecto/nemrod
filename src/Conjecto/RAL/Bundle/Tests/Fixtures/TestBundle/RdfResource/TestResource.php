@@ -2,7 +2,7 @@
 namespace Conjecto\RAL\Bundle\Tests\Fixtures\TestBundle\RdfResource;
 
 use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
-use Conjecto\RAL\ResourceManager\Annotation\Resource;
+use Conjecto\RAL\ResourceManager\Annotation\Rdf\Resource;
 
 /**
  * Class ExampleResource

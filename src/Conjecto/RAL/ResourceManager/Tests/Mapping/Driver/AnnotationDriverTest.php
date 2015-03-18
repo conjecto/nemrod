@@ -9,10 +9,10 @@ class AnnotationDriverTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetAllClassNames()
     {
-        AnnotationRegistry::registerFile('../../../Annotation/Resource.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../../Annotation/Rdf/Resource.php');
 
         $reader = new AnnotationReader();
-        $driver = new AnnotationDriver($reader, array(__DIR__ . '/../../Fixtures/TestBundle/RdfResource'));
+        $driver = new AnnotationDriver($reader, array( "Conjecto\\RAL\\ResourceManager\\Tests\\Fixtures\\TestBundle" => __DIR__ . '/../../Fixtures/TestBundle/RdfResource'));
 
         $classes = $driver->getAllClassNames();
 

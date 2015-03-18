@@ -15,7 +15,8 @@ use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class DefaultController extends Controller
+class
+DefaultController extends Controller
 {
     /**
      * @Route("/all/", name="person.index")
@@ -65,7 +66,9 @@ class DefaultController extends Controller
      */
     public function viewAction(Request $request, $uri)
     {
-        $res = $this->container->get('rm')->getRepository('foaf:Person')->find($uri);
+        $res = $this->container->get('rm')->getRepository('ogbd:Genealogiste')->find($uri);
+
+        var_dump($res);
         if ($res == null) {
             return new Response('not found', 404);
         }
