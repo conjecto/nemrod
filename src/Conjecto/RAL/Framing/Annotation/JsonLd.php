@@ -6,7 +6,7 @@ namespace Conjecto\RAL\Framing\Annotation;
  * Serializer JsonLd annotation
  *
  * @Annotation
- * @Target("CLASS")
+ * @Target({"CLASS", "METHOD"})
  */
 class JsonLd
 {

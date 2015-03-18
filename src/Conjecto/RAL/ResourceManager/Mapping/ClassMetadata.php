@@ -1,6 +1,7 @@
 <?php
 namespace Conjecto\RAL\ResourceManager\Mapping;
 
+use Metadata\MergeableClassMetadata;
 use Metadata\MergeableInterface;
 
 /**

@@ -131,6 +131,7 @@
             <argument type="service" id="ral.jsonld.frame.loader" />
             <argument type="service" id="ral.jsonld.graph_provider" />
             <argument type="service" id="ral.jsonld.metadata_factory" />
+            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" />
         </service>
 
 

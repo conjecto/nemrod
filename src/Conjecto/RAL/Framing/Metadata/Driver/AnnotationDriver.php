@@ -2,9 +2,11 @@
 namespace Conjecto\RAL\Framing\Metadata\Driver;
 
 use Conjecto\RAL\Framing\Metadata\ClassMetadata;
+use Conjecto\RAL\Framing\Metadata\MethodMetadata;
 use Doctrine\Common\Annotations\Reader;
 use JMS\Serializer\Metadata\Driver\AnnotationDriver as BaseAnnotationDriver;
 use Metadata\Driver\DriverInterface;
+use Metadata\PropertyMetadata;
 
 /**
  * Extending AnnotationDriver to handle JsonLD options
@@ -40,6 +42,20 @@ class AnnotationDriver implements DriverInterface
             // options
             $classMetadata->setOptions($annotation->options);
         }
+
+        foreach ($class->getMethods() as $reflectionMethod) {
+            $methodMetadata = new MethodMetadata($class->getName(), $reflectionMethod->getName());
+            $annotation = $this->reader->getMethodAnnotation(
+              $reflectionMethod,
+              'Conjecto\\RAL\\Framing\\Annotation\\JsonLd'
+            );
+            if (null !== $annotation) {
+                $methodMetadata->setFrame($annotation->frame);
+                $methodMetadata->setOptions($annotation->options);
+            }
+            $classMetadata->addMethodMetadata($methodMetadata);
+        }
+
         return $classMetadata;
     }
 }
