@@ -1,17 +1,17 @@
 <?php
 namespace Conjecto\RAL\Framing\Metadata\Driver;
 
-use Conjecto\RAL\Bundle\Serializer\Annotation\JsonLd;
-use Conjecto\RAL\Bundle\Serializer\Metadata\ClassMetadata;
+use Conjecto\RAL\Framing\Metadata\ClassMetadata;
 use Doctrine\Common\Annotations\Reader;
 use JMS\Serializer\Metadata\Driver\AnnotationDriver as BaseAnnotationDriver;
+use Metadata\Driver\DriverInterface;
 
 /**
  * Extending AnnotationDriver to handle JsonLD options
  *
  * @package Conjecto\RAL\Bundle\Serializer\Metadata\Driver;
  */
-class AnnotationDriver extends BaseAnnotationDriver
+class AnnotationDriver implements DriverInterface
 {
     /**
      * @var Reader
@@ -23,7 +23,6 @@ class AnnotationDriver extends BaseAnnotationDriver
      */
     public function __construct(Reader $reader)
     {
-        parent::__construct($reader);
         $this->reader = $reader;
     }
 
@@ -33,22 +32,14 @@ class AnnotationDriver extends BaseAnnotationDriver
      */
     public function loadMetadataForClass(\ReflectionClass $class)
     {
-        // get the original metadata from the parent class
-        $parent = parent::loadMetadataForClass($class);
-
-        // create the new instance and unserialize from original
-        $classMetadata = new ClassMetadata($parent->name);
-        $classMetadata->unserializeFromParent($parent->serialize());
-
-        // process the new annotations
-        foreach ($this->reader->getClassAnnotations($class) as $annot) {
-            if ($annot instanceof JsonLd) {
-                $classMetadata->jsonLdFrame = $annot->frame;
-                $classMetadata->jsonLdCompact = $annot->compact;
-            }
+        $classMetadata = new ClassMetadata($class->getName());
+        $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\RAL\\Framing\\Annotation\\JsonLd');
+        if(null !== $annotation) {
+            // frame
+            $classMetadata->setFrame($annotation->frame);
+            // options
+            $classMetadata->setOptions($annotation->options);
         }
-
-        // return
         return $classMetadata;
     }
 }

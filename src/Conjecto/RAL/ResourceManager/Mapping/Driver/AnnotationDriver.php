@@ -7,7 +7,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnotationDriver;
 use Metadata\Driver\AdvancedDriverInterface;
-use Conjecto\RAL\ResourceManager\Annotation\Rdf\Property as RdfProperty;
+use Conjecto\RAL\ResourceManager\Annotation\Property as RdfProperty;
 
 /**
  * Class AnnotationDriver parses a bundle for
@@ -35,7 +35,6 @@ class AnnotationDriver implements AdvancedDriverInterface
         $this->dirs = $dirs;
     }
 
-
     /**
      * @param \ReflectionClass $class
      * @return \Metadata\ClassMetadata
@@ -43,37 +42,12 @@ class AnnotationDriver implements AdvancedDriverInterface
     public function loadMetadataForClass(\ReflectionClass $class)
     {
         $metadata = new ClassMetadata($class->getName());
-        $classAnnotations = $this->reader->getClassAnnotations($class);
 
-        if ($classAnnotations) {
-            foreach ($classAnnotations as $key => $annot) {
-                if ( ! is_numeric($key)) {
-                    continue;
-                }
-                $classAnnotations[get_class($annot)] = $annot;
-            }
-        }
-
-        //reads annotation for properties and pastes it
-        foreach ($class->getProperties() as $prop) {
-            $propertyAnnotations = $this->reader->getPropertyAnnotations($prop);
-            foreach($propertyAnnotations as $propAnnot) {
-                if ($propAnnot instanceof RdfProperty) {
-                    $propMetadata = new PropertyMetadata($class->getName(), $prop->getName());
-                    $propMetadata->value = $propAnnot->value;
-                    $propMetadata->cascade = $propAnnot->cascade;
-                    $metadata->addPropertyMetadata($propMetadata);
-                }
-            }
-        }
-
-        // Evaluate Resource annotation
-        if (isset($classAnnotations['Conjecto\RAL\ResourceManager\Annotation\Rdf\Resource'])) {
-
-            $resourceAnnot = $classAnnotations['Conjecto\RAL\ResourceManager\Annotation\Rdf\Resource'];
-
-            $types = $resourceAnnot->types;
-            $pattern = $resourceAnnot->uriPattern;
+        // Resource annotation
+        $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\RAL\\ResourceManager\\Annotation\\Resource');
+        if(null !== $annotation) {
+            $types = $annotation->types;
+            $pattern = $annotation->uriPattern;
             if(!is_array($types)) {
                 $types = array($types);
             }
@@ -81,6 +55,21 @@ class AnnotationDriver implements AdvancedDriverInterface
             $metadata->uriPattern = $pattern;
         }
 
+        foreach ($class->getProperties() as $reflectionProperty) {
+            $propMetadata = new PropertyMetadata($class->getName(), $reflectionProperty->getName());
+
+            // Property annotation
+            $annotation = $this->reader->getPropertyAnnotation(
+              $reflectionProperty,
+              'Conjecto\\RAL\\ResourceManager\\Annotation\\Property'
+            );
+            if(null !== $annotation) {
+                $propMetadata->value = $annotation->value;
+                $propMetadata->cascade = $annotation->cascade;
+            }
+
+            $metadata->addPropertyMetadata($propMetadata);
+        }
 
         return $metadata;
     }

@@ -16,7 +16,7 @@ class JsonLd
     public $frame = null;
 
     /**
-     * @var boolean
+     * @var array
      */
-    public $compact = true;
+    public $options = array();
 }

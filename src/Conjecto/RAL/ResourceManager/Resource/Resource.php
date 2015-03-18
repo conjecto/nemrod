@@ -6,8 +6,15 @@ use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
-class Resource extends BaseResource
+/**
+ * Class Resource
+ * @package Conjecto\RAL\ResourceManager\Resource
+ */
+class Resource extends BaseResource implements \ArrayAccess
 {
+    /**
+     *
+     */
     const PROPERTY_PATH_SEPARATOR = "/";
 
     /**
@@ -134,7 +141,6 @@ class Resource extends BaseResource
         if($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
-
         $out = parent::set($property, $value);
 
         $managed = $this->getManagedResource();
@@ -145,6 +151,10 @@ class Resource extends BaseResource
         return $out ;
     }
 
+    /**
+     * @param string $path
+     * @return array
+     */
     public function allResources($path)
     {
         $resources = parent::allResources($path);
@@ -207,7 +217,10 @@ class Resource extends BaseResource
         $this->_rm = $rm;
     }
 
-
+    /**
+     * @param $path
+     * @return array
+     */
     private function split($path) {
         $first = $path;
         $rest = "";
@@ -230,4 +243,65 @@ class Resource extends BaseResource
         return $manResource;
     }
 
-} 
+    /**
+     * (PHP 5 &gt;= 5.0.0)<br/>
+     * Whether a offset exists
+     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     * @param mixed $offset <p>
+     * An offset to check for.
+     * </p>
+     * @return boolean true on success or false on failure.
+     * </p>
+     * <p>
+     * The return value will be casted to boolean if non-boolean was returned.
+     */
+    public function offsetExists($offset)
+    {
+        return $this->hasProperty($offset);
+    }
+
+    /**
+     * (PHP 5 &gt;= 5.0.0)<br/>
+     * Offset to retrieve
+     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     * @param mixed $offset <p>
+     * The offset to retrieve.
+     * </p>
+     * @return mixed Can return all value types.
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * (PHP 5 &gt;= 5.0.0)<br/>
+     * Offset to set
+     * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     * @param mixed $offset <p>
+     * The offset to assign the value to.
+     * </p>
+     * @param mixed $value <p>
+     * The value to set.
+     * </p>
+     * @return void
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->set($offset, $value);
+    }
+
+    /**
+     * (PHP 5 &gt;= 5.0.0)<br/>
+     * Offset to unset
+     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     * @param mixed $offset <p>
+     * The offset to unset.
+     * </p>
+     * @return void
+     */
+    public function offsetUnset($offset)
+    {
+        $this->delete($offset);
+    }
+}

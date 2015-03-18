@@ -7,30 +7,28 @@
     <parameters>
         <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="ral.deserialization_visitor.class">Conjecto\RAL\Serializer\RdfDeserializationVisitor</parameter>
-        <parameter key="ral.serialization_visitor.jsonld.class">Conjecto\RAL\Serializer\JsonLdSerializationVisitor</parameter>
+        <parameter key="ral.serialization_visitor.jsonld.class">Conjecto\RAL\Framing\Serializer\JsonLdSerializationVisitor</parameter>
     </parameters>
 
-    <!--<services>-->
-        <!--&lt;!&ndash; JsonLD &ndash;&gt;-->
-        <!--<service id="ral.serialization_visitor.jsonld" class="%ral.serialization_visitor.jsonld.class%">-->
-            <!--<argument type="service" id="namespace_registry" />-->
-            <!--<argument type="service" id="ral.jsonld.frame.loader" />-->
-            <!--<tag name="jms_serializer.serialization_visitor" format="jsonld" />-->
-        <!--</service>-->
+    <services>
+        <!-- JsonLD -->
+        <service id="ral.serialization_visitor.jsonld" class="%ral.serialization_visitor.jsonld.class%">
+            <argument type="service" id="ral.jsonld.serializer" />
+            <tag name="jms_serializer.serialization_visitor" format="jsonld" />
+        </service>
 
-        <!--&lt;!&ndash; Ntriples &ndash;&gt;-->
-        <!--<service id="ral.serialization_visitor.n3" class="%ral.serialization_visitor.class%">-->
-            <!--<argument type="string">ntriples</argument>-->
-            <!--<tag name="jms_serializer.serialization_visitor" format="n3" />-->
-        <!--</service>-->
+        <!-- Ntriples -->
+        <service id="ral.serialization_visitor.n3" class="%ral.serialization_visitor.class%">
+            <argument type="string">ntriples</argument>
+            <tag name="jms_serializer.serialization_visitor" format="n3" />
+        </service>
 
-        <!--&lt;!&ndash; Turtle &ndash;&gt;-->
-        <!--<service id="ral.serialization_visitor.ttl" class="%ral.serialization_visitor.class%">-->
-            <!--<argument type="string">turtle</argument>-->
-            <!--<tag name="jms_serializer.serialization_visitor" format="ttl" />-->
-        <!--</service>-->
-
-    <!--</services>-->
+        <!-- Turtle -->
+        <service id="ral.serialization_visitor.ttl" class="%ral.serialization_visitor.class%">
+            <argument type="string">turtle</argument>
+            <tag name="jms_serializer.serialization_visitor" format="ttl" />
+        </service>
+    </services>
 </container>
 
 
