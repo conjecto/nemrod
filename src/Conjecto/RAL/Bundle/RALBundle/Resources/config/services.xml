@@ -27,7 +27,7 @@
         <parameter key="ral.jsonld.metadata_annotation_driver.class">Conjecto\RAL\Framing\Metadata\Driver\AnnotationDriver</parameter>
 
         <!-- ParamConverter -->
-        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\ParamConverter\ResourceParamConverter</parameter>
+        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\RALBundle\ParamConverter\ResourceParamConverter</parameter>
     </parameters>
 
     <services>
