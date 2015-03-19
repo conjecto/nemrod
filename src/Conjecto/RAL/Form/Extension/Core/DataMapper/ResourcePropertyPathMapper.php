@@ -11,7 +11,6 @@
 
 namespace Conjecto\RAL\Form\Extension\Core\DataMapper;
 
-use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\FormBuilder;
@@ -24,7 +23,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     /**
      * Maps properties of some data to a list of forms.
      *
-     * @param mixed $data Structured data.
+     * @param mixed           $data  Structured data.
      * @param FormInterface[] $forms A list of {@link FormInterface} instances.
      *
      * @throws Exception\UnexpectedTypeException if the type of the data parameter is not supported.
@@ -52,7 +51,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
      * Maps the data of a list of forms into the properties of some data.
      *
      * @param FormInterface[] $forms A list of {@link FormInterface} instances.
-     * @param mixed $data Structured data.
+     * @param mixed           $data  Structured data.
      *
      * @throws Exception\UnexpectedTypeException if the type of the data parameter is not supported.
      */
@@ -90,10 +89,12 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     }
 
     /**
-     * Get type value from resource
+     * Get type value from resource.
+     *
      * @param $objectOrArray
      * @param $propertyPath
      * @param FormBuilder $formConfig
+     *
      * @return array|string
      */
     public function getValue($objectOrArray, $propertyPath, FormBuilder $formConfig)
@@ -109,26 +110,27 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             throw new UnexpectedTypeException($propertyPath, 'string or Symfony\Component\PropertyAccess\PropertyPathInterface');
         }
 
-        $property = (string)$propertyPath;
+        $property = (string) $propertyPath;
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
-        }
-        else if($formConfig->getType()->getName() == 'collection') {
+        } elseif ($formConfig->getType()->getName() == 'collection') {
             $resources = $objectOrArray->all($property);
-        }
-        else {
+        } else {
             $resources = $objectOrArray->get($property);
         }
+
         return $this->getLiteralValues($resources);
     }
 
     /**
-     * Set type value to resource
+     * Set type value to resource.
+     *
      * @param $objectOrArray
      * @param $propertyPath
      * @param $formConfig
      * @param $value
+     *
      * @return mixed
      */
     public function setValue(&$objectOrArray, $propertyPath, $formConfig, $value)
@@ -139,15 +141,14 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         if (is_string($propertyPath)) {
             $propertyPath = new PropertyPath($propertyPath);
-
         } elseif (!$propertyPath instanceof PropertyPathInterface) {
             throw new UnexpectedTypeException($propertyPath, 'string or Symfony\Component\PropertyAccess\PropertyPathInterface');
         }
 
         //$objectOrArray = new \EasyRdf_Resource();
-        $property = (string)$propertyPath;
+        $property = (string) $propertyPath;
 
-        if(is_array($value) || $value instanceof \Traversable) {
+        if (is_array($value) || $value instanceof \Traversable) {
             $itemsToAdd = is_object($value) ? iterator_to_array($value) : $value;
             $itemToRemove = array();
             $previousValue = $objectOrArray->all($property);
@@ -175,6 +176,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             foreach ($itemsToAdd as $item) {
                 $objectOrArray->add($property, $item);
             }
+
             return;
         }
 
@@ -182,8 +184,10 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     }
 
     /**
-     * Replace type values by literal values if the type is a literal
+     * Replace type values by literal values if the type is a literal.
+     *
      * @param $resources
+     *
      * @return array|string
      */
     public function getLiteralValues($resources)
@@ -194,6 +198,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
                 foreach ($resources as $resource) {
                     $array[] = $this->getLiteralValue($resource);
                 }
+
                 return $array;
             } else {
                 return $this->getLiteralValue($resources);
@@ -203,6 +208,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
     /**
      * @param $resource
+     *
      * @return string
      */
     public function getLiteralValue($resource)

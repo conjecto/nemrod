@@ -2,9 +2,8 @@
 namespace Conjecto\EasyRdfBundle\Entity;
 
 /**
- * Person
- *
+ * Person.
  * */
-class Person {
-
-} 
+class Person
+{
+}

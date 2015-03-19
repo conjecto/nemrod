@@ -3,20 +3,17 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 19/02/2015
- * Time: 17:04
+ * Time: 17:04.
  */
 
 namespace Conjecto\RAL\ElasticSearch;
 
-use Conjecto\RAL\ElasticSearch\ResourceToDocumentTransformer;
 use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Conjecto\RAL\ResourceManager\Registry\TypeMapperRegistry;
-use Elastica\Document;
 use Elastica\Type;
 
 class Populator
 {
-
     /** @var  Manager */
     protected $resourceManager;
 
@@ -49,20 +46,20 @@ class Populator
     }
 
     /**
-     * Populates elastica index for a specific type
+     * Populates elastica index for a specific type.
+     *
      * @param $type
      */
     public function populate($type = null, $reset = true)
     {
         if ($type) {
-            $types = array ($type => $this->typeRegistry->getType($type));
+            $types = array($type => $this->typeRegistry->getType($type));
         } else {
             $types = $this->typeRegistry->getTypes();
         }
 
         /** @var Type $typ */
-        foreach($types as $key => $typ) {
-
+        foreach ($types as $key => $typ) {
             if ($reset) {
                 $this->resetter->reset($key);
             }
@@ -72,8 +69,8 @@ class Populator
 
             $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->typeMapperRegistry);
 
-            /** @var Resource $add */
-            foreach($result->resources() as $res ) {
+            /* @var Resource $add */
+            foreach ($result->resources() as $res) {
                 //echo $res->getUri();
                 //echo "DEBUT";
                 $doc = $trans->transform($res->getUri(), $key);

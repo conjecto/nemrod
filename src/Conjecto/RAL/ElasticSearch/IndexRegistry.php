@@ -3,8 +3,7 @@
 namespace Conjecto\RAL\ElasticSearch;
 
 /**
- * Class IndexRegistry
- * @package Conjecto\RAL\ElasticSearch
+ * Class IndexRegistry.
  */
 class IndexRegistry
 {
@@ -24,11 +23,13 @@ class IndexRegistry
 
     /**
      * @param $name
-     * @return null
      */
     public function getIndex($name)
     {
-        if (!isset($this->indexes[$name])) return null;
+        if (!isset($this->indexes[$name])) {
+            return;
+        }
+
         return $this->indexes[$name];
     }
-} 
+}

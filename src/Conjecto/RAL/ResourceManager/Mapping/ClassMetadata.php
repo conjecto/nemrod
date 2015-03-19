@@ -5,8 +5,7 @@ use Metadata\MergeableClassMetadata;
 use Metadata\MergeableInterface;
 
 /**
- * Class ClassMetadata
- * @package Conjecto\RAL\ResourceManager\Mapping
+ * Class ClassMetadata.
  */
 class ClassMetadata extends MergeableClassMetadata
 {
@@ -34,7 +33,8 @@ class ClassMetadata extends MergeableClassMetadata
     }
 
     /**
-     * Sets the uri patten for class
+     * Sets the uri patten for class.
+     *
      * @param $up
      */
     public function setUriPattern($up)
@@ -43,7 +43,8 @@ class ClassMetadata extends MergeableClassMetadata
     }
 
     /**
-     * Merge metadata
+     * Merge metadata.
+     *
      * @param MergeableInterface $object
      */
     public function merge(MergeableInterface $object)

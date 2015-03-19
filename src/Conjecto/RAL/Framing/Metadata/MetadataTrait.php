@@ -4,13 +4,15 @@ namespace Conjecto\RAL\Framing\Metadata;
 trait MetadataTrait
 {
     /**
-     * JsonLD : frame
+     * JsonLD : frame.
+     *
      * @var
      */
     public $frame;
 
     /**
-     * JsonLD : options
+     * JsonLD : options.
+     *
      * @var
      */
     public $options = array();
@@ -46,5 +48,4 @@ trait MetadataTrait
     {
         $this->options = $options;
     }
-
 }

@@ -3,15 +3,11 @@ namespace Conjecto\RAL\ResourceManager\Mapping\Driver;
 
 use Conjecto\RAL\ResourceManager\Mapping\ClassMetadata;
 use Conjecto\RAL\ResourceManager\Mapping\PropertyMetadata;
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver as AbstractAnnotationDriver;
 use Metadata\Driver\AdvancedDriverInterface;
-use Conjecto\RAL\ResourceManager\Annotation\Property as RdfProperty;
 
 /**
- * Class AnnotationDriver parses a bundle for
- * @package Conjecto\RAL\ResourceManager\Mapping\Driver
+ * Class AnnotationDriver parses a bundle for.
  */
 class AnnotationDriver implements AdvancedDriverInterface
 {
@@ -25,7 +21,6 @@ class AnnotationDriver implements AdvancedDriverInterface
      */
     private $reader;
 
-
     /**
      * @param Reader $reader
      */
@@ -37,6 +32,7 @@ class AnnotationDriver implements AdvancedDriverInterface
 
     /**
      * @param \ReflectionClass $class
+     *
      * @return \Metadata\ClassMetadata
      */
     public function loadMetadataForClass(\ReflectionClass $class)
@@ -45,10 +41,10 @@ class AnnotationDriver implements AdvancedDriverInterface
 
         // Resource annotation
         $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\RAL\\ResourceManager\\Annotation\\Resource');
-        if(null !== $annotation) {
+        if (null !== $annotation) {
             $types = $annotation->types;
             $pattern = $annotation->uriPattern;
-            if(!is_array($types)) {
+            if (!is_array($types)) {
                 $types = array($types);
             }
             $metadata->types = $types;
@@ -63,7 +59,7 @@ class AnnotationDriver implements AdvancedDriverInterface
               $reflectionProperty,
               'Conjecto\\RAL\\ResourceManager\\Annotation\\Property'
             );
-            if(null !== $annotation) {
+            if (null !== $annotation) {
                 $propMetadata->value = $annotation->value;
                 $propMetadata->cascade = $annotation->cascade;
             }
@@ -88,7 +84,6 @@ class AnnotationDriver implements AdvancedDriverInterface
             );
 
             foreach ($iterator as $file) {
-
                 if (($fileName = $file->getBasename('.php')) == $file->getBasename()) {
                     continue;
                 }

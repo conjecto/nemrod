@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 19/01/2015
- * Time: 12:41
+ * Time: 12:41.
  */
 
 namespace Conjecto\RAL\QueryBuilder;
-
 
 use Conjecto\RAL\QueryBuilder\Internal\Hydratation\AbstractHydrator;
 use Conjecto\RAL\QueryBuilder\Internal\Hydratation\ArrayHydrator;
@@ -18,18 +17,17 @@ use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;
 
 /**
- * Class Query
- * @package Conjecto\RAL\QueryBuilder
+ * Class Query.
  */
 class Query
 {
     /**
-     * Hydrates graph in an array
+     * Hydrates graph in an array.
      */
     const HYDRATE_ARRAY = 1;
 
     /**
-     * Hydrates a graph in a collection
+     * Hydrates a graph in a collection.
      */
     const HYDRATE_COLLECTION = 2;
 
@@ -44,13 +42,15 @@ class Query
     protected $state = self::STATE_DIRTY;
 
     /**
-     * query type
+     * query type.
+     *
      * @var int
      */
     protected $type = QueryBuilder::CONSTRUCT;
 
     /**
-     * Resource manager for easyrdf resources
+     * Resource manager for easyrdf resources.
+     *
      * @var Manager
      */
     protected $rm;
@@ -82,28 +82,28 @@ class Query
     protected $maxResults = null;
 
     /**
-     * Specifies an ordering for the query results
+     * Specifies an ordering for the query results.
      *
      * @var string
      */
     protected $orderBy = null;
 
     /**
-     * Parser used to verify the sparql query syntaxe
+     * Parser used to verify the sparql query syntaxe.
      *
      * @var Parser
      */
     protected $parser;
 
     /**
-     * Sparql query with limit, offset and orderBy
+     * Sparql query with limit, offset and orderBy.
      *
      * @var string
      */
     protected $completeSparqlQuery;
 
     /**
-     * Query result
+     * Query result.
      *
      * @var Result|Graph
      */
@@ -129,6 +129,7 @@ class Query
 
     /**
      * @param $maxResults
+     *
      * @return Query $this
      */
     public function setMaxResults($maxResults)
@@ -149,6 +150,7 @@ class Query
 
     /**
      * @param int $offset
+     *
      * @return Query
      */
     public function setOffset($offset)
@@ -169,6 +171,7 @@ class Query
 
     /**
      * @param $orderBy
+     *
      * @return Query $this
      */
     public function setOrderBy($orderBy)
@@ -180,7 +183,6 @@ class Query
     }
 
     /**
-     * @return null
      */
     public function getResult()
     {
@@ -197,6 +199,7 @@ class Query
 
     /**
      * @param $sparqlQuery
+     *
      * @return $this
      */
     public function setSparqlQuery($sparqlQuery)
@@ -229,10 +232,11 @@ class Query
     }
 
     /**
-     * Execute the query
+     * Execute the query.
      *
-     * @param null $hydratation
+     * @param null  $hydratation
      * @param array $options
+     *
      * @return Graph|Result|null
      */
     public function execute($hydratation = null, $options = array())
@@ -252,15 +256,16 @@ class Query
 
         if ($this->result instanceof Collection) {
             $this->rm->getUnitOfWork()->blackListCollection($this->result);
-            for ($cnt = 1 ; $cnt <= count($this->result); $cnt++) {
+            for ($cnt = 1; $cnt <= count($this->result); $cnt++) {
                 $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
             }
         }
+
         return $this->result;
     }
 
     /**
-     * Execute an update query
+     * Execute an update query.
      *
      * @return Graph|Result
      */
@@ -282,9 +287,9 @@ class Query
         return $this->result;
     }
 
-
     /**
      * @param $hydratation
+     *
      * @return AbstractHydrator
      */
     protected function newHydrator($hydratation)
@@ -297,13 +302,13 @@ class Query
                 return new ArrayHydrator($this);
                 break;
             default:
-                return null;
+                return;
                 break;
         }
     }
 
     /**
-     * Complete the query with orderBy, limit and offset
+     * Complete the query with orderBy, limit and offset.
      *
      * @return string
      */
@@ -312,25 +317,24 @@ class Query
         $sparqlQuery = $this->getSparqlQuery();
 
         if (!empty($this->orderBy)) {
-            $sparqlQuery .= $this->orderBy . ' ';
+            $sparqlQuery .= $this->orderBy.' ';
         }
 
         if ($this->type < QueryBuilder::INSERT) {
             if ($this->getOffset() >= 0) {
-                $sparqlQuery .= 'OFFSET ' . strval($this->getOffset()) . ' ';
+                $sparqlQuery .= 'OFFSET '.strval($this->getOffset()).' ';
             }
 
             if ($this->getMaxResults() > 0) {
-                $sparqlQuery .= 'LIMIT ' . strval($this->getMaxResults());
+                $sparqlQuery .= 'LIMIT '.strval($this->getMaxResults());
             }
         }
 
         return $sparqlQuery;
     }
 
-
     /**
-     * Reset the query
+     * Reset the query.
      */
     public function free()
     {
@@ -369,9 +373,9 @@ class Query
     }
 
     /**
-     * Check if the query has a hint
+     * Check if the query has a hint.
      *
-     * @param  string $name The name of the hint
+     * @param string $name The name of the hint
      *
      * @return bool False if the query does not have any hint
      */

@@ -3,13 +3,11 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 05/02/2015
- * Time: 12:07
+ * Time: 12:07.
  */
 
 namespace Conjecto\RAL\ElasticSearch;
 
-
-use Conjecto\RAL\ElasticSearch\TypeRegistry;
 use Conjecto\RAL\ResourceManager\Manager\Event\Events;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Serialiser\JsonLd;
@@ -40,7 +38,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     protected $changesRequests;
 
-    function __construct(ESCache $esCache, TypeRegistry $typeRegistry, Container $container)
+    public function __construct(ESCache $esCache, TypeRegistry $typeRegistry, Container $container)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
@@ -71,7 +69,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     {
         return array(
             Events::PreFlush => 'onPreFlush',
-            Events::PostFlush => 'onPostFlush'
+            Events::PostFlush => 'onPostFlush',
         );
     }
 
@@ -107,7 +105,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         $uris = '';
 
         foreach ($this->changesRequests as $uri => $infos) {
-            $uris .= ' <' . $uri . '>';
+            $uris .= ' <'.$uri.'>';
         }
 
         if (empty($uris)) {
@@ -133,9 +131,9 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
                 if ($index && $this->esCache->isTypeIndexed($index, $newType, $infos['properties'])) {
                     /**
-                     * @var Type $esType
+                     * @var Type
                      */
-                    $esType = $this->container->get('ral.elastica.type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
+                    $esType = $this->container->get('ral.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $newType));
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
                         $esType->addDocument($document);
@@ -150,9 +148,9 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     if ($index != null) {
                         $index = $index->getIndex()->getName();
                         /**
-                         * @var Type $esType
+                         * @var Type
                          */
-                        $esType = $this->container->get('ral.elastica.type.' . $index . '.' . $this->esCache->getTypeName($index, $oldType));
+                        $esType = $this->container->get('ral.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $oldType));
                         $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
                     }
                 }

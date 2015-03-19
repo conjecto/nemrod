@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 15:49
+ * Time: 15:49.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;
@@ -33,7 +33,7 @@ class Union extends Base
     }
 
     protected $allowedClasses = array(
-        'Conjecto\\RAL\\QueryBuilder\\Expr\\GroupExpr'
+        'Conjecto\\RAL\\QueryBuilder\\Expr\\GroupExpr',
     );
 
     /**
@@ -43,4 +43,4 @@ class Union extends Base
     {
         return $this->parts;
     }
-} 
+}

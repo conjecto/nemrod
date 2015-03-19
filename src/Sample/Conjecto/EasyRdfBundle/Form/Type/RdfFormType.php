@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 20/01/2015
- * Time: 16:04
+ * Time: 16:04.
  */
 
 namespace Conjecto\EasyRdfBundle\Form\Type;
@@ -15,21 +15,20 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
- * Class RdfFormType
- * @package Test\FormBundle\Form
+ * Class RdfFormType.
  */
 class RdfFormType extends AbstractType
 {
     protected $rm;
 
-    function __construct(Manager $rm)
+    public function __construct(Manager $rm)
     {
         $this->rm = $rm;
     }
 
     /**
      * @param FormBuilderInterface $builder
-     * @param array $options
+     * @param array                $options
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -39,7 +38,7 @@ class RdfFormType extends AbstractType
             'label' => 'Connait',
             'expanded' => true,
             'multiple' => true,
-            'class' => 'Conjecto\EasyRdfBundle\RdfResource\Person'
+            'class' => 'Conjecto\EasyRdfBundle\RdfResource\Person',
         ]);
 
         $builder->add('foaf:knows', 'collection', [
@@ -73,4 +72,4 @@ class RdfFormType extends AbstractType
     {
         return 'resource_form';
     }
-} 
+}

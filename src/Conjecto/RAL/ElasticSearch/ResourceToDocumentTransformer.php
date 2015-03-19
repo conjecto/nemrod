@@ -3,13 +3,11 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 20/02/2015
- * Time: 14:51
+ * Time: 14:51.
  */
 
 namespace Conjecto\RAL\ElasticSearch;
 
-
-use Conjecto\RAL\ElasticSearch\TypeRegistry;
 use Conjecto\RAL\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
@@ -33,7 +31,7 @@ class ResourceToDocumentTransformer
      */
     protected $typeMapperRegistry;
 
-    function __construct(ESCache $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
+    public function __construct(ESCache $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
@@ -45,7 +43,7 @@ class ResourceToDocumentTransformer
         $qb = $this->esCache->getRm()->getQueryBuilder();
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
-            return null;
+            return;
         }
 
         $index = $index->getIndex()->getName();
@@ -55,7 +53,7 @@ class ResourceToDocumentTransformer
             $jsonLd = $jsonLdSerializer->serialise($graph, 'jsonld', ['context' => $this->esCache->getTypeContext($index, $type), 'frame' => $this->esCache->getTypeFrame($index, $type)]);
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
-                return null;
+                return;
             }
             $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
@@ -64,7 +62,7 @@ class ResourceToDocumentTransformer
             return new Document($uri, $json, $type, $index);
         }
 
-        return null;
+        return;
     }
 
     public function reverseTransform(Document $document)
@@ -75,7 +73,7 @@ class ResourceToDocumentTransformer
             $data = json_decode($data, true);
 
             if (!isset($data['@graph'][0])) {
-                return null;
+                return;
             }
 
             $data = json_encode($data['@graph'][0]);
@@ -90,11 +88,13 @@ class ResourceToDocumentTransformer
             $phpClass = $this->typeMapperRegistry->get($data['rdf:type']);
             if ($phpClass) {
                 $res = new $phpClass($uri, $graph);
+
                 return $res;
             }
+
             return new \Conjecto\RAL\ResourceManager\Resource\Resource($uri, $graph);
         }
 
-        return null;
+        return;
     }
 }

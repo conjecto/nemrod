@@ -3,17 +3,16 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 27/01/2015
- * Time: 16:36
+ * Time: 16:36.
  */
 
 namespace Conjecto\EasyRdfBundle\RdfResource;
 
-use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
 use Conjecto\RAL\ResourceManager\Annotation\Rdf; //Resource;
 
 /**
- * Class ExampleResource
- * @package Conjecto\EasyRdfBundle\RdfResource
+ * Class ExampleResource.
+ *
  * @Rdf\Resource(types={"foaf:Organization"})
  */
 class Organization
@@ -31,4 +30,4 @@ class Organization
     {
         parent::__construct($uri, $graph);
     }
-} 
+}

@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 26/01/2015
- * Time: 11:02
+ * Time: 11:02.
  */
 
 namespace Conjecto\RAL\QueryBuilder;
@@ -20,7 +20,7 @@ class RalQueryBuilderLoader
     protected $class;
 
     /**
-     * Construct an ORM Query Builder Loader
+     * Construct an ORM Query Builder Loader.
      *
      * @param QueryBuilder|\Closure $queryBuilder
      * @param Manager               $manager
@@ -53,8 +53,9 @@ class RalQueryBuilderLoader
     }
 
     /**
-     * @param null $hydratation
+     * @param null  $hydratation
      * @param array $options
+     *
      * @return Graph|\EasyRdf\Sparql\Result
      */
     public function getResources($hydratation = null, $options = array())

@@ -2,9 +2,6 @@
 namespace Conjecto\EasyRdfBundle\Model;
 
 use Doctrine\Common\ClassLoader;
-use Symfony\Component\ClassLoader\DebugUniversalClassLoader;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use EasyRdf;
 use Doctrine\Common\Annotations\FileCacheReader;
 
@@ -15,26 +12,25 @@ class ResourceManager
      */
     protected $annotationReader;
 
-
-
     /**
      * @var EasyRdf\Sparql\Client
      */
     protected $sparqlClient;
 
-    public function __construct($endPointUri = "none"){
+    public function __construct($endPointUri = "none")
+    {
         $this->sparqlClient = new EasyRdf\Sparql\Client($endPointUri);
     }
 
-    public function getResource($uri) {
+    public function getResource($uri)
+    {
         $result = $this->sparqlClient->query("CONSTRUCT {".$uri." ?p ?q} WHERE {".$uri." a <http://cobusiness.fr/ontologies/barter.owl.n3#User>; ?p ?q.}");
 
         $foaf = new EasyRdf\Graph();
 
-
         //building graph from results array.
         //@todo: a better way to do this ?
-        foreach ($result as $re){
+        foreach ($result as $re) {
             $foaf->add($re->s, $re->p, $re->o);
         }
 
@@ -44,15 +40,14 @@ class ResourceManager
         //ClassLoader
 
         //@todo place jsonld compacting / framing elsewhere
-        return $jsonldser->serialise($foaf,'jsonld', $options = array('compact' => true,'context'=> '{"@context": {"foaf":"http://xmlns.com/foaf/0.1/","cob":"http://cobusiness.fr/ontologies/barter.owl.n3#"}}' ));
-
+        return $jsonldser->serialise($foaf, 'jsonld', $options = array('compact' => true, 'context' => '{"@context": {"foaf":"http://xmlns.com/foaf/0.1/","cob":"http://cobusiness.fr/ontologies/barter.owl.n3#"}}' ));
     }
 
     /**
      *
      */
-    public function getMapping() {
-
+    public function getMapping()
+    {
     }
 
     /**
@@ -70,5 +65,4 @@ class ResourceManager
     {
         $this->annotationReader = $annotationReader;
     }
-
-} 
+}

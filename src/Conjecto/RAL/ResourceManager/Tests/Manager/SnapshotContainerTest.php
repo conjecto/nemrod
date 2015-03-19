@@ -3,22 +3,19 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 22/01/2015
- * Time: 14:05
+ * Time: 14:05.
  */
 
 namespace Conjecto\RAL\ResourceManager\Tests\Manager;
-
 
 use Conjecto\RAL\ResourceManager\Manager\SnapshotContainer;
 
 class SnapshotContainerTest extends ManagerTestCase
 {
-
     public function setUp()
     {
         parent::setUp();
     }
-
 
     public function testSnapshotIsTaken()
     {
@@ -40,7 +37,6 @@ class SnapshotContainerTest extends ManagerTestCase
         $ro = $spContainer->getSnapshot($res);
 
         $this->assertNull($ro);
-
     }
 
     public function testSnapshotIsRemoved()
@@ -52,5 +48,4 @@ class SnapshotContainerTest extends ManagerTestCase
     {
         $this->assertTrue(true);
     }
-
-} 
+}

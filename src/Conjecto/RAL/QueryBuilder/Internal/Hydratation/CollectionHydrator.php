@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 26/01/2015
- * Time: 14:18
+ * Time: 14:18.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Internal\Hydratation;
@@ -37,4 +37,4 @@ class CollectionHydrator extends AbstractHydrator
 
         return $collection;
     }
-} 
+}

@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 27/01/2015
- * Time: 10:15
+ * Time: 10:15.
  */
 
 namespace Conjecto\RAL\Bundle\RALBundle\ParamConverter;
@@ -18,8 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Find a rdf resource with parameters
- * Class ResourceParamConverter
- * @package Conjecto\RAL\Bundle\RALBundle\ParamConverter
+ * Class ResourceParamConverter.
  */
 class ResourceParamConverter implements ParamConverterInterface
 {
@@ -40,7 +39,7 @@ class ResourceParamConverter implements ParamConverterInterface
 
     /**
      * @param Container $container
-     * @param string $defaultResourceManager
+     * @param string    $defaultResourceManager
      */
     public function __construct(Container $container, $defaultResourceManager = 'rm')
     {
@@ -51,12 +50,12 @@ class ResourceParamConverter implements ParamConverterInterface
     /**
      * Stores the object in the request.
      *
-     * @param Request $request The request
+     * @param Request                $request       The request
      * @param ConfigurationInterface $configuration Contains the name, class and options of the object
      *
      * @return boolean True if the object has been successfully set, else false
      */
-    function apply(Request $request, ParamConverter $configuration)
+    public function apply(Request $request, ParamConverter $configuration)
     {
         $name    = $configuration->getName();
         $class   = $configuration->getClass();
@@ -88,11 +87,13 @@ class ResourceParamConverter implements ParamConverterInterface
     }
 
     /**
-     * Try to find a resource without using mapping options
+     * Try to find a resource without using mapping options.
+     *
      * @param $class
      * @param Request $request
      * @param $options
      * @param $name
+     *
      * @return bool
      */
     protected function find($class, Request $request, $options, $name)
@@ -117,10 +118,12 @@ class ResourceParamConverter implements ParamConverterInterface
     }
 
     /**
-     * Search if a uri is defined
+     * Search if a uri is defined.
+     *
      * @param Request $request
      * @param $options
      * @param $name
+     *
      * @return bool|mixed
      */
     protected function getIdentifier(Request $request, $options, $name)
@@ -158,10 +161,12 @@ class ResourceParamConverter implements ParamConverterInterface
     }
 
     /**
-     * Use mapping options to find a resource
+     * Use mapping options to find a resource.
+     *
      * @param $class
      * @param Request $request
      * @param $options
+     *
      * @return bool
      */
     protected function findOneBy($class, Request $request, $options)
@@ -182,7 +187,7 @@ class ResourceParamConverter implements ParamConverterInterface
         $criteria = array();
 
         foreach ($options['mapping'] as $attribute => $field) {
-            $criteria[$attribute] = '"' . $request->attributes->get($field) . '"';
+            $criteria[$attribute] = '"'.$request->attributes->get($field).'"';
         }
 
         if ($options['strip_null']) {
@@ -199,13 +204,13 @@ class ResourceParamConverter implements ParamConverterInterface
             $method = 'findBy';
         }
 
-
         //@todo findOneBy
         return $this->rm->getRepository($class)->$method($criteria)->offsetGet(1);
     }
 
     /**
      * @param ConfigurationInterface $configuration
+     *
      * @return array
      */
     protected function getOptions(ConfigurationInterface $configuration)
@@ -219,8 +224,10 @@ class ResourceParamConverter implements ParamConverterInterface
     }
 
     /**
-     * Get the specified resource manager or the default resource manager if no one is defined
+     * Get the specified resource manager or the default resource manager if no one is defined.
+     *
      * @param $name
+     *
      * @return object
      */
     private function getManager($name)
@@ -239,7 +246,7 @@ class ResourceParamConverter implements ParamConverterInterface
      *
      * @return boolean True if the object is supported, else false
      */
-    function supports(ParamConverter $configuration)
+    public function supports(ParamConverter $configuration)
     {
         if (!$configuration instanceof ParamConverter) {
             return false;

@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 19/02/2015
- * Time: 17:13
+ * Time: 17:13.
  */
 
 namespace Conjecto\RAL\Bundle\ElasticaBundle\Command;
@@ -36,4 +36,4 @@ class PopulatorCommand extends ContainerAwareCommand
 
         $this->getContainer()->get('ral.elastica.populator')->populate($type, $reset);
     }
-} 
+}

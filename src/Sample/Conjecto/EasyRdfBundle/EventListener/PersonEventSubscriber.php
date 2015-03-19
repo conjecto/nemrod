@@ -3,16 +3,16 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 05/02/2015
- * Time: 12:07
+ * Time: 12:07.
  */
 
 namespace Conjecto\EasyRdfBundle\EventListener;
 
-
 use Conjecto\RAL\ResourceManager\Manager\Event\Events;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class PersonEventSubscriber implements EventSubscriberInterface{
+class PersonEventSubscriber implements EventSubscriberInterface
+{
     /**
      * Returns an array of event names this subscriber wants to listen to.
      *
@@ -37,7 +37,7 @@ class PersonEventSubscriber implements EventSubscriberInterface{
     {
         return array(
             Events::PreFlush => 'onPreFlush',
-            Events::PostFlush => 'onPostFlush'
+            Events::PostFlush => 'onPostFlush',
         );
     }
 
@@ -59,5 +59,4 @@ class PersonEventSubscriber implements EventSubscriberInterface{
     {
         //var_dump($event->getUris());
     }
-
-} 
+}

@@ -3,22 +3,19 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 11/02/2015
- * Time: 10:20
+ * Time: 10:20.
  */
 
 namespace Conjecto\RAL\ResourceManager\Manager\Event;
-
 
 use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
- * Class ClearEvent
- * @package Conjecto\RAL\ResourceManager\Manager\Event
+ * Class ClearEvent.
  */
 class ClearEvent extends Event
 {
-
     /** @var  Manager */
     private $rm;
 
@@ -45,4 +42,4 @@ class ClearEvent extends Event
     {
         $this->rm = $rm;
     }
-} 
+}

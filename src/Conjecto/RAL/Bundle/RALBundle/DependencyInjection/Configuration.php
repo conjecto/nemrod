@@ -39,7 +39,7 @@ class Configuration implements ConfigurationInterface
                     ->prototype('array')
                         ->beforeNormalization()
                         ->ifString()
-                            ->then(function($v) { return array('uri'=> $v); })
+                            ->then(function ($v) { return array('uri' => $v); })
                         ->end()
                         ->children()
                             ->scalarNode('uri')->isRequired()->end()
@@ -61,7 +61,7 @@ class Configuration implements ConfigurationInterface
                     ->prototype('array')
                         ->beforeNormalization()
                         ->ifString()
-                            ->then(function($v) { return array('query_uri'=> $v); })
+                            ->then(function ($v) { return array('query_uri' => $v); })
                         ->end()
                         ->children()
                             ->scalarNode('query_uri')->isRequired()->end()
@@ -76,7 +76,8 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * Adds elasticsearch configuration part
+     * Adds elasticsearch configuration part.
+     *
      * @param ArrayNodeDefinition $rootNode
      */
     private function addElasticaSearchConfigurationSection(ArrayNodeDefinition $rootNode)
@@ -142,5 +143,4 @@ class Configuration implements ConfigurationInterface
 
         return $node;
     }
-
 }

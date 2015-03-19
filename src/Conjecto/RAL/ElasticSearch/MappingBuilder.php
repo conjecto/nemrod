@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 18/02/2015
- * Time: 15:17
+ * Time: 15:17.
  */
 
 namespace Conjecto\RAL\ElasticSearch;
@@ -13,8 +13,7 @@ use Elastica\Type;
 use Elastica\Type\Mapping;
 
 /**
- * Class MappingBuilder builds a mapping for a given type
- * @package Conjecto\RAL\ElasticSearch
+ * Class MappingBuilder builds a mapping for a given type.
  */
 class MappingBuilder
 {
@@ -36,12 +35,13 @@ class MappingBuilder
 
     /**
      * @param $type
+     *
      * @return array
+     *
      * @throws \Exception
      */
     public function buildMapping($type)
     {
-
         $mappingData = $this->configManager->getConfig($type, 'properties');
         if (!$mappingData) {
             throw new \Exception("no mapping for type");
@@ -53,7 +53,6 @@ class MappingBuilder
         try {
             $typeObj->delete();
         } catch (ResponseException $e) {
-
         }
 
         $typeObj->setMapping($mappingData);

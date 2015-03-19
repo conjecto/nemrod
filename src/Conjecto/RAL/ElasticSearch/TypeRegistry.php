@@ -3,8 +3,7 @@
 namespace Conjecto\RAL\ElasticSearch;
 
 /**
- * Class TypeRegistry stores and serves all known elastica types
- * @package Conjecto\RAL\ElasticSearch
+ * Class TypeRegistry stores and serves all known elastica types.
  */
 class TypeRegistry
 {
@@ -21,11 +20,13 @@ class TypeRegistry
 
     /**
      * @param $type
-     * @return null
      */
     public function getType($type)
     {
-        if (!isset($this->types[$type])) return null;
+        if (!isset($this->types[$type])) {
+            return;
+        }
+
         return $this->types[$type];
     }
 
@@ -36,4 +37,4 @@ class TypeRegistry
     {
         return $this->types;
     }
-} 
+}

@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 18/02/2015
- * Time: 17:15
+ * Time: 17:15.
  */
 
 namespace Conjecto\RAL\Bundle\ElasticaBundle\DependencyInjection\CompilerPass;
@@ -13,14 +13,13 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class ElasticaTypeRegistrationPass
- * @package Conjecto\RAL\Bundle\RALBundle\DependencyInjection\CompilerPass
+ * Class ElasticaTypeRegistrationPass.
  */
 class ElasticaTypeRegistrationPass implements CompilerPassInterface
 {
-
     /**
      * @param ContainerBuilder $container
+     *
      * @throws \InvalidArgumentException
      */
     public function process(ContainerBuilder $container)
@@ -34,14 +33,9 @@ class ElasticaTypeRegistrationPass implements CompilerPassInterface
         $typesSevices = $container->findTaggedServiceIds('ral.elastica.type');
 
         foreach ($typesSevices as $id => $tagAttributes) {
-
             foreach ($tagAttributes as $tagAttr) {
-
                 $definition->addMethodCall('registerType', array($tagAttr['type'], new Reference($id)));
             }
-
         }
     }
-
-
-} 
+}

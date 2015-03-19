@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 12:19
+ * Time: 12:19.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;
@@ -48,9 +48,9 @@ class Optional extends Base
     public function __toString()
     {
         if ($this->count() == 1) {
-            return $this->preSeparator . $this->parts[0] . $this->postSeparator;
+            return $this->preSeparator.$this->parts[0].$this->postSeparator;
         }
 
-        return $this->preSeparator . implode($this->separator, $this->parts) . $this->postSeparator;
+        return $this->preSeparator.implode($this->separator, $this->parts).$this->postSeparator;
     }
-} 
+}

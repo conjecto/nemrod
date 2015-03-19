@@ -6,18 +6,12 @@ use Conjecto\RAL\ResourceManager\Mapping\Driver\AnnotationDriver;
 use Conjecto\RAL\ResourceManager\Resource\Resource;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Component\Config\Resource\FileResource;
-use Symfony\Component\Config\Resource\DirectoryResource;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Validator\Validation;
 
 /**
  * FrameworkExtension.
@@ -29,6 +23,7 @@ class RALExtension extends Extension
      *
      * @param array            $configs
      * @param ContainerBuilder $container
+     *
      * @throws LogicException
      */
     public function load(array $configs, ContainerBuilder $container)
@@ -43,12 +38,12 @@ class RALExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         // namespaces
-        if(isset($config['namespaces'])) {
+        if (isset($config['namespaces'])) {
             $this->registerRdfNamespaces($config['namespaces'], $container);
         }
 
         // sparql endpoints
-        if(isset($config['endpoints'])) {
+        if (isset($config['endpoints'])) {
             $this->registerSparqlClients($config, $container);
         }
 
@@ -66,45 +61,47 @@ class RALExtension extends Extension
     }
 
     /**
-     * Load the namespaces in registry
+     * Load the namespaces in registry.
      *
-     * @param array $config
+     * @param array            $config
      * @param ContainerBuilder $container
      */
     private function registerRdfNamespaces(array $config, ContainerBuilder $container)
     {
         $registry = $container->getDefinition('ral.namespace_registry');
-        foreach($config as $prefix => $data) {
+        foreach ($config as $prefix => $data) {
             $registry->addMethodCall('set', array($prefix, $data['uri']));
         }
     }
 
     /**
-     * Register SPARQL clients
+     * Register SPARQL clients.
      */
     public function registerSparqlClients(array $config, ContainerBuilder $container)
     {
-        foreach($config['endpoints'] as $name => $endpoint) {
+        foreach ($config['endpoints'] as $name => $endpoint) {
             $container
               ->setDefinition('ral.sparql.connection.'.$name, new DefinitionDecorator('ral.sparql.connection'))
               ->setArguments(array(
                   $endpoint['query_uri'],
-                  isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null
+                  isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'ral.sparql.connection.'.$name);
-            if($name == $config["default_endpoint"])
+            if ($name == $config["default_endpoint"]) {
                 $container->setAlias('sparql', 'ral.sparql.connection.'.$name);
+            }
         }
     }
 
     /**
-     * Register resource managers (one per connection)
-     * @param array $config
+     * Register resource managers (one per connection).
+     *
+     * @param array            $config
      * @param ContainerBuilder $container
      */
     public function registerResourceManagers(array $config, ContainerBuilder $container)
     {
-        foreach($config['endpoints'] as $name => $endpoint) {
+        foreach ($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
             $container->setDefinition('ral.repository_factory.'.$name, new DefinitionDecorator('ral.repository_factory'))
@@ -118,7 +115,7 @@ class RALExtension extends Extension
             $evd->addTag('ral.event_dispatcher', array("endpoint" => $name));
 
             $rm = $container->setDefinition('ral.resource_manager.'.$name, new DefinitionDecorator('ral.resource_manager'));
-            $rm->setArguments(array(new Reference('ral.repository_factory.'.$name),$endpoint['query_uri']))
+            $rm->setArguments(array(new Reference('ral.repository_factory.'.$name), $endpoint['query_uri']))
                 //adding query builder
                 ->addMethodCall('setClient', array(new Reference('ral.sparql.connection.'.$name)))
                 //adding metadatfactory
@@ -130,14 +127,14 @@ class RALExtension extends Extension
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
             //setting main alias
-            if($name == $config["default_endpoint"]){
+            if ($name == $config["default_endpoint"]) {
                 $container->setAlias('rm', 'ral.resource_manager.'.$name);
             }
         }
     }
 
     /**
-     * Parses active bundles for resources to map
+     * Parses active bundles for resources to map.
      *
      * @param ContainerBuilder $container
      */
@@ -146,14 +143,14 @@ class RALExtension extends Extension
         $paths = array();
 
         // foreach bundle, get the rdf resource path
-        foreach ($container->getParameter('kernel.bundles') as $bundle=>$class) {
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             //@todo check mapping type (annotation is the only one used for now)
             // building resource dir path
             $refl = new \ReflectionClass($class);
             $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'] . '\\RdfResource\\';
+            $resourcePath = $path['dirname'].'\\RdfResource\\';
             //adding dir path to driver known pathes
-            if(is_dir($resourcePath)) {
+            if (is_dir($resourcePath)) {
                 $paths[$refl->getNamespaceName()] = $resourcePath;
             }
         }
@@ -168,17 +165,16 @@ class RALExtension extends Extension
 
         $classes = $driver->getAllClassNames();
 
-        foreach($classes as $class) {
+        foreach ($classes as $class) {
             $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
-            foreach($metadata->types as $type) {
+            foreach ($metadata->types as $type) {
                 $service->addMethodCall('set', array($type, $class));
             }
         }
     }
 
-
     /**
-     * Register jsonld frames paths for each bundle
+     * Register jsonld frames paths for each bundle.
      *
      * @return string
      */
@@ -204,7 +200,7 @@ class RALExtension extends Extension
     }
 
     /**
-     * Add a jsonld frame path
+     * Add a jsonld frame path.
      *
      * @param $jsonLdFilesystemLoaderDefinition
      * @param $dir

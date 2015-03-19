@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 15/01/2015
- * Time: 18:16
+ * Time: 18:16.
  */
 
 namespace Conjecto\EasyRdfBundle\Form\Type;
-
 
 use Conjecto\RAL\Form\Extension\Core\Type\ResourceFormType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,7 +15,7 @@ class AddressType extends ResourceFormType
 {
     /**
      * @param FormBuilderInterface $builder
-     * @param array $options
+     * @param array                $options
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -36,4 +35,4 @@ class AddressType extends ResourceFormType
     {
         return 'resource_form';
     }
-} 
+}

@@ -4,15 +4,15 @@ namespace Conjecto\RAL\Framing\Tests\Loader;
 use Conjecto\RAL\Framing\Loader\JsonLdFrameLoader;
 
 /**
- * Class JsonLdFrameLoaderTest
- * @package Conjecto\RAL\Framing\Tests\Loader
+ * Class JsonLdFrameLoaderTest.
  */
 class JsonLdFrameLoaderTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @throws \Twig_Error_Loader
      */
-    public function testLoad() {
+    public function testLoad()
+    {
         $loader = new JsonLdFrameLoader();
         $loader->addPath(__DIR__.'/Fixtures', 'namespace');
 

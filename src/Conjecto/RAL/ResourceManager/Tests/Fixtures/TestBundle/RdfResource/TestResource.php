@@ -5,11 +5,10 @@ use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
 use Conjecto\RAL\ResourceManager\Annotation\Rdf\Resource;
 
 /**
- * Class ExampleResource
- * @package Conjecto\EasyRdfBundle\RdfResource
+ * Class ExampleResource.
+ *
  * @Resource(types={"foo:Class"})
  */
 class TestResource extends BaseResource
 {
-
-} 
+}

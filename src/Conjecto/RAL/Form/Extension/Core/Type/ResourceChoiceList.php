@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 30/12/2014
- * Time: 11:05
+ * Time: 11:05.
  */
 
 namespace Conjecto\RAL\Form\Extension\Core\Type;
@@ -21,8 +21,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
  * A choice list presenting a list of Easy_Rdf_Resource as choices
- * Class ResourceChoiceList
- * @package Conjecto\RAL\Form\Extension\Core\Type
+ * Class ResourceChoiceList.
  */
 class ResourceChoiceList extends ObjectChoiceList
 {
@@ -57,14 +56,14 @@ class ResourceChoiceList extends ObjectChoiceList
 
     /**
      * @param array|\Traversable|string $rm
-     * @param TypeMapperRegistry $typeMapperRegistry
-     * @param array $choices
-     * @param null|string $class
-     * @param QueryBuilder|null $queryBuilder
-     * @param null $labelPath
-     * @param array $preferredChoices
-     * @param null $groupPath
-     * @param null $valuePath
+     * @param TypeMapperRegistry        $typeMapperRegistry
+     * @param array                     $choices
+     * @param null|string               $class
+     * @param QueryBuilder|null         $queryBuilder
+     * @param null                      $labelPath
+     * @param array                     $preferredChoices
+     * @param null                      $groupPath
+     * @param null                      $valuePath
      * @param PropertyAccessorInterface $propertyAccessor
      */
     public function __construct($rm, $choices, $class, $queryBuilder, $labelPath = null, array $preferredChoices = array(), $groupPath = null, $valuePath = null, PropertyAccessorInterface $propertyAccessor = null)
@@ -76,7 +75,7 @@ class ResourceChoiceList extends ObjectChoiceList
     }
 
     /**
-     * Returns the list of resources
+     * Returns the list of resources.
      *
      * @return array
      *
@@ -87,11 +86,12 @@ class ResourceChoiceList extends ObjectChoiceList
         if (!$this->loaded) {
             $this->load();
         }
+
         return parent::getChoices();
     }
 
     /**
-     * Returns the values for the resources
+     * Returns the values for the resources.
      *
      * @return array
      *
@@ -152,10 +152,12 @@ class ResourceChoiceList extends ObjectChoiceList
     public function getChoicesForValues(array $values)
     {
         $resources = array();
-        foreach($values as $uri) {
-            if (!empty($uri))
+        foreach ($values as $uri) {
+            if (!empty($uri)) {
                 $resources[] = new Resource($uri, null);
+            }
         }
+
         return $resources;
     }
 
@@ -172,8 +174,9 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $values = array();
         foreach ($resources as $resource) {
-            if (!$resource)
+            if (!$resource) {
                 continue;
+            }
             $values[] = $resource->getUri();
         }
 
@@ -256,11 +259,13 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $index = parent::fixIndex($index);
         $index = rtrim(base64_encode($index), "=");
+
         return $index;
     }
 
     /**
      * Loads the list with entities from repository.
+     *
      * @throws Exception
      * @throws \EasyRdf\Http\Exception
      */

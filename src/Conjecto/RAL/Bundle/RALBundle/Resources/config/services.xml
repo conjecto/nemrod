@@ -18,7 +18,7 @@
         <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
         <parameter key="ral.metadata_annotation_driver.class">Conjecto\RAL\ResourceManager\Mapping\Driver\AnnotationDriver</parameter>
 
-        <!-- -->
+        <!-- JsonLd Framing -->
         <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
         <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Framing\Loader\JsonLdFrameLoader</parameter>
         <parameter key="ral.jsonld.graph_provider.class">Conjecto\RAL\Framing\Provider\ConstructedGraphProvider</parameter>

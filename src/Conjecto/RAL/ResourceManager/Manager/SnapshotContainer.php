@@ -3,23 +3,20 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 21/01/2015
- * Time: 10:39
+ * Time: 10:39.
  */
 
 namespace Conjecto\RAL\ResourceManager\Manager;
-
 
 use Conjecto\RAL\ResourceManager\Resource\Resource as BaseResource;
 use EasyRdf\Graph;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
- * Class SnapshotContainer
- * @package Conjecto\RAL\ResourceManager\Manager
+ * Class SnapshotContainer.
  */
 class SnapshotContainer extends Graph
 {
-
     /** @var UnitOfWork */
     private $unitOfWork;
 
@@ -35,7 +32,9 @@ class SnapshotContainer extends Graph
 
     /**
      * Proceeds to a copy of resource provided as argument and stores it.
+     *
      * @param BaseResource $resource
+     *
      * @return BaseResource
      */
     public function takeSnapshot($resource)
@@ -45,7 +44,6 @@ class SnapshotContainer extends Graph
         $graph = $resource->getGraph();
 
         foreach ($graph->toRdfPhp() as $resource2 => $properties) {
-
             if ($resource2 != $res->getUri()) {
                 continue;
             }
@@ -54,7 +52,7 @@ class SnapshotContainer extends Graph
                     foreach ($values as $value) {
                         if ($value['type'] == 'bnode' || $value['type'] == 'uri') {
                             $this->addResource($resource2, $property, $value['value']);
-                        } else if ($value['type'] == 'literal') {
+                        } elseif ($value['type'] == 'literal') {
                             $this->addLiteral($resource2, $property, $value['value']);
                         } else {
                             //@todo check for addType
@@ -69,7 +67,9 @@ class SnapshotContainer extends Graph
 
     /**
      * @todo check for better way
+     *
      * @param BaseResource $resource
+     *
      * @return boolean
      */
     public function removeSnapshot(BaseResource $resource)
@@ -95,6 +95,7 @@ class SnapshotContainer extends Graph
 
     /**
      * @param BaseResource $resource
+     *
      * @return \EasyRdf\Resource
      */
     public function getSnapshot($resource)
@@ -105,9 +106,11 @@ class SnapshotContainer extends Graph
         try {
             $typ = $this->get($resource->getUri(), 'rdf:type');
 
-            if (!$typ) return null;
+            if (!$typ) {
+                return;
+            }
         } catch (Exception $e) {
-            return null;
+            return;
         }
 
         $res = $this->resource($resource->getUri());

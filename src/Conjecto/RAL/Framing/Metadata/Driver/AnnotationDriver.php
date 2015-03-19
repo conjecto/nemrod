@@ -4,14 +4,10 @@ namespace Conjecto\RAL\Framing\Metadata\Driver;
 use Conjecto\RAL\Framing\Metadata\ClassMetadata;
 use Conjecto\RAL\Framing\Metadata\MethodMetadata;
 use Doctrine\Common\Annotations\Reader;
-use JMS\Serializer\Metadata\Driver\AnnotationDriver as BaseAnnotationDriver;
 use Metadata\Driver\DriverInterface;
-use Metadata\PropertyMetadata;
 
 /**
- * Extending AnnotationDriver to handle JsonLD options
- *
- * @package Conjecto\RAL\Bundle\Serializer\Metadata\Driver;
+ * Extending AnnotationDriver to handle JsonLD options.
  */
 class AnnotationDriver implements DriverInterface
 {
@@ -30,13 +26,14 @@ class AnnotationDriver implements DriverInterface
 
     /**
      * @param \ReflectionClass $class
+     *
      * @return ClassMetadata
      */
     public function loadMetadataForClass(\ReflectionClass $class)
     {
         $classMetadata = new ClassMetadata($class->getName());
         $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\RAL\\Framing\\Annotation\\JsonLd');
-        if(null !== $annotation) {
+        if (null !== $annotation) {
             // frame
             $classMetadata->setFrame($annotation->frame);
             // options

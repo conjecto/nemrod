@@ -5,14 +5,14 @@ use EasyRdf\Graph;
 use EasyRdf\Resource;
 
 /**
- * Interface GraphProviderInterface
- * @package Conjecto\RAL\Framing\Provider
+ * Interface GraphProviderInterface.
  */
 interface GraphProviderInterface
 {
     /**
      * @param Resource $resource
-     * @param array $frame
+     * @param array    $frame
+     *
      * @return Graph
      */
     public function getGraph(Resource $resource, $frame = null);

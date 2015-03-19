@@ -1,25 +1,22 @@
 <?php
 
 namespace Conjecto\RAL\ResourceManager\Manager;
+
 use Conjecto\RAL\QueryBuilder\Query;
 use Conjecto\RAL\QueryBuilder\QueryBuilder;
 use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use Conjecto\RAL\ResourceManager\Resource\Resource;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyRdf\Sparql\Client;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Bridge\Monolog\Logger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-
 /**
- * Class ResourceManager
- * @package Conjecto\RAL\ResourceManager\Manager
+ * Class ResourceManager.
  */
 class Manager
 {
-
     /** @var Client */
     private $sparqlClient;
 
@@ -91,12 +88,16 @@ class Manager
 
     /**
      * @param null|string $className
+     *
      * @return mixed
      */
     public function getRepository($className = null)
     {
         $type = TypeMapper::get($className);
-        if (!$type) TypeMapper::set($className, "Conjecto\\RAL\\ResourceManager\\Resource\\Resource");
+        if (!$type) {
+            TypeMapper::set($className, "Conjecto\\RAL\\ResourceManager\\Resource\\Resource");
+        }
+
         return $this->repositoryFactory->getRepository($className, $this);
     }
 
@@ -118,7 +119,6 @@ class Manager
 
     /**
      * @return RdfNamespaceRegistry
-     *
      */
     public function getNamespaceRegistry()
     {
@@ -130,10 +130,11 @@ class Manager
      */
     public function getQueryBuilder()
     {
-        if($this->qb == null) {
+        if ($this->qb == null) {
             $this->qb = $this->createQueryBuilder();
         }
         $this->qb->reset();
+
         return $this->qb;
     }
 
@@ -164,6 +165,7 @@ class Manager
     /**
      * @param $className
      * @param $uri
+     *
      * @return mixed
      */
     public function find($className, $uri)
@@ -204,14 +206,16 @@ class Manager
 
     /**
      * @param string $sparqlQuery
+     *
      * @internal param string $dql
+     *
      * @return Query
      */
     public function createQuery($sparqlQuery = '')
     {
         $query = new Query($this);
 
-        if ( ! empty($sparqlQuery)) {
+        if (! empty($sparqlQuery)) {
             $query->setSparqlQuery($sparqlQuery);
         }
 
@@ -232,7 +236,7 @@ class Manager
     }
 
     /**
-     * calls Managers UnitOfWork commit function
+     * calls Managers UnitOfWork commit function.
      */
     public function flush()
     {
@@ -241,6 +245,7 @@ class Manager
 
     /**
      * @param Resource $resource
+     *
      * @return mixed
      */
     public function remove(Resource $resource)
@@ -249,8 +254,8 @@ class Manager
     }
 
     /**
-     *
      * @param $resource
+     *
      * @return boolean
      */
     public function isResource($resource)
@@ -276,6 +281,7 @@ class Manager
 
     /**
      * @param $type
+     *
      * @return \Metadata\ClassHierarchyMetadata|\Metadata\MergeableClassMetadata|null
      */
     public function getMetadata($type)
@@ -285,7 +291,8 @@ class Manager
         if ($class) {
             return $this->metadataFactory->getMetadataForClass($class);
         }
-        return null;
+
+        return;
     }
 
     /**
@@ -326,6 +333,7 @@ class Manager
     public function getRdfClass($phpClass)
     {
         $class = TypeMapper::get($phpClass);
+
         return $class;
     }
 }

@@ -5,16 +5,15 @@ use Metadata\MergeableClassMetadata;
 use Metadata\MergeableInterface;
 
 /**
- * Extend Serializer ClassMetadata to handle extra options
- *
- * @package Conjecto\RAL\Bundle\Serializer\Metadata;
+ * Extend Serializer ClassMetadata to handle extra options.
  */
 class ClassMetadata extends MergeableClassMetadata
 {
     use MetadataTrait;
 
     /**
-     * Merge metadata
+     * Merge metadata.
+     *
      * @param MergeableInterface $object
      */
     public function merge(MergeableInterface $object)

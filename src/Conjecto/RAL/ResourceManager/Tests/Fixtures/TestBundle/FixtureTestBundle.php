@@ -5,5 +5,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class FixtureTestBundle extends Bundle
 {
-
-} 
+}

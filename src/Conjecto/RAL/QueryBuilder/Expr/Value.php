@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 19/02/2015
- * Time: 10:40
+ * Time: 10:40.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;
@@ -29,7 +29,7 @@ class Value extends Base
 
     public function __construct($key, $value)
     {
-        parent::__construct($key  . ' { ' . $value . '}');
+        parent::__construct($key.' { '.$value.'}');
     }
 
     /**

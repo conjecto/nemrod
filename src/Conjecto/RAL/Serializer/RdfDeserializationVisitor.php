@@ -20,16 +20,14 @@ namespace Conjecto\RAL\Serializer;
 
 use JMS\Serializer\AbstractVisitor;
 use JMS\Serializer\Context;
-use JMS\Serializer\Exception\RuntimeException;
-use JMS\Serializer\GenericDeserializationVisitor;
 use JMS\Serializer\GraphNavigator;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
 use JMS\Serializer\scalar;
 
 /**
- * Class RdfDeserializationVisitor
- * @package Conjecto\RAL\Serializer
+ * Class RdfDeserializationVisitor.
+ *
  * @TODO
  */
 class RdfDeserializationVisitor extends AbstractVisitor
@@ -43,10 +41,8 @@ class RdfDeserializationVisitor extends AbstractVisitor
      * Called before the properties of the object are being visited.
      *
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
-     *
-     * @return void
+     * @param mixed         $data
+     * @param array         $type
      */
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
@@ -55,9 +51,7 @@ class RdfDeserializationVisitor extends AbstractVisitor
 
     /**
      * @param PropertyMetadata $metadata
-     * @param mixed $data
-     *
-     * @return void
+     * @param mixed            $data
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
@@ -134,8 +128,8 @@ class RdfDeserializationVisitor extends AbstractVisitor
      * Called after all properties of the object have been visited.
      *
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
+     * @param mixed         $data
+     * @param array         $type
      *
      * @return mixed
      */
@@ -148,8 +142,6 @@ class RdfDeserializationVisitor extends AbstractVisitor
      * Called before serialization/deserialization starts.
      *
      * @param GraphNavigator $navigator
-     *
-     * @return void
      */
     public function setNavigator(GraphNavigator $navigator)
     {
@@ -158,6 +150,7 @@ class RdfDeserializationVisitor extends AbstractVisitor
 
     /**
      * @deprecated use Context::getNavigator/Context::accept instead
+     *
      * @return GraphNavigator
      */
     public function getNavigator()
@@ -172,5 +165,4 @@ class RdfDeserializationVisitor extends AbstractVisitor
     {
         // nothing to do
     }
-
 }

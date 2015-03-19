@@ -13,22 +13,15 @@ namespace Conjecto\RAL\Form\Extension\Core\Type;
 
 use Conjecto\RAL\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\Extension\Core\EventListener\TrimListener;
-use Symfony\Component\Form\Extension\Core\DataMapper\PropertyPathMapper;
-use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
-use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
- * Class ResourceFormType
- * @package Symfony\Component\Form\Extension\Core\Type
+ * Class ResourceFormType.
  */
 class ResourceFormType extends FormType
 {
@@ -38,7 +31,7 @@ class ResourceFormType extends FormType
     protected $nsRegistry;
 
     /**
-     * @param RdfNamespaceRegistry $nsRegistry
+     * @param RdfNamespaceRegistry      $nsRegistry
      * @param PropertyAccessorInterface $propertyAccessor
      */
     public function __construct(RdfNamespaceRegistry $nsRegistry, PropertyAccessorInterface $propertyAccessor = null)
@@ -59,8 +52,10 @@ class ResourceFormType extends FormType
     }
 
     /**
-     * Guess the suffix URI for a new Resource with type name and type value
+     * Guess the suffix URI for a new Resource with type name and type value.
+     *
      * @param $all
+     *
      * @return string
      */
     public function findNameInForm($all)
@@ -71,17 +66,17 @@ class ResourceFormType extends FormType
         foreach ($all as $one) {
             if ($one->getName() == 'rdfs:label' || $one->getName() == 'foaf:name') {
                 $parentResourceName = $one->getParent()->getParent()->getName();
-                foreach ($this->nsRegistry->namespaces() as $key=>$namespace) {
+                foreach ($this->nsRegistry->namespaces() as $key => $namespace) {
                     if (strcmp($parentResourceName, $key) > 1) {
                         $parentResourceName = str_replace($key, '', $parentResourceName);
                         break;
                     }
                 }
-                return $parentResourceName . '-' . $one->getViewData();
-            }
-            else if ($first) {
+
+                return $parentResourceName.'-'.$one->getViewData();
+            } elseif ($first) {
                 $first = false;
-                $firstName = $one->getName() . '-' . $one->getViewData();
+                $firstName = $one->getName().'-'.$one->getViewData();
             }
         }
 
@@ -91,8 +86,10 @@ class ResourceFormType extends FormType
     /**
      * Set default_options
      * Set data_class to EasyRdf\Resource by default
-     * If a new item is added to a collection, a new resource is created
+     * If a new item is added to a collection, a new resource is created.
+     *
      * @todo change URI guessing
+     *
      * @param OptionsResolverInterface $resolver
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
@@ -101,7 +98,8 @@ class ResourceFormType extends FormType
             'data_class' => '\EasyRdf\Resource',
             'empty_data' => function (FormInterface $form) {
                 $parseUri = $form->getRoot()->getData()->parseUri();
-                $newUri = $parseUri->getScheme() . '://' . $parseUri->getAuthority() . '/#' .  $this->findNameInForm($form->all());
+                $newUri = $parseUri->getScheme().'://'.$parseUri->getAuthority().'/#'.$this->findNameInForm($form->all());
+
                 return new \EasyRdf\Resource($newUri, new \EasyRdf\Graph());
             },
         ));

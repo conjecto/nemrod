@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 15:17
+ * Time: 15:17.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;
-
 
 use Doctrine\ORM\Query\Expr\Base;
 
@@ -42,16 +41,13 @@ class OrderBy extends Base
     /**
      * @param string      $sort
      * @param string|null $order
-     *
-     * @return void
      */
     public function add($sort, $order = null)
     {
         if (strtoupper($order) != 'DESC') {
             $this->parts[] = $sort;
-        }
-        else {
-            $this->parts[] = 'DESC(' . $sort . ')';
+        } else {
+            $this->parts[] = 'DESC('.$sort.')';
         }
     }
 

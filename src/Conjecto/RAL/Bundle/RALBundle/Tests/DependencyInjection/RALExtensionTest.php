@@ -26,8 +26,7 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
         $this->extension = new RALExtension();
         $this->container->registerExtension($this->extension);
 
-        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'),'elasticsearch' => array())));
-
+        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'), 'elasticsearch' => array())));
     }
 
     protected function load($config)
@@ -40,7 +39,7 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('ral.namespace_registry');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array("set", array('foo','http://www.example.org/foo#')), $calls[0]);
+        $this->assertEquals(array("set", array('foo', 'http://www.example.org/foo#')), $calls[0]);
     }
 
     public function testExtensionRegisterClient()
@@ -64,12 +63,11 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('ral.type_mapper');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array("set",array('foo:Class','Conjecto\RAL\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')),$calls[0]);
+        $this->assertEquals(array("set", array('foo:Class', 'Conjecto\RAL\Bundle\RALBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')), $calls[0]);
     }
 
-
     /**
-     * Load namespaces in namespace registry
+     * Load namespaces in namespace registry.
      */
     public function testNamespaces()
     {
@@ -77,10 +75,10 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
             array(
                 'namespaces' => array(
                     'foo'    => 'http://purl.org/ontology/foo/',
-                    'bar'    => 'http://www.w3.org/ns/bar#'
+                    'bar'    => 'http://www.w3.org/ns/bar#',
                 ),
-                'elasticsearch' => array()
-            )
+                'elasticsearch' => array(),
+            ),
         );
 
         $extension = new RALExtension();
@@ -95,7 +93,6 @@ class RALExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function testResourceMapping()
     {
-
     }
 
     protected function tearDown()

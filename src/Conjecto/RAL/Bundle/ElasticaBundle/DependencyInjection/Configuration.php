@@ -27,7 +27,8 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * Adds elasticsearch configuration part
+     * Adds elasticsearch configuration part.
+     *
      * @param ArrayNodeDefinition $rootNode
      */
     private function addElasticaSearchConfigurationSection(ArrayNodeDefinition $rootNode)
@@ -91,5 +92,4 @@ class Configuration implements ConfigurationInterface
 
         return $node;
     }
-
 }

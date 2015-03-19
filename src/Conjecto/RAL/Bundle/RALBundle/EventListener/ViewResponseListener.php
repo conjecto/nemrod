@@ -3,15 +3,13 @@ namespace Conjecto\RAL\Bundle\RALBundle\EventListener;
 
 use FOS\RestBundle\View\View;
 use JMS\Serializer\SerializationContext;
-use Sensio\Bundle\FrameworkExtraBundle\EventListener\TemplateListener;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 
 /**
- * Class ViewResponseListener
- * @package Conjecto\RAL\Bundle\RALBundle\EventListener
+ * Class ViewResponseListener.
  */
 class ViewResponseListener
 {
@@ -38,7 +36,7 @@ class ViewResponseListener
      */
     public function onKernelController(FilterControllerEvent $event)
     {
-//        $request = $event->getRequest();
+        //        $request = $event->getRequest();
 //        $configuration = $request->attributes->get('_rdf_view');
         /*$request = $event->getRequest();
 
@@ -58,28 +56,28 @@ class ViewResponseListener
         $request = $event->getRequest();
         $configuration = $request->attributes->get('_rdf_view');
         $view = $event->getControllerResult();
-        if($configuration) {
+        if ($configuration) {
             $context = new SerializationContext();
 
             // set format from _format
             $format = $request->attributes->get('_format');
-            if(!$format) {
+            if (!$format) {
                 $format = 'jsonld';
             }
 
             // set format from configuration
-            if($configuration->getFormat()) {
+            if ($configuration->getFormat()) {
                 $format = $configuration->getFormat();
             }
 
             // set frame (jsonld)
-            if($configuration->getFrame()) {
+            if ($configuration->getFrame()) {
                 $frame = $configuration->getFrame();
                 $context->setAttribute('frame', $frame);
             }
 
             // set compact (jsonld)
-            if($configuration->isCompact()) {
+            if ($configuration->isCompact()) {
                 $compact = $configuration->isCompact();
                 $context->setAttribute('compact', $compact);
             }
@@ -95,8 +93,8 @@ class ViewResponseListener
 
             // set the response
             $event->setResponse($response);
+
             return;
         }
     }
-
 }

@@ -21,7 +21,6 @@ namespace Conjecto\RAL\Serializer;
 use JMS\Serializer\AbstractVisitor;
 use JMS\Serializer\Context;
 use JMS\Serializer\Exception\InvalidArgumentException;
-use JMS\Serializer\GenericSerializationVisitor;
 use JMS\Serializer\GraphNavigator;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
@@ -32,7 +31,7 @@ class RdfSerializationVisitor extends AbstractVisitor
 {
     /**
      * @var string
-    */
+     */
     protected $format;
 
     /**
@@ -47,7 +46,7 @@ class RdfSerializationVisitor extends AbstractVisitor
 
     /**
      * @param PropertyNamingStrategyInterface $format
-     * @param array $options
+     * @param array                           $options
      */
     public function __construct($format, $options = array())
     {
@@ -65,15 +64,15 @@ class RdfSerializationVisitor extends AbstractVisitor
 
     /**
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
-     * @param Context $context
+     * @param mixed         $data
+     * @param array         $type
+     * @param Context       $context
      */
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-        if($data instanceof \EasyRdf\Graph) {
+        if ($data instanceof \EasyRdf\Graph) {
             $this->graph = $data;
-        } elseif($data instanceof \EasyRdf\Resource) {
+        } elseif ($data instanceof \EasyRdf\Resource) {
             $this->graph = $data->getGraph();
         } else {
             throw new InvalidArgumentException('You must provide an EasyRdf Graph or Resource.');
@@ -148,9 +147,7 @@ class RdfSerializationVisitor extends AbstractVisitor
 
     /**
      * @param PropertyMetadata $metadata
-     * @param mixed $data
-     *
-     * @return void
+     * @param mixed            $data
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
@@ -161,8 +158,8 @@ class RdfSerializationVisitor extends AbstractVisitor
      * Called after all properties of the object have been visited.
      *
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
+     * @param mixed         $data
+     * @param array         $type
      *
      * @return mixed
      */
@@ -175,8 +172,6 @@ class RdfSerializationVisitor extends AbstractVisitor
      * Called before serialization/deserialization starts.
      *
      * @param GraphNavigator $navigator
-     *
-     * @return void
      */
     public function setNavigator(GraphNavigator $navigator)
     {
@@ -185,11 +180,11 @@ class RdfSerializationVisitor extends AbstractVisitor
 
     /**
      * @deprecated use Context::getNavigator/Context::accept instead
+     *
      * @return GraphNavigator
      */
     public function getNavigator()
     {
         // nothing to do
     }
-
 }

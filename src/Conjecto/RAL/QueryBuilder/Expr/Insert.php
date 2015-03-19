@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 12/01/2015
- * Time: 17:32
+ * Time: 17:32.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;
-
 
 use Doctrine\ORM\Query\Expr\Base;
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Auteur: Blaise de Carné - blaise@concretis.com
+ * Auteur: Blaise de Carné - blaise@concretis.com.
  */
 
 namespace Conjecto\RAL\Bundle\RALBundle\EventListener;
@@ -8,8 +8,7 @@ namespace Conjecto\RAL\Bundle\RALBundle\EventListener;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
- * Class MimeTypeRequestListener
- * @package Conjecto\RAL\Bundle\RALBundle\EventListener
+ * Class MimeTypeRequestListener.
  */
 class MimeTypeRequestListener
 {

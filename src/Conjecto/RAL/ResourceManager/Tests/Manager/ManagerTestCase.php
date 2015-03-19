@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 22/01/2015
- * Time: 14:18
+ * Time: 14:18.
  */
 
 namespace Conjecto\RAL\ResourceManager\Tests\Manager;
-
 
 class ManagerTestCase extends \PHPUnit_Framework_TestCase
 {
@@ -22,7 +21,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * mocks a resource
+     * mocks a resource.
      */
     protected function getMockedResource($className, $uri, $graph)
     {
@@ -31,17 +30,16 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
         $mockedResource->method('getUri')->willReturn($uri);
         $mockedResource->method('setRm')->willReturn(null);
         $mockedResource->method('getGraph')->willReturn($graph);
-        ;
 
         return $mockedResource;
     }
 
     /**
-     * sets graph for a mocked resource
+     * sets graph for a mocked resource.
      */
-    protected function getMockedGraph($class,$uri,$props = array())
+    protected function getMockedGraph($class, $uri, $props = array())
     {
-        $rdfphpgraph = array ($uri => array_merge($props, array ('rdf:type' => array(array ('type' => 'uri', 'value' => $class)))));
+        $rdfphpgraph = array($uri => array_merge($props, array('rdf:type' => array(array('type' => 'uri', 'value' => $class)))));
         $mockedGraph = $this->getMock('EasyRdf\Graph');
         $mockedGraph->expects($this->any())->method("toRdfPhp")->willReturn($rdfphpgraph);
 
@@ -53,11 +51,10 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function mockManager()
     {
-
-        $metadata = array (
-            'Foo\Bar\ResourceClass' => array ( 'type' => 'foo:Type', 'uriPattern' => ''),
-            'Foo\Bar\ResourceClass' => array ( 'type' => 'foo:Type', 'uriPattern' => ''),
-        ) ;
+        $metadata = array(
+            'Foo\Bar\ResourceClass' => array( 'type' => 'foo:Type', 'uriPattern' => ''),
+            'Foo\Bar\ResourceClass' => array( 'type' => 'foo:Type', 'uriPattern' => ''),
+        );
 
         return $this
             ->getMockBuilder('Conjecto\RAL\ResourceManager\Manager\Manager')
@@ -76,15 +73,16 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
 
     /**
      * @param $metadata
+     *
      * @return \PHPUnit_Framework_MockObject_MockObject
      */
     protected function mockMetadataFactory($metadata)
     {
         $mdf = $this->getMockBuilder('Conjecto\RAL\ResourceManager\Manager\ClassMetadataFactory')->setMethods(array('getMetaDataFor'))->getMock();
-        foreach ($metadata as $class=>$md) {
+        foreach ($metadata as $class => $md) {
             $mdf->expects($this->any())->method('getMetadataFor')->with($class)->willReturn($md);
         }
 
         return $mdf;
     }
-} 
+}

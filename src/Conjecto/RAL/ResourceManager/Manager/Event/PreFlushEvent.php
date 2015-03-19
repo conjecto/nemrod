@@ -3,21 +3,18 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 11/02/2015
- * Time: 11:46
+ * Time: 11:46.
  */
 
 namespace Conjecto\RAL\ResourceManager\Manager\Event;
 
-
 use Symfony\Component\EventDispatcher\Event;
 
 /**
- * Class PreFlushEvent
- * @package Conjecto\RAL\ResourceManager\Manager\Event
+ * Class PreFlushEvent.
  */
 class PreFlushEvent extends Event
 {
-
     protected $changes;
 
     /**
@@ -43,4 +40,4 @@ class PreFlushEvent extends Event
     {
         $this->changes = $changes;
     }
-} 
+}

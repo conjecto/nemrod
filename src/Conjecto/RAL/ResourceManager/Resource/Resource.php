@@ -7,8 +7,7 @@ use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
- * Class Resource
- * @package Conjecto\RAL\ResourceManager\Resource
+ * Class Resource.
  */
 class Resource extends BaseResource implements \ArrayAccess
 {
@@ -28,19 +27,18 @@ class Resource extends BaseResource implements \ArrayAccess
     public function __construct($uri = null, $graph = null)
     {
         $uri = ($uri == null) ? 'e:-1' : $uri;
+
         return parent::__construct($uri, $graph);
     }
 
-
     /** Get all values for a property
-     *
      * This method will return an empty array if the property does not exist.
      *
-     * @param  string  $property The name of the property (e.g. foaf:name)
-     * @param  string  $type     The type of value to filter by (e.g. literal)
-     * @param  string  $lang     The language to filter by (e.g. en)
+     * @param string $property The name of the property (e.g. foaf:name)
+     * @param string $type     The type of value to filter by (e.g. literal)
+     * @param string $lang     The language to filter by (e.g. en)
      *
-     * @return array             An array of values associated with the property
+     * @return array An array of values associated with the property
      */
     public function all($property, $type = null, $lang = null)
     {
@@ -52,10 +50,9 @@ class Resource extends BaseResource implements \ArrayAccess
             //@todo do this better.
             $llResult = array();
             foreach ($result as $res) {
-
                 if ($res instanceof Resource) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
-                } else if ($res instanceof BaseResource) {
+                } elseif ($res instanceof BaseResource) {
                     $nr = new Resource($res->getUri(), $res->getGraph());
                     $nr->setRm($this->_rm);
                     $llResult[] = $nr;
@@ -63,34 +60,35 @@ class Resource extends BaseResource implements \ArrayAccess
             }
 
             return $llResult;
-        } else if ($this->_rm->isResource($result)) {
+        } elseif ($this->_rm->isResource($result)) {
             try {
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                }else {
+                } else {
                     $re = $this->_rm->find(null, $result->getUri());
                 }
-                if (!empty($re)){
-                    if ($rest == ''){
+                if (!empty($re)) {
+                    if ($rest == '') {
                         return $re;
                     }
+
                     return $re->all($rest, $type, $lang);
                 }
-                return null;
-            } catch (Exception $e) {
-                return null;
-            }
 
+                return;
+            } catch (Exception $e) {
+                return;
+            }
         } else {
             return $result;
         }
     }
 
     /**
-     *
      * @param array|string $property
-     * @param null $type
-     * @param null $lang
+     * @param null         $type
+     * @param null         $lang
+     *
      * @return mixed|void
      */
     public function get($property, $type = null, $lang = null)
@@ -101,11 +99,12 @@ class Resource extends BaseResource implements \ArrayAccess
         $result = parent::get($first, $type, $lang);
 
         if (is_array($result)) {
-            if (count($result)){
+            if (count($result)) {
                 return $result[0];
             }
-            return null;
-        } else if ($result instanceof \EasyRdf\Resource) { //we get a resource
+
+            return;
+        } elseif ($result instanceof \EasyRdf\Resource) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -115,18 +114,18 @@ class Resource extends BaseResource implements \ArrayAccess
                     $re = $this->_rm->find(null, $result->getUri());
                 }
 
-                if (!empty($re)){
-                     if ($rest == ''){
-                         return $re;
-                     }
+                if (!empty($re)) {
+                    if ($rest == '') {
+                        return $re;
+                    }
                     //if rest of path is not empty, we get along it
                      return $re->get($rest, $type, $lang);
                 }
-                return null;
-            } catch (Exception $e) {
-                return null;
-            }
 
+                return;
+            } catch (Exception $e) {
+                return;
+            }
         } else { //result is a litteral
             return $result;
         }
@@ -138,7 +137,7 @@ class Resource extends BaseResource implements \ArrayAccess
     public function set($property, $value)
     {
         //resource: check if managed (for further save
-        if($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
@@ -148,11 +147,12 @@ class Resource extends BaseResource implements \ArrayAccess
             $managed->set($property, $value);
         }
 
-        return $out ;
+        return $out;
     }
 
     /**
      * @param string $path
+     *
      * @return array
      */
     public function allResources($path)
@@ -164,6 +164,7 @@ class Resource extends BaseResource implements \ArrayAccess
             $r->setRm($this->_rm);
             $nr[] = $r;
         }
+
         return $nr;
     }
 
@@ -173,12 +174,12 @@ class Resource extends BaseResource implements \ArrayAccess
     public function add($property, $value, $propagate = true)
     {
         //resource: check if managed (for further save
-        if($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
         $managed = $this->getManagedResource();
-        if (($managed) && ($managed !== $this) && ($propagate) ) {
+        if (($managed) && ($managed !== $this) && ($propagate)) {
             $managed->add($property, $value);
         }
 
@@ -190,7 +191,6 @@ class Resource extends BaseResource implements \ArrayAccess
      */
     public function delete($property, $value = null, $propagate = true)
     {
-
         $out = parent::delete($property, $value);
         $managed = $this->getManagedResource();
         if (($managed !== $this) && ($propagate)) {
@@ -199,7 +199,6 @@ class Resource extends BaseResource implements \ArrayAccess
 
         return $out;
     }
-
 
     /**
      * @return Manager
@@ -219,9 +218,11 @@ class Resource extends BaseResource implements \ArrayAccess
 
     /**
      * @param $path
+     *
      * @return array
      */
-    private function split($path) {
+    private function split($path)
+    {
         $first = $path;
         $rest = "";
         $firstSep = strpos($path, $this::PROPERTY_PATH_SEPARATOR);
@@ -230,6 +231,7 @@ class Resource extends BaseResource implements \ArrayAccess
             $first = substr($path, 0, $firstSep);
             $rest = substr($path, $firstSep+1);
         }
+
         return array($first, $rest);
     }
 
@@ -238,22 +240,28 @@ class Resource extends BaseResource implements \ArrayAccess
      */
     public function getManagedResource()
     {
-        if (!isset($this->_rm)) return $this;
+        if (!isset($this->_rm)) {
+            return $this;
+        }
         $manResource = $this->_rm->getUnitOfWork()->retrieveResource($this->getUri());
+
         return $manResource;
     }
 
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
-     * Whether a offset exists
+     * Whether a offset exists.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
      * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
+     *                      An offset to check for.
+     *                      </p>
+     *
      * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
+     *                 </p>
+     *                 <p>
+     *                 The return value will be casted to boolean if non-boolean was returned.
      */
     public function offsetExists($offset)
     {
@@ -262,11 +270,14 @@ class Resource extends BaseResource implements \ArrayAccess
 
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to retrieve
+     * Offset to retrieve.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     *
      * @param mixed $offset <p>
-     * The offset to retrieve.
-     * </p>
+     *                      The offset to retrieve.
+     *                      </p>
+     *
      * @return mixed Can return all value types.
      */
     public function offsetGet($offset)
@@ -276,15 +287,16 @@ class Resource extends BaseResource implements \ArrayAccess
 
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to set
+     * Offset to set.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     *
      * @param mixed $offset <p>
-     * The offset to assign the value to.
-     * </p>
-     * @param mixed $value <p>
-     * The value to set.
-     * </p>
-     * @return void
+     *                      The offset to assign the value to.
+     *                      </p>
+     * @param mixed $value  <p>
+     *                      The value to set.
+     *                      </p>
      */
     public function offsetSet($offset, $value)
     {
@@ -293,12 +305,13 @@ class Resource extends BaseResource implements \ArrayAccess
 
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to unset
+     * Offset to unset.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
      * @param mixed $offset <p>
-     * The offset to unset.
-     * </p>
-     * @return void
+     *                      The offset to unset.
+     *                      </p>
      */
     public function offsetUnset($offset)
     {

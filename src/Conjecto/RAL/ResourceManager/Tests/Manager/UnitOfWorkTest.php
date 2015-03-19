@@ -2,7 +2,6 @@
 namespace Conjecto\RAL\ResourceManager\Tests\Manager;
 
 use Conjecto\RAL\ResourceManager\Manager\UnitOfWork;
-use Conjecto\RAL\ResourceManager\Resource\Resource;
 use EasyRdf\Graph;
 
 class UnitOfWorkTest extends ManagerTestCase
@@ -27,14 +26,14 @@ class UnitOfWorkTest extends ManagerTestCase
             'foaf:name',
             'Foo Bar');
 
-        $uow = new UnitOfWork($this->manager,'fooUrl');
+        $uow = new UnitOfWork($this->manager, 'fooUrl');
 
-        $this->assertEquals(1,1);
+        $this->assertEquals(1, 1);
     }
 
     public function testManagerRegisterResource()
     {
-        $uow = new UnitOfWork($this->manager,'fooUrl');
+        $uow = new UnitOfWork($this->manager, 'fooUrl');
         $res = $this->getMockedResource('FooClass', 'uri:foo:1234', $this->getMockedGraph('FooClass', 'uri:foo:1234'));
 
         $uow->registerResource($res);
@@ -46,6 +45,5 @@ class UnitOfWorkTest extends ManagerTestCase
 
     private function foo()
     {
-
     }
 }

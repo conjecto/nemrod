@@ -5,8 +5,7 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Class SerializerMappingDriverPass
- * @package Conjecto\RAL\Bundle\RALBundle\DependencyInjection\Compiler
+ * Class SerializerMappingDriverPass.
  */
 class SerializerMappingDriverPass implements CompilerPassInterface
 {
@@ -22,5 +21,4 @@ class SerializerMappingDriverPass implements CompilerPassInterface
         // replace the annotation driver class
         $container->setParameter('jms_serializer.metadata.annotation_driver.class', 'Conjecto\RAL\Bundle\RALBundle\Serializer\Metadata\Driver\AnnotationDriver');
     }
-
 }

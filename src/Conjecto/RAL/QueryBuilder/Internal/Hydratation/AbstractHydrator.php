@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 26/01/2015
- * Time: 14:17
+ * Time: 14:17.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Internal\Hydratation;
-
 
 use Conjecto\RAL\QueryBuilder\Query;
 use Conjecto\RAL\ResourceManager\Manager\Manager;
@@ -17,7 +16,7 @@ use Symfony\Component\Form\Exception\UnexpectedTypeException;
 abstract class AbstractHydrator
 {
     /**
-     * @var Manager $rm
+     * @var Manager
      */
     protected $rm;
 
@@ -30,7 +29,7 @@ abstract class AbstractHydrator
      * @param $rm
      * @param $graph
      */
-    function __construct(Query $query)
+    public function __construct(Query $query)
     {
         $this->rm = $query->getRm();
         $this->graph = $query->getResult();
@@ -45,4 +44,4 @@ abstract class AbstractHydrator
     }
 
     abstract public function hydrateResources($options = array());
-} 
+}

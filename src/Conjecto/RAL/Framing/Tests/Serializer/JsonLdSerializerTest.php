@@ -1,22 +1,21 @@
 <?php
 namespace Conjecto\RAL\Framing\Tests\Loader;
 
-
 use Conjecto\RAL\Framing\Loader\JsonLdFrameLoader;
 use Conjecto\RAL\Framing\Serializer\JsonLdSerializer;
 use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Graph;
 
 /**
- * Class JsonLdSerializerTest
- * @package Conjecto\RAL\Framing\Tests\Loader
+ * Class JsonLdSerializerTest.
  */
 class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @throws \Twig_Error_Loader
      */
-    public function testSerialize() {
+    public function testSerialize()
+    {
         $loader = new JsonLdFrameLoader();
         $loader->addPath(__DIR__.'/Fixtures', 'namespace');
         $registry = new RdfNamespaceRegistry();

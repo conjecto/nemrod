@@ -8,7 +8,8 @@ class SimpleGraphProvider implements GraphProviderInterface
 {
     /**
      * @param Resource $resource
-     * @param array $frame
+     * @param array    $frame
+     *
      * @return Graph
      */
     public function getGraph(Resource $resource, $frame = null)

@@ -2,8 +2,6 @@
 
 namespace Conjecto\RAL\Framing\Loader;
 
-use Symfony\Component\Config\FileLocatorInterface;
-use Symfony\Component\Templating\TemplateNameParserInterface;
 use Symfony\Component\Templating\TemplateReferenceInterface;
 
 /**
@@ -13,14 +11,15 @@ use Symfony\Component\Templating\TemplateReferenceInterface;
 class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 {
     /**
-     * Return the decoded frame
+     * Return the decoded frame.
      */
     public function load($name, $assoc = true)
     {
         $decoded = json_decode($this->getSource($name), $assoc);
-        if($decoded === null) {
+        if ($decoded === null) {
             throw new \Twig_Error_Loader(sprintf('Unable to decode frame "%s".', $name));
         }
+
         return $decoded;
     }
 
@@ -56,5 +55,4 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
         return $this->cache[$logicalName] = $file;
     }
-
 }

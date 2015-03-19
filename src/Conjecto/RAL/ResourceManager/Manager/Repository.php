@@ -1,14 +1,13 @@
 <?php
 
 namespace Conjecto\RAL\ResourceManager\Manager;
+
 use Conjecto\RAL\QueryBuilder\QueryBuilder;
 use Conjecto\RAL\ResourceManager\Resource\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
-use EasyRdf\Exception;
 
 /**
- * Class ResourceRepository
- * @package Conjecto\RAL\ResourceManager\Manager
+ * Class ResourceRepository.
  */
 class Repository
 {
@@ -30,6 +29,7 @@ class Repository
 
     /**
      * @param $uri
+     *
      * @return Resource
      */
     public function find($uri)
@@ -42,8 +42,10 @@ class Repository
 
     /**
      * find a set of resources according to criterias.
+     *
      * @param array $criterias
      * @param array $options
+     *
      * @return ArrayCollection|void
      */
     public function findBy(array $criterias, array $options = array())
@@ -52,10 +54,10 @@ class Repository
         if ($this->className) {
             if (empty($criterias['rdf:type'])) {
                 $criterias['rdf:type'] = $this->className;
-            } else if (is_array ($criterias['rdfs:Class'])) {
+            } elseif (is_array($criterias['rdfs:Class'])) {
                 $criterias['rdf:type'][] = $this->className;
             } else {
-                $criterias['rdf:type'] = array ($criterias['rdf:type'], $this->className);
+                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
             }
         }
 
@@ -65,16 +67,19 @@ class Repository
     /**
      * @param array $criterias
      * @param array $options
+     *
      * @return ArrayCollection|void
      */
     public function findOneBy(array $criterias, array $options = array())
     {
         $options['limit'] = 1;
+
         return $this->findBy($criterias, $options);
     }
 
     /**
-     * Returns all entities
+     * Returns all entities.
+     *
      * @return Collection
      */
     public function findAll()
@@ -91,7 +96,8 @@ class Repository
     }
 
     /**
-     * Calls UnitOfWork delete method and returns the result
+     * Calls UnitOfWork delete method and returns the result.
+     *
      * @param Resource $resource
      */
     public function remove(Resource $resource)
@@ -100,7 +106,8 @@ class Repository
     }
 
     /**
-     * Save a newly created resource
+     * Save a newly created resource.
+     *
      * @param Resource $resource
      */
     public function persist(Resource $resource)
@@ -109,7 +116,6 @@ class Repository
     }
 
     /**
-     *
      * @return \Conjecto\RAL\QueryBuilder\QueryBuilder
      */
     public function getQueryBuilder()

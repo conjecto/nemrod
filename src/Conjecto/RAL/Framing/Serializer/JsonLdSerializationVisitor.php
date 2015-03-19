@@ -2,22 +2,18 @@
 
 namespace Conjecto\RAL\Framing\Serializer;
 
-use Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 use JMS\Serializer\AbstractVisitor;
 use JMS\Serializer\Context;
 use JMS\Serializer\Exception\InvalidArgumentException;
-use JMS\Serializer\GenericSerializationVisitor;
 use JMS\Serializer\GraphNavigator;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
-use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use JMS\Serializer\scalar;
 
 /**
- * Class JsonLdSerializationVisitor
- * @package Conjecto\RAL\Serializer
+ * Class JsonLdSerializationVisitor.
  */
 class JsonLdSerializationVisitor extends AbstractVisitor
 {
@@ -53,14 +49,12 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      * Called before the properties of the object are being visited.
      *
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
-     *
-     * @return void
+     * @param mixed         $data
+     * @param array         $type
      */
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-        if(!($data instanceof Resource) || ($data instanceof Graph)) {
+        if (!($data instanceof Resource) || ($data instanceof Graph)) {
             throw new InvalidArgumentException("JsonLD can only serialize Resource ou Graph object.");
         }
         $this->resource = $data;
@@ -78,9 +72,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
 
     /**
      * @param PropertyMetadata $metadata
-     * @param mixed $data
-     *
-     * @return void
+     * @param mixed            $data
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
@@ -91,8 +83,8 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      * Called after all properties of the object have been visited.
      *
      * @param ClassMetadata $metadata
-     * @param mixed $data
-     * @param array $type
+     * @param mixed         $data
+     * @param array         $type
      *
      * @return mixed
      */
@@ -105,8 +97,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      * Called before serialization/deserialization starts.
      *
      * @param GraphNavigator $navigator
-     *
-     * @return void
      */
     public function setNavigator(GraphNavigator $navigator)
     {
@@ -115,6 +105,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
 
     /**
      * @deprecated use Context::getNavigator/Context::accept instead
+     *
      * @return GraphNavigator
      */
     public function getNavigator()

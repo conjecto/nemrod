@@ -3,13 +3,11 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 19/01/2015
- * Time: 14:04
+ * Time: 14:04.
  */
 
 namespace Conjecto\RAL\QueryBuilder;
 
-
-use Conjecto\RAL\QueryBuilder\Query;
 
 class Parser
 {
@@ -18,8 +16,8 @@ class Parser
      */
     protected $query;
 
-    function __construct($query)
+    public function __construct($query)
     {
         $this->query = $query;
     }
-} 
+}

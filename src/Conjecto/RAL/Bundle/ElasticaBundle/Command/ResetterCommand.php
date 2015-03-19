@@ -24,4 +24,4 @@ class ResetterCommand extends ContainerAwareCommand
 
         $this->getContainer()->get('ral.elastica.resetter')->reset($type);
     }
-} 
+}

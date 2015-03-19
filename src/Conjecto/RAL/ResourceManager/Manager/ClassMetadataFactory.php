@@ -32,7 +32,8 @@ class ClassMetadataFactory
     }
 
     /**
-     * loadedMetadata
+     * loadedMetadata.
+     *
      * @return array
      */
     public function getAllMetadata()
@@ -42,6 +43,7 @@ class ClassMetadataFactory
 
     /**
      * @todo remove
+     *
      * @return mixed
      */
     public function getDriver()
@@ -51,6 +53,7 @@ class ClassMetadataFactory
 
     /**
      * @todo remove
+     *
      * @param mixed $annotationdriver
      */
     public function setDriver($annotationdriver)

@@ -3,11 +3,10 @@
  * Created by PhpStorm.
  * User: maxime
  * Date: 04/02/2015
- * Time: 17:48
+ * Time: 17:48.
  */
 
 namespace Conjecto\RAL\Bundle\RALBundle\DependencyInjection\CompilerPass;
-
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -44,10 +43,9 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                 foreach ($listeners as $listId => $listenerTags) {
                     $listenerDef = $container->getDefinition($listId);
                     foreach ($listenerTags as $tag) {
-                        if(isset ($tag['endpoint']) &&
+                        if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher))
-                        {
+                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
                         }
@@ -63,10 +61,9 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                 foreach ($subscribers as $listId => $listenerTags) {
                     $listenerDef = $container->getDefinition($listId);
                     foreach ($listenerTags as $tag) {
-                        if(isset ($tag['endpoint']) &&
+                        if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher))
-                        {
+                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addsubscriber', array($listenerDef));
                         }
@@ -75,4 +72,4 @@ class EventListenerRegistrationPass implements CompilerPassInterface
             }
         }
     }
-} 
+}

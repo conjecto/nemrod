@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 11:24
+ * Time: 11:24.
  */
 
 namespace Conjecto\RAL\QueryBuilder\Expr;

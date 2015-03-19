@@ -1,6 +1,6 @@
 <?php
 /**
- * Auteur: Blaise de Carné - blaise@concretis.com
+ * Auteur: Blaise de Carné - blaise@concretis.com.
  */
 
 namespace Conjecto\RAL\ResourceManager\Registry;
@@ -9,15 +9,15 @@ use EasyRdf\RdfNamespace;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
- * Class RdfNamespaceRegistry
- * @package Conjecto\RAL\ResourceManager\Registry
+ * Class RdfNamespaceRegistry.
  */
 class RdfNamespaceRegistry
 {
     /**
      * @return array
      */
-    public function namespaces() {
+    public function namespaces()
+    {
         //@todo cf. fisrt
         return RdfNamespace::namespaces();
     }
@@ -25,15 +25,18 @@ class RdfNamespaceRegistry
     /**
      *
      */
-    public function resetNamespaces() {
+    public function resetNamespaces()
+    {
         RdfNamespace::resetNamespaces();
     }
 
     /**
      * @param $prefix
+     *
      * @return string
      */
-    public function get($prefix) {
+    public function get($prefix)
+    {
         return RdfNamespace::get($prefix);
     }
 
@@ -41,76 +44,90 @@ class RdfNamespaceRegistry
      * @param $prefix
      * @param $long
      */
-    public function set($prefix, $long) {
+    public function set($prefix, $long)
+    {
         RdfNamespace::set($prefix, $long);
     }
 
     /**
      * @return string
      */
-    public function getDefault() {
+    public function getDefault()
+    {
         return RdfNamespace::getDefault();
     }
 
     /**
      * @param $namespace
      */
-    public function setDefault($namespace) {
+    public function setDefault($namespace)
+    {
         RdfNamespace::setDefault($namespace);
     }
 
     /**
      * @param $prefix
      */
-    public function delete($prefix) {
+    public function delete($prefix)
+    {
         RdfNamespace::delete($prefix);
     }
 
     /**
      *
      */
-    public function reset() {
+    public function reset()
+    {
         RdfNamespace::reset();
     }
 
     /**
      * @param $uri
      * @param bool $createNamespace
+     *
      * @return array
      */
-    public function splitUri($uri, $createNamespace = false) {
+    public function splitUri($uri, $createNamespace = false)
+    {
         return RdfNamespace::splitUri($uri, $createNamespace);
     }
 
     /**
      * @param $uri
+     *
      * @return string
      */
-    public function prefixOfUri($uri) {
+    public function prefixOfUri($uri)
+    {
         return RdfNamespace::prefixOfUri($uri);
     }
 
     /**
      * @param $uri
      * @param bool $createNamespace
+     *
      * @return string
      */
-    public function shorten($uri, $createNamespace = false) {
+    public function shorten($uri, $createNamespace = false)
+    {
         return RdfNamespace::shorten($uri, $createNamespace);
     }
 
     /**
      * @param $shortUri
+     *
      * @return string
      */
-    public function expand($shortUri) {
+    public function expand($shortUri)
+    {
         return RdfNamespace::expand($shortUri);
     }
 
     /**
      * @param GetResponseEvent $request
      */
-    public function onKernelRequest(GetResponseEvent $request) {
+    public function onKernelRequest(GetResponseEvent $request)
+    {
         // empty method to allow kernel request event in service definition
     }
 
@@ -119,6 +136,5 @@ class RdfNamespaceRegistry
      */
     public function onConsoleCommand()
     {
-
     }
 }

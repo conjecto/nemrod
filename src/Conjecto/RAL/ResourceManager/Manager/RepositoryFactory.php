@@ -2,14 +2,11 @@
 
 namespace Conjecto\RAL\ResourceManager\Manager;
 
-
 /**
- * Class RepositoryFactory
- * @package Conjecto\RAL\ResourceManager\Manager
+ * Class RepositoryFactory.
  */
 class RepositoryFactory
 {
-
     /** @var  array $repositories */
     private $repositories;
 
@@ -28,6 +25,7 @@ class RepositoryFactory
     /**
      * @param $className
      * @param $resourceManager
+     *
      * @return ResourceRepository
      */
     public function getRepository($className, $resourceManager)
@@ -39,4 +37,4 @@ class RepositoryFactory
 
         return $this->repositories[$className];
     }
-} 
+}

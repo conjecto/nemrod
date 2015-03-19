@@ -1,11 +1,11 @@
 <?php
 
 namespace Conjecto\RAL\ElasticSearch;
+
 use Elastica\Type;
 
 /**
- * Class Resetter: resets all
- * @package Conjecto\RAL\ElasticSearch
+ * Class Resetter: resets all.
  */
 class Resetter
 {
@@ -45,5 +45,4 @@ class Resetter
             $this->mappingBuilder->buildMapping($type);
         }
     }
-
-} 
+}

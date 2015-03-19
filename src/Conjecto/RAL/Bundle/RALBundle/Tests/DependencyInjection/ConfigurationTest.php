@@ -1,7 +1,7 @@
 <?php
 namespace Conjecto\RAL\Bundle\RALBundle\Tests\DependencyInjectConjecto\RAL\Bundle\RALBundleRAL\Bundle\DependencyInjection\Configuration;
-use Symfony\Component\Config\Definition\Processor;
 
+use Symfony\Component\Config\Definition\Processor;
 
 class ConfigurationTest extends \PHPUnit_Framework_TestCase
 {
@@ -33,7 +33,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * namespaces config
+     * namespaces config.
      */
     public function testNamespacesConfig()
     {
@@ -41,27 +41,24 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $config = array(
             'namespaces' => array(
                 'foo'    => 'http://purl.org/ontology/foo/',
-                'bar'    => 'http://www.w3.org/ns/bar#'
-            )
+                'bar'    => 'http://www.w3.org/ns/bar#',
+            ),
         );
         $config = $processor->processConfiguration(new Configuration(true), array($config));
         $this->assertEquals(
             array_merge(array('namespaces' => array(
                 'foo' => array('uri' => 'http://purl.org/ontology/foo/'),
-                'bar' => array('uri' => 'http://www.w3.org/ns/bar#')
-            ),    'endpoints' => array
-
-            ()), self::getBundleDefaultConfig()),
+                'bar' => array('uri' => 'http://www.w3.org/ns/bar#'),
+            ),    'endpoints' => array()), self::getBundleDefaultConfig()),
             $config
         );
     }
 
     /**
-     * Default config
+     * Default config.
      */
-    static protected function getBundleDefaultConfig()
+    protected static function getBundleDefaultConfig()
     {
         return array();
     }
-
 }

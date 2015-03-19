@@ -2,7 +2,6 @@
 
 namespace Conjecto\EasyRdfBundle\Controller;
 
-use Conjecto\EasyRdfBundle\Form\PersonType;
 use Conjecto\EasyRdfBundle\RdfResource\Person;
 use Conjecto\RAL\QueryBuilder\QueryBuilder;
 use Conjecto\RAL\ResourceManager\Resource\Resource;
@@ -24,12 +23,12 @@ DefaultController extends Controller
      */
     public function indexAction()
     {
-        /** @var QueryBuilder $qb */
+        /* @var QueryBuilder $qb */
         //$qb = $this->get('rm')->getQueryBuilder();
         //$qb->selectAll()->where("?s a foaf:Person");
         //$res = $qb->getQuery()->execute();
 
-        $this->container->get('ral.elasticsearch_type.ogbd.person')->addDocument(new Document('coin',array('pif'=>'paf')));
+        $this->container->get('ral.elasticsearch_type.ogbd.person')->addDocument(new Document('coin', array('pif' => 'paf')));
         /** @var Collection $test */
         $test = $this->container->get('rm')->getRepository('ogbd:Notaire')->findBy(array(), array('orderBy' => "ogbd:nom", 'limit' => 100));
         //$test = $this->container->get('rm')->getRepository('foaf:Person')->findAll();
@@ -38,11 +37,11 @@ DefaultController extends Controller
 
         $te = $test->get('rdf:first');
         $test = $test->get('rdf:rest');
-        $cnt = 0 ;
+        $cnt = 0;
 
-        /** @var Resource $add */
-        while ($te ) {
-            $results[] = array("name" =>$te->get("ogbd:nom"), "uri" =>urlencode($te->getUri()));
+        /* @var Resource $add */
+        while ($te) {
+            $results[] = array("name" => $te->get("ogbd:nom"), "uri" => urlencode($te->getUri()));
 //            /** @var Resource $add */
             if (false) {
                 /** @var Resource $add */
@@ -55,7 +54,6 @@ DefaultController extends Controller
             $te = $test->get('rdf:first');
             $test = $test->get('rdf:rest');
         }
-
 
         return array('list' => $results);
     }
@@ -79,6 +77,7 @@ DefaultController extends Controller
             $form->handleRequest($request);
             if ($form->isValid()) {
                 $this->get('rm')->flush();
+
                 return $this->redirect($this->generateUrl('person.index'));
             }
         }
@@ -88,8 +87,8 @@ DefaultController extends Controller
             'user'  => array(
                 "uri"   => $uri,
                 "name"  => $res->get('ogbd:nom'),
-                "place" => $res->get('vcard:hasAddress/vcard:locality')
-            )
+                "place" => $res->get('vcard:hasAddress/vcard:locality'),
+            ),
         );
     }
 
@@ -107,7 +106,7 @@ DefaultController extends Controller
             //return $this->redirect($this->generateUrl('person.index'));
         }
 
-        return array('user'=> array("uri" => $uri, "name" => $res->get('foaf:givenName'), "place" => $res->get('vcard:hasAddress/vcard:locality')));
+        return array('user' => array("uri" => $uri, "name" => $res->get('foaf:givenName'), "place" => $res->get('vcard:hasAddress/vcard:locality')));
     }
 
     /**

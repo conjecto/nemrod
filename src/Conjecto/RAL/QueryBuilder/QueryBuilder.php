@@ -3,20 +3,18 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 06/01/2015
- * Time: 09:49
+ * Time: 09:49.
  */
 
 namespace Conjecto\RAL\QueryBuilder;
 
-
 use Conjecto\RAL\ResourceManager\Manager\Manager;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
-use \Symfony\Component\Validator\Exception\UnexpectedTypeException;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * Class QueryBuilder
- * @package Test\FormBundle\QueryBuilder
+ * Class QueryBuilder.
  */
 class QueryBuilder
 {
@@ -34,19 +32,22 @@ class QueryBuilder
     const STATE_CLEAN = 1;
 
     /**
-     * query type
+     * query type.
+     *
      * @var int
      */
     protected $type = self::CONSTRUCT;
 
     /**
      * The state of the query object. Can be dirty or clean.
+     *
      * @var int
      */
     protected $state = self::STATE_CLEAN;
 
     /**
-     * array if multiple, null if only one with multiples parts
+     * array if multiple, null if only one with multiples parts.
+     *
      * @var array
      */
     protected $sparqlParts = array(
@@ -63,39 +64,44 @@ class QueryBuilder
         'value' => array(),
         'orderBy' => array(),
         'groupBy' => array(),
-        'distinct' => false
+        'distinct' => false,
     );
 
     /**
-     * result size limit
+     * result size limit.
+     *
      * @var int
      */
     protected $maxResults;
 
     /**
-     * query offset
+     * query offset.
+     *
      * @var int
      */
     protected $offset;
 
     /**
-     * sparql query as string
+     * sparql query as string.
+     *
      * @var string
      */
     protected $sparqlQuery;
 
     /**
-     * Resource Manager for easyrdf resources
+     * Resource Manager for easyrdf resources.
+     *
      * @var Manager
      */
     protected $rm;
 
     /**
-     * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry
-     * @param string $endpointUri
+     * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry.
+     *
+     * @param string      $endpointUri
      * @param string|null $updatedEndPointUri
      */
-    function __construct(Manager $rm = null)
+    public function __construct(Manager $rm = null)
     {
         $this->rm = $rm;
         $this->maxResults = 0;
@@ -105,7 +111,9 @@ class QueryBuilder
     /**
      * Specifies triplet for construct query
      * Replaces any previously specified construct, if any.
+     *
      * @param null $construct
+     *
      * @return $this|QueryBuilder
      */
     public function construct($construct = null)
@@ -114,8 +122,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an triplet to construst query
+     * Adds an triplet to construst query.
+     *
      * @param null $construct
+     *
      * @return $this|QueryBuilder
      */
     public function addConstruct($construct)
@@ -126,7 +136,9 @@ class QueryBuilder
     /**
      * Specifies objects for select query
      * Replaces any previously specified construct, if any.
+     *
      * @param null $select
+     *
      * @return $this|QueryBuilder
      */
     public function select($select)
@@ -135,7 +147,8 @@ class QueryBuilder
     }
 
     /**
-     * Shortcut to add a select('*') to the query
+     * Shortcut to add a select('*') to the query.
+     *
      * @return $this|QueryBuilder
      */
     public function selectAll()
@@ -144,8 +157,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an triplet to select query
+     * Adds an triplet to select query.
+     *
      * @param null $select
+     *
      * @return $this|QueryBuilder
      */
     public function addSelect($select)
@@ -154,8 +169,10 @@ class QueryBuilder
     }
 
     /**
-     * Specifies query type to ask
+     * Specifies query type to ask.
+     *
      * @param null $ask
+     *
      * @return $this|QueryBuilder
      */
     public function ask($ask = null)
@@ -171,7 +188,9 @@ class QueryBuilder
     /**
      * Specifies object for describe query
      * Replaces any previously specified describe, if any.
+     *
      * @param $describe
+     *
      * @return $this|QueryBuilder
      */
     public function describe($describe)
@@ -180,8 +199,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an object to describe query
+     * Adds an object to describe query.
+     *
      * @param null $select
+     *
      * @return $this|QueryBuilder
      */
     public function addDescribe($select)
@@ -192,7 +213,9 @@ class QueryBuilder
     /**
      * Specifies triplet for insert query
      * Replaces any previously specified insert, if any.
+     *
      * @param null $insert
+     *
      * @return $this|QueryBuilder
      */
     public function insert($insert)
@@ -201,8 +224,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an object to insert query
+     * Adds an object to insert query.
+     *
      * @param null $insert
+     *
      * @return $this|QueryBuilder
      */
     public function addInsert($insert)
@@ -213,7 +238,9 @@ class QueryBuilder
     /**
      * Specifies triplet for delete query
      * Replaces any previously specified insert, if any.
+     *
      * @param $delete
+     *
      * @return $this|QueryBuilder
      */
     public function delete($delete = null)
@@ -222,8 +249,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an object to delete query
+     * Adds an object to delete query.
+     *
      * @param null $delete
+     *
      * @return QueryBuilder
      */
     public function addDelete($delete)
@@ -234,7 +263,9 @@ class QueryBuilder
     /**
      * Specifies one or more restrictions to the query result.
      * Replaces any previously specified restrictions, if any.
+     *
      * @param $where
+     *
      * @return QueryBuilder
      */
     public function where($where)
@@ -245,7 +276,9 @@ class QueryBuilder
     /**
      * Adds one or more restrictions to the query results, forming a logical
      * conjunction with any previously specified restrictions.
+     *
      * @param $where
+     *
      * @return QueryBuilder
      */
     public function andWhere($where)
@@ -256,7 +289,9 @@ class QueryBuilder
     /**
      * Specifies optional for the query
      * Replaces any previously specified optionals, if any.
+     *
      * @param $optional
+     *
      * @return QueryBuilder
      */
     public function optional($optional)
@@ -265,8 +300,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds an optional to the query
+     * Adds an optional to the query.
+     *
      * @param $optional
+     *
      * @return QueryBuilder
      */
     public function addOptional($optional)
@@ -277,7 +314,9 @@ class QueryBuilder
     /**
      * Specifies filter for the query
      * Replaces any previously specified filters, if any.
+     *
      * @param $filter
+     *
      * @return QueryBuilder
      */
     public function filter($filter)
@@ -286,8 +325,10 @@ class QueryBuilder
     }
 
     /**
-     * Adds a filter to the query
+     * Adds a filter to the query.
+     *
      * @param $filter
+     *
      * @return QueryBuilder
      */
     public function addFilter($filter)
@@ -298,8 +339,10 @@ class QueryBuilder
     /**
      * Specifies an ordering for the query results.
      * Replaces any previously specified orderings, if any.
+     *
      * @param $sort
      * @param string $order
+     *
      * @return QueryBuilder
      */
     public function orderBy($sort, $order = 'ASC')
@@ -309,8 +352,10 @@ class QueryBuilder
 
     /**
      * Adds an ordering to the query results.
+     *
      * @param $sort
      * @param null $order
+     *
      * @return QueryBuilder
      */
     public function addOrderBy($sort, $order = null)
@@ -321,7 +366,9 @@ class QueryBuilder
     /**
      * Specifies a grouping over the results of the query.
      * Replaces any previously specified groupings, if any.
+     *
      * @param $groupBy
+     *
      * @return QueryBuilder
      */
     public function groupBy($groupBy)
@@ -331,7 +378,9 @@ class QueryBuilder
 
     /**
      * Adds a grouping expression to the query.
+     *
      * @param $groupBy
+     *
      * @return QueryBuilder
      */
     public function addGroupBy($groupBy)
@@ -341,8 +390,10 @@ class QueryBuilder
 
     /**
      * Sets a query parameter for the query being constructed.
+     *
      * @param $value
      * @param null $key
+     *
      * @return QueryBuilder
      */
     public function bind($value, $key = null)
@@ -352,8 +403,10 @@ class QueryBuilder
 
     /**
      * Sets a query parameter for the query being constructed.
-     * @param string $value
+     *
+     * @param string      $value
      * @param string|null $key
+     *
      * @return QueryBuilder
      */
     public function addBind($value, $key = null)
@@ -364,7 +417,9 @@ class QueryBuilder
     /**
      * Adds one or more restrictions to the query results, forming a logical
      * disjunction with any previously specified restrictions.
+     *
      * @param array $arrayPredicates
+     *
      * @return QueryBuilder
      */
     public function union($arrayPredicates)
@@ -375,7 +430,9 @@ class QueryBuilder
     /**
      * Adds one or more restrictions to the query results, forming a logical
      * disjunction with any previously specified restrictions.
+     *
      * @param array $arrayPredicates
+     *
      * @return QueryBuilder
      */
     public function addUnion($arrayPredicates)
@@ -398,7 +455,8 @@ class QueryBuilder
     }
 
     /**
-     * Set distinct value
+     * Set distinct value.
+     *
      * @param boolean $distinct
      */
     public function setDistinct($distinct)
@@ -439,14 +497,14 @@ class QueryBuilder
     }
 
     /**
-     *
      * @return Query
      */
     public function getQuery()
     {
-        if(!$this->rm) {
+        if (!$this->rm) {
             throw new \InvalidArgumentException("You must provide a Manager to execute query.");
         }
+
         return $this->rm->createQuery($this->getSparqlQuery())
             ->setType($this->type)
             ->setOffset($this->offset)
@@ -456,6 +514,7 @@ class QueryBuilder
 
     /**
      * Gets the complete DQL string formed by the current specifications of this QueryBuilder.
+     *
      * @return string
      */
     public function getSparqlQuery()
@@ -500,15 +559,17 @@ class QueryBuilder
     /**
      * Gets a string representation of this QueryBuilder which corresponds to
      * the final sparql query being constructed.
+     *
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
         return $this->getSparqlQuery();
     }
 
     /**
-     * Reset query parts
+     * Reset query parts.
+     *
      * @return $this
      */
     public function reset()
@@ -517,8 +578,7 @@ class QueryBuilder
         $this->maxResults = 0;
         $this->type = self::CONSTRUCT;
 
-        foreach ($this->sparqlParts as $key => $part)
-        {
+        foreach ($this->sparqlParts as $key => $part) {
             $this->sparqlParts[$key] = is_array($this->sparqlParts[$key]) ? array() : null;
             $this->state = self::STATE_DIRTY;
         }
@@ -529,6 +589,7 @@ class QueryBuilder
     /**
      * @param $construct
      * @param bool $append
+     *
      * @return $this|QueryBuilder
      */
     protected function addConstructToQuery($construct, $append = false)
@@ -541,12 +602,14 @@ class QueryBuilder
 
         $construct = is_array($construct) ? $construct : [$construct];
         $construct = new Expr\Construct($construct);
+
         return $this->add('construct', $construct, $append);
     }
 
     /**
      * @param $select
      * @param bool $append
+     *
      * @return $this|QueryBuilder
      */
     protected function addSelectToQuery($select, $append = false)
@@ -559,12 +622,14 @@ class QueryBuilder
 
         $select = is_array($select) ? $select : [$select];
         $select = new Expr\Select($select);
+
         return $this->add('select', $select, $append);
     }
 
     /**
      * @param $describe
      * @param bool $append
+     *
      * @return $this|QueryBuilder
      */
     protected function addDescribeToQuery($describe, $append = false)
@@ -577,6 +642,7 @@ class QueryBuilder
 
         $describe = is_array($describe) ? $describe : [$describe];
         $describe = new Expr\Describe($describe);
+
         return $this->add('describe', $describe, $append);
     }
 
@@ -590,12 +656,14 @@ class QueryBuilder
 
         $ask = is_array($ask) ? $ask : [$ask];
         $ask = new Expr\Ask($ask);
+
         return $this->add('ask', $ask, $append);
     }
 
     /**
      * @param $select
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addInsertToQuery($select, $append)
@@ -606,27 +674,27 @@ class QueryBuilder
 
         if ($this->type == self::DELETE) {
             $this->type = self::DELETE_INSERT;
-        }
-        else {
+        } else {
             $this->type = self::INSERT;
         }
 
         $select = is_array($select) ? $select : [$select];
         $select = new Expr\Insert($select);
+
         return $this->add('insert', $select, $append);
     }
 
     /**
      * @param $delete
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addDeleteToQuery($delete, $append)
     {
         if ($this->type == self::INSERT) {
             $this->type = self::DELETE_INSERT;
-        }
-        else {
+        } else {
             $this->type = self::DELETE;
         }
 
@@ -640,12 +708,14 @@ class QueryBuilder
 
         $delete = is_array($delete) ? $delete : [$delete];
         $delete = new Expr\Delete($delete);
+
         return $this->add('delete', $delete, $append);
     }
 
     /**
      * @param $where
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addWhereToQuery($where, $append)
@@ -656,12 +726,14 @@ class QueryBuilder
 
         $where = is_array($where) ? $where : [$where];
         $where = new Expr\Where($where);
+
         return $this->add('where', $where, $append);
     }
 
     /**
      * @param $arrayPredicates
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addUnionToQuery($arrayPredicates, $append)
@@ -680,11 +752,10 @@ class QueryBuilder
     protected function addValuesToQuery($key, $value, $append)
     {
         if (is_array($value) && is_array($key)) {
-            foreach ($value as $valKey=>$val) {
+            foreach ($value as $valKey => $val) {
                 return $this->addValueToQuery($key[$valKey], $val, $append);
             }
-        }
-        else if (is_string($value) && is_string($key)) {
+        } elseif (is_string($value) && is_string($key)) {
             return $this->addValueToQuery($key, $value, $append);
         }
     }
@@ -705,6 +776,7 @@ class QueryBuilder
      * @param $value
      * @param $key
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addBindToQuery($value, $key, $append)
@@ -714,9 +786,8 @@ class QueryBuilder
         }
 
         if (is_string($value)) {
-            return $this->add('bind', new Expr\Bind('(' . $value . ')' . ' AS ' . $key), $append);
-        }
-        else {
+            return $this->add('bind', new Expr\Bind('('.$value.')'.' AS '.$key), $append);
+        } else {
             return $this->add('bind', new Expr\Bind(is_array($value) ? $value : func_get_args()), $append);
         }
     }
@@ -724,6 +795,7 @@ class QueryBuilder
     /**
      * @param $optional
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addOptionalToQuery($optional, $append)
@@ -733,12 +805,14 @@ class QueryBuilder
         }
         $optional = is_array($optional) ? $optional : [$optional];
         $optional = new Expr\Optional($optional);
+
         return $this->add('optional', $optional, $append);
     }
 
     /**
      * @param $filter
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addFilterToQuery($filter, $append)
@@ -749,6 +823,7 @@ class QueryBuilder
 
         $filter = is_array($filter) ? $filter : [$filter];
         $filter = new Expr\Filter($filter);
+
         return $this->add('filter', $filter, $append);
     }
 
@@ -756,6 +831,7 @@ class QueryBuilder
      * @param $sort
      * @param $order
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addOrderByToQuery($sort, $order, $append)
@@ -769,12 +845,14 @@ class QueryBuilder
         }
 
         $orderBy = ($sort instanceof Expr\OrderBy) ? $sort : new Expr\OrderBy($sort, $order);
+
         return $this->add('orderBy', $orderBy, $append);
     }
 
     /**
      * @param $groupBy
      * @param $append
+     *
      * @return QueryBuilder
      */
     protected function addGroupByToQuery($groupBy, $append)
@@ -784,14 +862,17 @@ class QueryBuilder
         }
 
         $groupBy = new GroupBy([$groupBy]);
+
         return $this->add('groupBy', $groupBy, $append);
     }
 
     /**
      * Either appends to or replaces a single, generic query part.
+     *
      * @param $sparqlPartName
      * @param $sparqlPart
      * @param bool $append
+     *
      * @return QueryBuilder This QueryBuilder instance.
      */
     protected function add($sparqlPartName, $sparqlPart, $append = false)
@@ -817,13 +898,14 @@ class QueryBuilder
 
     /**
      * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     *
      * @return string The sparql query string.
      */
     protected function getSparqlQueryForConstruct()
     {
         $sparqlQuery = 'CONSTRUCT '
-            . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('construct', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' } '));
+            .($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
+            .$this->getReducedSparqlQueryPart('construct', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' } '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -834,8 +916,8 @@ class QueryBuilder
     protected function getSparqlQueryForDescribe()
     {
         $sparqlQuery = 'DESCRIBE'
-            . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('describe', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            .($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
+            .$this->getReducedSparqlQueryPart('describe', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -845,13 +927,14 @@ class QueryBuilder
 
     /**
      * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     *
      * @return string The sparql query string.
      */
     protected function getSparqlQueryForSelect()
     {
         $sparqlQuery = 'SELECT'
-            . ($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
-            . $this->getReducedSparqlQueryPart('select', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
+            .($this->sparqlParts['distinct'] === true ? ' DISTINCT' : '')
+            .$this->getReducedSparqlQueryPart('select', array('pre' => ' ', 'separator' => ' ', 'post' => ' '));
 
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
         $sparqlQuery .= $this->getEndSparqlQueryPart();
@@ -861,6 +944,7 @@ class QueryBuilder
 
     /**
      * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     *
      * @return string The sparql query string.
      */
     protected function getSparqlQueryForAsk()
@@ -868,11 +952,13 @@ class QueryBuilder
         $sparqlQuery = 'ASK ';
         $sparqlQuery .= $this->getReducedSparqlQueryPart('ask', array('pre' => '{ ', 'separator' => ' . ', 'post' => ' } '));
         $sparqlQuery .= $this->getWhereSparqlQueryPart();
+
         return $sparqlQuery;
     }
 
     /**
      * Gets the complete sparql string formed by the current specifications of this QueryBuilder.
+     *
      * @return string
      */
     protected function getSparqlQueryForDeleteInsert()
@@ -881,8 +967,7 @@ class QueryBuilder
 
         if (($this->type == self::DELETE || $this->type == self::DELETE_INSERT) && count($this->getSparqlPart('delete')) == 0) {
             $sparqlQuery .= "DELETE ";
-        }
-        else {
+        } else {
             $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
@@ -891,11 +976,13 @@ class QueryBuilder
         }
 
         $where = $this->getWhereSparqlQueryPart();
-        return $sparqlQuery . (!empty($where) ? $where : ' WHERE {} ');
+
+        return $sparqlQuery.(!empty($where) ? $where : ' WHERE {} ');
     }
 
     /**
-     * Gets the where sparql query part
+     * Gets the where sparql query part.
+     *
      * @return string
      */
     protected function getWhereSparqlQueryPart()
@@ -911,9 +998,8 @@ class QueryBuilder
         foreach ($array as $string) {
             if (!empty($string)) {
                 if ($concat) {
-                    $added .= '. ' . $string;
-                }
-                else {
+                    $added .= '. '.$string;
+                } else {
                     $added = $string;
                 }
                 $concat = true;
@@ -921,19 +1007,19 @@ class QueryBuilder
         }
 
         if (!empty($added)) {
-            $added = ' . ' . $added;
+            $added = ' . '.$added;
         }
 
         if (count($this->getSparqlPart('where')) == 0 && !empty($added)) {
-            return 'WHERE { ' . $added . ' }';
-        }
-        else {
-            return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added . ' } '));
+            return 'WHERE { '.$added.' }';
+        } else {
+            return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added.' } '));
         }
     }
 
     /**
-     * Gets the complete post where sparql query string
+     * Gets the complete post where sparql query string.
+     *
      * @return string
      */
     protected function getEndSparqlQueryPart()
@@ -946,6 +1032,7 @@ class QueryBuilder
 
     /**
      * @param $queryPartName
+     *
      * @return mixed
      */
     protected function getSparqlPart($queryPartName)
@@ -956,6 +1043,7 @@ class QueryBuilder
     /**
      * @param $queryPartName
      * @param array $options
+     *
      * @return string
      */
     protected function getReducedSparqlQueryPart($queryPartName, $options = array())
@@ -967,7 +1055,7 @@ class QueryBuilder
         }
 
         return (isset($options['pre']) ? $options['pre'] : '')
-            . (is_array($queryPart) ? implode($options['separator'], $queryPart) : $queryPart)
-            . (isset($options['post']) ? $options['post'] : '');
+            .(is_array($queryPart) ? implode($options['separator'], $queryPart) : $queryPart)
+            .(isset($options['post']) ? $options['post'] : '');
     }
 }

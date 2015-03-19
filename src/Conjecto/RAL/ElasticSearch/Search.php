@@ -3,7 +3,6 @@ namespace Conjecto\RAL\ElasticSearch;
 
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Aggregation\Filter;
-use Elastica\Facet\AbstractFacet;
 use Elastica\Facet\Terms;
 use Elastica\Filter\AbstractFilter;
 use Elastica\Filter\Bool;
@@ -11,7 +10,6 @@ use Elastica\Filter\BoolAnd;
 use Elastica\Filter\BoolOr;
 use Elastica\Filter\Range;
 use Elastica\Filter\Term;
-use Elastica\Index;
 use Elastica\Query;
 use Elastica\SearchableInterface;
 use Elastica\Type;
@@ -19,7 +17,7 @@ use Elastica\Util;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class Search
+ * Class Search.
  */
 class Search
 {
@@ -91,7 +89,7 @@ class Search
      */
     public function getFields()
     {
-        if($this->getQuery()->hasParam('fields')) {
+        if ($this->getQuery()->hasParam('fields')) {
             return $this->getQuery()->getParam('fields');
         } else {
             return false;
@@ -117,6 +115,7 @@ class Search
     /**
      * @param $name
      * @param $field
+     *
      * @return Terms
      */
     public function addTermsAggregation($name, $field)
@@ -124,6 +123,7 @@ class Search
         $aggregation = new \Elastica\Aggregation\Terms($name);
         $aggregation->setField($field);
         $this->addAggregation($aggregation);
+
         return $aggregation;
     }
 
@@ -147,7 +147,7 @@ class Search
     }
 
     /**
-     * @param sting $name
+     * @param sting          $name
      * @param AbstractFilter $filter
      */
     public function addFilter($name, AbstractFilter $filter)
@@ -160,6 +160,7 @@ class Search
      * @param $name
      * @param $value
      * @param null $field
+     *
      * @return Term
      */
     public function addTermFilter($name, $value, $field = null)
@@ -167,6 +168,7 @@ class Search
         $field = $field ? $field : $name;
         $filter = new Term(array($field => $value));
         $this->addFilter($name, $filter);
+
         return $filter;
     }
 
@@ -174,6 +176,7 @@ class Search
      * @param $name
      * @param $values
      * @param null $field
+     *
      * @return Term
      */
     public function addTermsFilter($name, $values = array(), $field = null)
@@ -181,6 +184,7 @@ class Search
         $field = $field ? $field : $name;
         $filter = new \Elastica\Filter\Terms($field, $values);
         $this->addFilter($name, $filter);
+
         return $filter;
     }
 
@@ -199,11 +203,11 @@ class Search
     public function setFilters($filters)
     {
         $this->filters = $filters;
-        if(count($filters) == 1) {
+        if (count($filters) == 1) {
             $filter = current($filters);
         } else {
             $filter = new Bool();
-            foreach($this->filters as $_filter) {
+            foreach ($this->filters as $_filter) {
                 $filter->addMust($_filter);
             }
         }
@@ -224,7 +228,7 @@ class Search
     public function filterQuery($filter)
     {
         $query = new Query\Filtered(null, $filter);
-        if($this->getQuery()->hasParam("query")) {
+        if ($this->getQuery()->hasParam("query")) {
             $raw = $this->getQuery()->toArray();
             $query = $query->toArray();
             $query['filtered']['query'] = $raw['query'];
@@ -238,18 +242,17 @@ class Search
     /**
      * @param $field
      * @param string $order
-     * @param array $options
+     * @param array  $options
      */
     public function addSort($field, $order = 'asc', $options = array())
     {
-        if($options) {
+        if ($options) {
             $sort = array($field => array_merge(array('order' => $order), $options));
         } else {
             $sort = array($field => $order);
         }
         $this->sorts[$field] = $sort;
         $this->getQuery()->addSort($sort);
-
     }
 
     /**
@@ -258,8 +261,8 @@ class Search
     public function removeSort($field)
     {
         $params = $this->getQuery()->toArray();
-        foreach($params['sort'] as $key => $sort) {
-            if(current(array_keys($sort)) == $field) {
+        foreach ($params['sort'] as $key => $sort) {
+            if (current(array_keys($sort)) == $field) {
                 unset($params['sort'][$key]);
             }
         }
@@ -279,9 +282,10 @@ class Search
     /**
      * @param $size
      */
-    public function setSize($size = null) {
+    public function setSize($size = null)
+    {
         $page = $this->getPage();
-        if($size) {
+        if ($size) {
             // set the query size
             $this->getQuery()->setSize($size);
         } else {
@@ -299,8 +303,8 @@ class Search
      */
     public function getSize()
     {
-        if($this->getQuery()->hasParam('size')) {
-            return (int)$this->getQuery()->getParam('size');
+        if ($this->getQuery()->hasParam('size')) {
+            return (int) $this->getQuery()->getParam('size');
         } else {
             return 10;
         }
@@ -313,7 +317,7 @@ class Search
     {
         $size = $this->getSize();
         $from = ($size * ($page - 1));
-        if($from) {
+        if ($from) {
             // set the from param
             $this->getQuery()->setFrom($from);
         } else {
@@ -329,8 +333,9 @@ class Search
      */
     public function getPage()
     {
-        if($this->getQuery()->hasParam('from')) {
+        if ($this->getQuery()->hasParam('from')) {
             $from = $this->getQuery()->getParam('from');
+
             return ($from / $this->getSize()) + 1;
         } else {
             return 1;
@@ -339,7 +344,6 @@ class Search
 
     /**
      * @param Request $request
-     * @return void
      */
     public function handleRequestBody(Request $request)
     {
@@ -348,46 +352,48 @@ class Search
     }
 
     /**
-     * Prepare a RAW query
+     * Prepare a RAW query.
+     *
      * @param $query
      */
-    private function prepareRawQuery($query) {
-        foreach($query as $key => $value) {
-            if($key == 'reverse_nested') {
+    private function prepareRawQuery($query)
+    {
+        foreach ($query as $key => $value) {
+            if ($key == 'reverse_nested') {
                 // force object for empty reverse_nested
-                $query[$key] = (object)$query[$key];
+                $query[$key] = (object) $query[$key];
             }
-            if(is_array($query[$key])) {
+            if (is_array($query[$key])) {
                 $query[$key] = $this->prepareRawQuery($query[$key]);
             }
         }
+
         return $query;
     }
 
     /**
      * @param Request $request
-     * @return void
      */
     public function handleRequest(Request $request)
     {
         // keywords
         $keywords = $request->get('keywords');
-        if($keywords) {
+        if ($keywords) {
             $query = new Query\QueryString($keywords);
             $this->query->setQuery($query);
         }
 
         // fields
         $fields = $request->get('fields');
-        if($fields) {
+        if ($fields) {
             $this->setFields($fields);
         }
 
         // query_filters
         $filters = $request->get('query_filters');
-        if($filters) {
+        if ($filters) {
             $bool = new BoolAnd();
-            foreach($filters as $name => $options) {
+            foreach ($filters as $name => $options) {
                 $filter = $this->getFilterFromRequest($name, $options);
                 $bool->addFilter($filter);
             }
@@ -396,8 +402,8 @@ class Search
 
         // filters
         $filters = $request->get('filters');
-        if($filters) {
-            foreach($filters as $name => $options) {
+        if ($filters) {
+            foreach ($filters as $name => $options) {
                 $filter = $this->getFilterFromRequest($name, $options);
                 $this->addFilter($name, $filter);
             }
@@ -405,39 +411,41 @@ class Search
 
         // aggregations
         $aggregations = $request->get('aggs');
-        if($aggregations) {
-            foreach($aggregations as $name => $options) {
+        if ($aggregations) {
+            foreach ($aggregations as $name => $options) {
                 $this->addAggregationFromRequest($name, $options);
             }
         }
 
         // sort
         $sorts = $request->get('sorts');
-        if($sorts) {
-            foreach($sorts as $field => $order) {
+        if ($sorts) {
+            foreach ($sorts as $field => $order) {
                 $this->addSort($field, $order);
             }
         }
 
         // size
         $size = $request->get('size');
-        if($size) {
+        if ($size) {
             $this->setSize($size);
         }
 
         // page
         $page = $request->get('page');
-        if($page) {
+        if ($page) {
             $this->setPage($page);
         }
     }
 
     /**
-     * Add a filter from request
+     * Add a filter from request.
      *
      * @param $name
      * @param $options
+     *
      * @throws \Exception
+     *
      * @return AbstractFilter
      */
     protected function getFilterFromRequest($name, $options)
@@ -446,48 +454,48 @@ class Search
         $filters = array();
 
         // foreach filter instance
-        foreach($instances as $options) {
+        foreach ($instances as $options) {
 
             // SPECIFIC : daterange
-            if(is_string($options) && preg_match('/^(\d{2}\/\d{2}\/\d{4}) - (\d{2}\/\d{2}\/\d{4})$/', $options, $matches)) {
+            if (is_string($options) && preg_match('/^(\d{2}\/\d{2}\/\d{4}) - (\d{2}\/\d{2}\/\d{4})$/', $options, $matches)) {
                 $gte = date_create_from_format("d/m/Y", $matches[1]);
                 $lte = date_create_from_format("d/m/Y", $matches[2]);
                 $options = array(
                     "type" => "range",
                     "gte" => $gte->format('Y-m-d'),
-                    "lte" => $lte->format('Y-m-d')
+                    "lte" => $lte->format('Y-m-d'),
                 );
             }
 
             // if the filter dont define type, its a term filter
-            if(!is_array($options) || !isset($options['type'])) {
+            if (!is_array($options) || !isset($options['type'])) {
                 $options = array(
                     'type' => 'term',
-                    $name => $options
+                    $name => $options,
                 );
             }
 
             // find the right filter class
             $camelCase = Util::toCamelCase($options['type']);
             $class = '\Elastica\Filter\\'.$camelCase;
-            if(!class_exists($class)) {
-                throw new \Exception('Filter class does not exists : ' . $class);
+            if (!class_exists($class)) {
+                throw new \Exception('Filter class does not exists : '.$class);
             }
             unset($options['type']);
 
-            /** @var AbstractFilter $filter */
+            /* @var AbstractFilter $filter */
             $reflectionObject = new \ReflectionClass($class);
-            if(isset($options['args'])) {
+            if (isset($options['args'])) {
                 $filter = $reflectionObject->newInstanceArgs($options['args']);
                 unset($options['args']);
             } else {
                 $filter = $reflectionObject->newInstance();
             }
-            if(method_exists($filter, 'addField')) {
+            if (method_exists($filter, 'addField')) {
                 // hack for Range
                 $filter->addField($name, $options);
             } else {
-                foreach($options as $key => $value) {
+                foreach ($options as $key => $value) {
                     $filter->setParam($key, $value);
                 }
             }
@@ -495,7 +503,7 @@ class Search
             $filters[] = $filter;
         }
 
-        if(count($filters) == 1) {
+        if (count($filters) == 1) {
             $filter = reset($filters);
         } else {
             // multiple instances : OR
@@ -507,16 +515,15 @@ class Search
     }
 
     /**
-     * Analyze the aggregation options to add the right type
+     * Analyze the aggregation options to add the right type.
      *
      * @param $name
      * @param $options
-     *
      */
     protected function addAggregationFromRequest($name, $options)
     {
         $type = 'terms';
-        if(isset($options['type'])) {
+        if (isset($options['type'])) {
             $type = $options['type'];
             unset($options['type']);
         }
@@ -524,14 +531,14 @@ class Search
         // find the right aggregation class
         $camelCase = Util::toCamelCase($type);
         $class = '\Elastica\Aggregation\\'.$camelCase;
-        if(!class_exists($class)) {
-            throw new \Exception('Aggregation class does not exists : ' . $class);
+        if (!class_exists($class)) {
+            throw new \Exception('Aggregation class does not exists : '.$class);
         }
 
         /** @var AbstractAggregation $aggregation */
         $aggregation = new $class($name);
         $aggregation->setField($name);
-        foreach($options as $key => $value) {
+        foreach ($options as $key => $value) {
             $aggregation->setParam($key, $value);
         }
 
@@ -539,7 +546,8 @@ class Search
     }
 
     /**
-     * Submit the query to the searchable
+     * Submit the query to the searchable.
+     *
      * @return array
      */
     public function search()
@@ -551,10 +559,10 @@ class Search
 
         // items
         $items = array();
-        foreach($resultSet->getResults() as $result) {
+        foreach ($resultSet->getResults() as $result) {
             $item = $result->getData();
             $item['id'] = $result->getId();
-            if(!$fields || in_array('_type', $fields)) {
+            if (!$fields || in_array('_type', $fields)) {
                 $item['_type'] = $result->getType();
             }
             $items[] = $item;
@@ -564,40 +572,41 @@ class Search
         $return = array(
             'total' => $resultSet->getTotalHits(),
             'pageSize' => $this->getSize(),
-            'items' => $items
+            'items' => $items,
         );
 
         // add the facets
-        if($facets = $resultSet->getFacets()) {
+        if ($facets = $resultSet->getFacets()) {
             $return['facets'] = $facets;
         }
 
         // add the aggregations
-        if($aggregations = $resultSet->getAggregations()) {
+        if ($aggregations = $resultSet->getAggregations()) {
             $return['aggs'] = $aggregations;
 
             // elasticsearch 1.1 compatibility
             // @see https://github.com/elasticsearch/elasticsearch/issues/5253
-            $recursive_aggs_rekey = function($array) use (&$recursive_aggs_rekey) {
-                $keys = array_map(function($key) {
+            $recursive_aggs_rekey = function ($array) use (&$recursive_aggs_rekey) {
+                $keys = array_map(function ($key) {
                     return preg_replace('/--(\d+)--/e', "chr('$1')", $key);
                 }, array_keys($array));
-                $values = array_map(function($value) use ($recursive_aggs_rekey) {
-                    if(is_array($value)) {
+                $values = array_map(function ($value) use ($recursive_aggs_rekey) {
+                    if (is_array($value)) {
                         return $recursive_aggs_rekey($value);
                     } else {
                         return $value;
                     }
                 }, array_values($array));
-                return array_combine ( $keys , $values );
+
+                return array_combine($keys, $values);
             };
             $return['aggs'] = $recursive_aggs_rekey($return['aggs']);
             // ---
 
             // flatten filtered aggs
             // @see self::filterAggregations
-            foreach($return['aggs'] as $key => $agg) {
-                if(isset($agg['doc_count']) && isset($agg[$key])) {
+            foreach ($return['aggs'] as $key => $agg) {
+                if (isset($agg['doc_count']) && isset($agg[$key])) {
                     $return['aggs'][$key] = $agg[$key];
                 }
             }
@@ -607,7 +616,8 @@ class Search
     }
 
     /**
-     * Submit the query to the searchable
+     * Submit the query to the searchable.
+     *
      * @return array
      */
     public function searchRawResponse()
@@ -615,6 +625,7 @@ class Search
         // handle query
         $query = $this->getQuery();
         $resultSet = $this->searchable->search($query);
+
         return $resultSet->getResponse()->getData();
     }
 }
