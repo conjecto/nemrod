@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="ral.namespace_registry.class">Conjecto\RAL\ResourceManager\Registry\RdfNamespaceRegistry</parameter>
+        <parameter key="ral.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
+        <parameter key="ral.type_mapper.class">Conjecto\RAL\ResourceManager\Registry\TypeMapperRegistry</parameter>
+        <parameter key="ral.resource_manager.class">Conjecto\RAL\ResourceManager\Manager\Manager</parameter>
+        <parameter key="ral.repository_factory.class">Conjecto\RAL\ResourceManager\Manager\RepositoryFactory</parameter>
+        <parameter key="ral.persister.class">Conjecto\RAL\ResourceManager\Manager\SimplePersister</parameter>
+        <parameter key="ral.resource_lifecycle_event_dispatcher.class">Symfony\Component\EventDispatcher\EventDispatcher</parameter>
+        <parameter key="query_manager.class">Conjecto\RAL\QueryBuilder\QueryBuilder</parameter>
+
+        <!-- MetadataFactory -->
+        <parameter key="ral.metadata_factory.class">Metadata\MetadataFactory</parameter>
+        <parameter key="ral.metadata_annotation_driver.class">Conjecto\RAL\ResourceManager\Mapping\Driver\AnnotationDriver</parameter>
+
+        <!-- -->
+        <parameter key="ral.serialization_visitor.class">Conjecto\RAL\Serializer\RdfSerializationVisitor</parameter>
+        <parameter key="ral.jsonld.frame.loader.filesystem.class">Conjecto\RAL\Bundle\RALBundle\Loader\JsonLdFrameLoader</parameter>
+        <parameter key="ral.resource.param_convecter.class">Conjecto\RAL\Bundle\RALBundle\ParamConverter\ResourceParamConverter</parameter>
+
+    </parameters>
+
+    <services>
+
+        <!-- namespace  -->
+        <service id="ral.namespace_registry" class="%ral.namespace_registry.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
+            <tag name="kernel.event_listener" event="console.command" />
+        </service>
+        <service id="namespace_registry" alias="ral.namespace_registry" />
+
+        <!-- event dispatcher -->
+        <service id="ral.resource_lifecycle_event_dispatcher" class="%ral.resource_lifecycle_event_dispatcher.class%" abstract="true"/>
+
+        <!-- query builder -->
+        <service id="ral.query_builder" class="%query_manager.class%" abstract="true"/>
+
+        <!-- resource manager -->
+        <service id="ral.resource_manager" class="%ral.resource_manager.class%" abstract="true"/>
+        <service id="ral.repository_factory" class="%ral.repository_factory.class%" abstract="true"/>
+        <service id="ral.persister" class="%ral.persister.class%" abstract="true"/>
+
+        <!-- type mapper  -->
+        <service id="ral.type_mapper" class="%ral.type_mapper.class%">
+            <tag name="kernel.event_listener" event="kernel.request" />
+            <tag name="kernel.event_listener" event="console.command"/>
+        </service>
+
+        <!-- metadatafactory -->
+        <service id="ral.metadata_annotation_driver" class="%ral.metadata_annotation_driver.class%" public="false">
+            <argument type="service" id="annotation_reader" />
+            <argument />
+        </service>
+        <service id="ral.metadata_factory" class="%ral.metadata_factory.class%" public="false">
+            <argument type="service" id="ral.metadata_annotation_driver" />
+        </service>
+
+        <!-- sparql endpoints -->
+        <service id="ral.sparql.connection" class="%ral.sparql.connection.class%" abstract="true"/>
+
+        <!-- Serialization -->
+        <service id="rdf.jsonld.frame.loader.filesystem" class="%ral.jsonld.frame.loader.filesystem.class%" public="false">
+            <argument type="service" id="templating.locator" />
+            <argument type="service" id="templating.name_parser" />
+        </service>
+        <service id="ral.jsonld.frame.loader" alias="rdf.jsonld.frame.loader.filesystem" />
+        <service id="resource.param_converter" class="%ral.resource.param_convecter.class%">
+            <tag name="request.param_converter" priority="1" converter="resource" />
+            <argument type="service" id="service_container" />
+        </service>
+    </services>
+
+</container>

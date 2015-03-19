@@ -135,7 +135,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     /**
                      * @var Type $esType
                      */
-                    $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
+                    $esType = $this->container->get('ral.elastica.type.' . $index . '.' . $this->esCache->getTypeName($index, $newType));
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
                         $esType->addDocument($document);
@@ -152,7 +152,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                         /**
                          * @var Type $esType
                          */
-                        $esType = $this->container->get('ral.elasticsearch_type.' . $index . '.' . $this->esCache->getTypeName($index, $oldType));
+                        $esType = $this->container->get('ral.elastica.type.' . $index . '.' . $this->esCache->getTypeName($index, $oldType));
                         $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
                     }
                 }
