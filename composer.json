@@ -19,20 +19,18 @@
         "ruflin/elastica": "~1.4.3",
         "doctrine/orm": "~2.2,>=2.2.3,<2.5"
     },
-    "replace": {
-
-    },
     "require-dev": {
         "phpunit/phpunit": "4.3.*",
         "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
-        "jms/serializer-bundle": "~0.13"
+        "jms/serializer-bundle": "~0.13",
+        "fabpot/php-cs-fixer": "~1.5"
     },
     "autoload": {
         "psr-0": { "Conjecto\\RAL": "src/" },
         "classmap": [],
         "files": [ ]
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
