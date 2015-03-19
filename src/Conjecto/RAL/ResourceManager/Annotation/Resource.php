@@ -1,6 +1,6 @@
 <?php
 
-namespace Conjecto\RAL\ResourceManager\Annotation\Rdf;
+namespace Conjecto\RAL\ResourceManager\Annotation;
 
 /**
  * @Annotation
@@ -13,5 +13,8 @@ final class Resource
      */
     public $types = array();
 
+    /**
+     * @var string
+     */
     public $uriPattern = "";
 }

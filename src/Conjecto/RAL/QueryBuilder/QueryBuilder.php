@@ -95,7 +95,7 @@ class QueryBuilder
      * @param string $endpointUri
      * @param string|null $updatedEndPointUri
      */
-    function __construct(Manager $rm)
+    function __construct(Manager $rm = null)
     {
         $this->rm = $rm;
         $this->maxResults = 0;
@@ -444,6 +444,9 @@ class QueryBuilder
      */
     public function getQuery()
     {
+        if(!$this->rm) {
+            throw new \InvalidArgumentException("You must provide a Manager to execute query.");
+        }
         return $this->rm->createQuery($this->getSparqlQuery())
             ->setType($this->type)
             ->setOffset($this->offset)

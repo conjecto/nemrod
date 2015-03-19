@@ -1,12 +1,12 @@
 <?php
 
-namespace Conjecto\RAL\Bundle\RALBundle\Serializer\Annotation;
+namespace Conjecto\RAL\Framing\Annotation;
 
 /**
  * Serializer JsonLd annotation
  *
  * @Annotation
- * @Target("CLASS")
+ * @Target({"CLASS", "METHOD"})
  */
 class JsonLd
 {
@@ -16,7 +16,7 @@ class JsonLd
     public $frame = null;
 
     /**
-     * @var boolean
+     * @var array
      */
-    public $compact = true;
+    public $options = array();
 }

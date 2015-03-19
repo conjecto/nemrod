@@ -160,7 +160,6 @@ class RALExtension extends Extension
 
         // registering all annotation mappings.
         $service = $container->getDefinition('ral.type_mapper');
-
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
         //adding paths to annotation driver
@@ -185,7 +184,7 @@ class RALExtension extends Extension
      */
     public function registerJsonLdFramePaths($config, ContainerBuilder $container)
     {
-        $jsonLdFilesystemLoaderDefinition = $container->getDefinition('rdf.jsonld.frame.loader.filesystem');
+        $jsonLdFilesystemLoaderDefinition = $container->getDefinition('ral.jsonld.frame.loader.filesystem');
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             // in app
             if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
@@ -197,6 +196,10 @@ class RALExtension extends Extension
             if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/frames')) {
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
+        }
+
+        if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
+            $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
         }
     }
 

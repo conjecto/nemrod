@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:cert="http://www.w3.org/ns/auth/cert#"
+         xmlns:dc="http://purl.org/dc/terms/">
+
+  <foaf:PersonalProfileDocument rdf:about="http://njh.me/foaf.rdf">
+    <rdfs:label>Nicholas Humfrey's FOAF File</rdfs:label>
+    <foaf:maker rdf:resource="http://njh.me/"/>
+    <foaf:primaryTopic rdf:resource="http://njh.me/"/>
+  </foaf:PersonalProfileDocument>
+
+  <foaf:Person rdf:about="http://njh.me/">
+    <foaf:name>Nicholas J Humfrey</foaf:name>
+    <foaf:title>Mr</foaf:title>
+    <foaf:givenName>Nicholas</foaf:givenName>
+    <foaf:familyName>Humfrey</foaf:familyName>
+  </foaf:Person>
+
+</rdf:RDF>

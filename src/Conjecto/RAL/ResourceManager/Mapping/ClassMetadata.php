@@ -1,14 +1,14 @@
 <?php
 namespace Conjecto\RAL\ResourceManager\Mapping;
 
-use Metadata\MergeableClassMetadata as BaseClassMetadata;
+use Metadata\MergeableClassMetadata;
 use Metadata\MergeableInterface;
 
 /**
  * Class ClassMetadata
  * @package Conjecto\RAL\ResourceManager\Mapping
  */
-class ClassMetadata extends BaseClassMetadata
+class ClassMetadata extends MergeableClassMetadata
 {
     /**
      * @var array
@@ -49,9 +49,7 @@ class ClassMetadata extends BaseClassMetadata
     public function merge(MergeableInterface $object)
     {
         parent::merge($object);
-
         $this->types = array_merge($this->types, $object->types);
         $this->uriPattern = $object->uriPattern;
     }
-
 }
