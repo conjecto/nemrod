@@ -544,6 +544,46 @@ class UnitOfWork
     }
 
     /**
+     * returns the status for a triple inside the unit of work.
+     * @param \EasyRdf\Resource $resource
+     * @param $property
+     * @param $value
+     * @return string
+     */
+    private function tripleStatus($resource, $property, $value)
+    {
+        $snapshotValues = $this->initialSnapshots->all($resource, $property);
+        $resourceValues = $resource->all($resource, $property);
+
+        $valueInSnapShot = false;
+        foreach ($snapshotValues as $val) {
+            if ($val['value'] == $value['value']) {
+                $valueInSnapShot = true;
+            }
+        }
+
+        $valueInResource = false;
+        foreach ($snapshotValues as $val) {
+            if ($val['value'] == $value['value']) {
+                $valueInResource = true;
+            }
+        }
+
+        if ($valueInSnapShot) {
+            if ($valueInResource) {
+                return self::STATUS_TRIPLE_UNCHANGED;
+            }
+            else return self::STATUS_TRIPLE_REMOVED;
+        } else {
+            if ($valueInResource) {
+                return self::STATUS_TRIPLE_ADDED;
+            } else {
+                return self::STATUS_TRIPLE_UNKNOWN;
+            }
+        }
+    }
+
+    /**
      * @param $resource
      *
      * @return bool
@@ -554,69 +594,35 @@ class UnitOfWork
     }
 
     /**
-     * Replaces an already managed resource instance with an.
+     * Replaces an already managed resource instance with another instance of same resource (ie, same URI).
      *
-     * @param \EasyRdf\Resource $resource1
-     * @param \EasyRdf\Resource $resource2
+     * @param \EasyRdf\Resource $resource
      */
     public function replaceResourceInstance($resource)
     {
-        //@todo rework this.
-        return;
+        /** @var BaseResource $managedInstance */
+        $managedInstance = $this->retrieveResource($resource->getUri());
 
-        /** @var BaseResource $resource1 */
-        $resource1 = $this->retrieveResource($resource->getUri());
-
-        if (!$resource1) {
-            return;
+        if (!$managedInstance) {
+            return $resource;
         }
 
-        $uri1 = $resource1->getUri();
-        $uri2 = $resource->getUri();
+        //getting all triples of new resource
+        $properties = $resource->properties();
+        foreach ($properties as $prop) {
+            $values = $resource->all($prop);
+            foreach ($values as $value) {
+                $status = $this->tripleStatus($managedInstance, $prop, $value);
 
-        if ($uri1 != $uri2) {
-            //@todo create appropriate exception
-            throw new \Exception("Resources do not match");
-        }
-
-        //computing a diff over two resources (same as if we were to save changes to store)
-        $changeSet = $this->diff(
-            $this->getSnapshotForResource(array($resource)),
-            $this->mergeRdfPhp(array($resource1)),
-            array('correspondence' => $this->uriCorrespondances)
-        );
-
-        //1st element of array is the set of properties that are to be transfered to new instance
-
-        echo "$uri1 s<pre>";
-        print_r($this->getSnapshotForResource(array($resource)));
-        echo "</pre>";
-        echo "$uri1 m<pre>";
-        print_r($this->mergeRdfPhp(array($resource1)));
-        echo "</pre>";
-        echo "$uri1<pre>";
-        print_r($changeSet);
-        echo "</pre>";
-        if (isset($changeSet[0][$uri1])) {
-            foreach ($changeSet[0][$uri1] as $property => $values) {
-                foreach ($values as $value) {
-                    $resource->delete($property, $value, false);
+                //we have no trace of this triple. We can add it to resource AND snapshot
+                if (($status == self::STATUS_TRIPLE_UNKNOWN)) {
+                    $managedInstance->add($prop, $value);
+                    $this->initialSnapshots->add($resource->getUri(), $prop, $value);
                 }
             }
         }
 
-        //2nd element of array is the set of properties that are to be removed from new instance
-        if (isset($changeSet[1][$uri1])) {
-            foreach ($changeSet[1][$uri1] as $property => $values) {
-                foreach ($values as $value) {
-                    $resource->add($property, $value, false);
-                }
-            }
-        }
-        /* @var \EasyRdf\Resource $old */
-        //$old = $this->registeredResources[$uri1];
-
-        $this->registeredResources[$uri1] = $resource;
+        return $managedInstance;
     }
 
     /**

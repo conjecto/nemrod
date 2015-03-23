@@ -254,10 +254,20 @@ class Query
             $this->result = $hydrator->hydrateResources($options);
         }
 
-        if ($this->result instanceof Collection) {
+        if ($hydratation == self::HYDRATE_COLLECTION) {
             $this->rm->getUnitOfWork()->blackListCollection($this->result);
             for ($cnt = 1; $cnt <= count($this->result); $cnt++) {
                 $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
+            }
+        } else if ($hydratation == self::HYDRATE_ARRAY) {
+
+            //if resources are not managed yet, we register them. Otherwise
+            foreach ($this->result as $k => $res) {
+                if (!$this->rm->getUnitOfWork()->isManaged($res)) {
+                    $this->rm->getUnitOfWork()->registerResource($res);
+                } else {
+                    $this->result[$k] = $this->rm->getUnitOfWork()->replaceResourceInstance($res);
+                }
             }
         }
 
