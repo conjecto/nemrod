@@ -42,7 +42,6 @@ class ResourceToDocumentTransformer
 
     public function transform($uri, $type)
     {
-        $qb = $this->esCache->getRm()->getQueryBuilder();
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
             return;

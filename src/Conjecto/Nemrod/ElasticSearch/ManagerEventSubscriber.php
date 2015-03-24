@@ -97,26 +97,27 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
     /**
      * @param $event
+     * @todo do it work !
      */
     public function onPostFlush($event)
     {
         return;
         $resourceToDocumentTransformer = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->container->get('nemrod.type_mapper'));
-//        $qb = $this->esCache->getRm()->getQueryBuilder();
-//        $qb->reset();
-//        $qb->construct("?uri a ?t")->where("?uri a ?t");
-//        $uris = '';
-//
-//        foreach ($this->changesRequests as $uri => $infos) {
-//            $uris .= ' <'.$uri.'>';
-//        }
-//
-//        if (empty($uris)) {
-//            return;
-//        }
-//
-//        $qb->value('?uri', $uris);
-//        $result = $qb->getQuery()->execute();
+        $qb = $event->getRm()->getQueryBuilder();
+        $qb->reset();
+        $qb->construct("?uri a ?t")->where("?uri a ?t");
+        $uris = '';
+
+        if (empty($this->changesRequests)) {
+            return;
+        }
+
+        foreach ($this->changesRequests as $uri => $infos) {
+            $uris .= ' <'.$uri.'>';
+        }
+
+        $qb->value('?uri', $uris);
+        $result = $qb->getQuery()->execute();
         $jsonLdSerializer = new JsonLd();
 
         foreach ($this->changesRequests as $uri => $infos) {
