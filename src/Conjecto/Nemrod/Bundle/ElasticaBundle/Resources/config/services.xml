@@ -10,7 +10,7 @@
         <parameter key="nemrod.elastica_client.class">Elastica\Client</parameter>
         <parameter key="nemrod.elastica_index.class">Elastica\Index</parameter>
         <parameter key="nemrod.elastica_type.class">Elastica\Type</parameter>
-        <parameter key="nemrod.elastica_cache.class">Conjecto\Nemrod\ElasticSearch\ESCache</parameter>
+        <parameter key="nemrod.elastica_serializer_helper.class">Conjecto\Nemrod\ElasticSearch\SerializerHelper</parameter>
         <parameter key="nemrod.elastica_search.class">Conjecto\Nemrod\ElasticSearch\Search</parameter>
         <parameter key="nemrod.elastica_config_manager.class">Conjecto\Nemrod\ElasticSearch\ConfigManager</parameter>
         <parameter key="nemrod.elastica_mapping_builder.class">Conjecto\Nemrod\ElasticSearch\MappingBuilder</parameter>
@@ -37,7 +37,7 @@
             <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.mapping_builder"/>
         </service>
-        <service id="nemrod.elastica.cache" class="%nemrod.elastica_cache.class%" />
+        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%" />
         <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
         <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
         <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
@@ -46,11 +46,11 @@
             <argument type="service" id="nemrod.elastica.type_registry" />
             <argument type="service" id="nemrod.elastica.resetter" />
             <argument type="service" id="nemrod.type_mapper" />
-            <argument type="service" id="nemrod.elastica.cache" />
+            <argument type="service" id="nemrod.elastica.serializer_helper" />
         </service>
         <service id="nemrod.elastica.manager_event_subscriber" class="%nemrod.elastica.manager_event_subscriber.class%">
             <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" method="onPreFlush" endpoint="ogbd" />
-            <argument type="service" id="nemrod.elastica.cache" />
+            <argument type="service" id="nemrod.elastica.serializer_helper" />
             <argument type="service" id="nemrod.elastica.type_registry" />
             <argument type="service" id="service_container" />
         </service>

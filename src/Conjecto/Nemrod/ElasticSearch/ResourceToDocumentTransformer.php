@@ -19,7 +19,7 @@ use Elastica\Document;
 class ResourceToDocumentTransformer
 {
     /**
-     * @var ESCache
+     * @var SerializerHelper
      */
     protected $esCache;
 
@@ -33,7 +33,7 @@ class ResourceToDocumentTransformer
      */
     protected $typeMapperRegistry;
 
-    public function __construct(ESCache $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
+    public function __construct(SerializerHelper $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
