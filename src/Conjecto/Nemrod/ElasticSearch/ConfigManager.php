@@ -10,8 +10,6 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-//namespace Conjecto\Nemrod\ElasticSearch;
-
 
 /**
  * Class ConfigManager stores and manages mainly (elastica) type mappings.

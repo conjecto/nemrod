@@ -21,12 +21,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      */
     protected $rm;
 
-    /**
-     * Constructor.
-     *
-     * @param $rm
-     */
-    public function __construct($rm)
+    public function setRm($rm)
     {
         $this->rm = $rm;
     }
@@ -72,6 +67,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
     /**
      * @param $frame
+     * @todo use static to cache
      */
     protected function getQueryBuilder($frame, $resource)
     {

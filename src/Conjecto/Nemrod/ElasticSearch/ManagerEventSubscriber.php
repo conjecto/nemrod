@@ -21,7 +21,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ManagerEventSubscriber implements EventSubscriberInterface
 {
     /**
-     * @var ESCache
+     * @var SerializerHelper
      */
     protected $esCache;
 
@@ -40,7 +40,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     protected $changesRequests;
 
-    public function __construct(ESCache $esCache, TypeRegistry $typeRegistry, Container $container)
+    public function __construct(SerializerHelper $esCache, TypeRegistry $typeRegistry, Container $container)
     {
         $this->esCache = $esCache;
         $this->typeRegistry = $typeRegistry;
@@ -97,21 +97,23 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
     /**
      * @param $event
+     * @todo do it work !
      */
     public function onPostFlush($event)
     {
+        return;
         $resourceToDocumentTransformer = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->container->get('nemrod.type_mapper'));
-        $qb = $this->esCache->getRm()->getQueryBuilder();
+        $qb = $event->getRm()->getQueryBuilder();
         $qb->reset();
         $qb->construct("?uri a ?t")->where("?uri a ?t");
         $uris = '';
 
-        foreach ($this->changesRequests as $uri => $infos) {
-            $uris .= ' <'.$uri.'>';
+        if (empty($this->changesRequests)) {
+            return;
         }
 
-        if (empty($uris)) {
-            return;
+        foreach ($this->changesRequests as $uri => $infos) {
+            $uris .= ' <'.$uri.'>';
         }
 
         $qb->value('?uri', $uris);
