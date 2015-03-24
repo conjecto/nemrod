@@ -323,7 +323,7 @@ class UnitOfWork
         }
 
         //triggering post-flush events
-        $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('uris' => $uris)));
+        $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('rm' => $this, 'uris' => $uris)));
 
         //reseting unit of work
         $this->reset();
