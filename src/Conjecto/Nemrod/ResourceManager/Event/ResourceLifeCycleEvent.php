@@ -24,13 +24,20 @@ class ResourceLifeCycleEvent extends Event
 
     protected $uris;
 
+    protected $rm;
+
     public function __construct(array $resources)
     {
         if (isset($resources['resources'])) {
             $this->resources = $resources['resources'];
         }
+
         if (isset($resources['uris'])) {
             $this->uris = $resources['uris'];
+        }
+
+        if (isset($resources['rm'])) {
+            $this->rm = $resources['rm'];
         }
     }
 
