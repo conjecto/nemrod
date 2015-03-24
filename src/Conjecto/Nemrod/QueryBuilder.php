@@ -1,14 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Erwan
- * Date: 06/01/2015
- * Time: 09:49.
- */
 
-namespace Conjecto\Nemrod\QueryBuilder;
+namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -601,7 +595,7 @@ class QueryBuilder
         }
 
         $construct = is_array($construct) ? $construct : [$construct];
-        $construct = new Expr\Construct($construct);
+        $construct = new QueryBuilder\Expr\Construct($construct);
 
         return $this->add('construct', $construct, $append);
     }
@@ -621,7 +615,7 @@ class QueryBuilder
         }
 
         $select = is_array($select) ? $select : [$select];
-        $select = new Expr\Select($select);
+        $select = new QueryBuilder\Expr\Select($select);
 
         return $this->add('select', $select, $append);
     }
@@ -641,7 +635,7 @@ class QueryBuilder
         }
 
         $describe = is_array($describe) ? $describe : [$describe];
-        $describe = new Expr\Describe($describe);
+        $describe = new QueryBuilder\Expr\Describe($describe);
 
         return $this->add('describe', $describe, $append);
     }
@@ -655,7 +649,7 @@ class QueryBuilder
         }
 
         $ask = is_array($ask) ? $ask : [$ask];
-        $ask = new Expr\Ask($ask);
+        $ask = new QueryBuilder\Expr\Ask($ask);
 
         return $this->add('ask', $ask, $append);
     }
@@ -679,7 +673,7 @@ class QueryBuilder
         }
 
         $select = is_array($select) ? $select : [$select];
-        $select = new Expr\Insert($select);
+        $select = new QueryBuilder\Expr\Insert($select);
 
         return $this->add('insert', $select, $append);
     }
@@ -707,7 +701,7 @@ class QueryBuilder
         }
 
         $delete = is_array($delete) ? $delete : [$delete];
-        $delete = new Expr\Delete($delete);
+        $delete = new QueryBuilder\Expr\Delete($delete);
 
         return $this->add('delete', $delete, $append);
     }
@@ -725,7 +719,7 @@ class QueryBuilder
         }
 
         $where = is_array($where) ? $where : [$where];
-        $where = new Expr\Where($where);
+        $where = new QueryBuilder\Expr\Where($where);
 
         return $this->add('where', $where, $append);
     }
@@ -746,7 +740,7 @@ class QueryBuilder
             throw new InvalidArgumentException('The union must have at least two parts');
         }
 
-        return $this->add('where', new Expr\Union($arrayPredicates), $append);
+        return $this->add('where', new QueryBuilder\Expr\Union($arrayPredicates), $append);
     }
 
     protected function addValuesToQuery($key, $value, $append)
@@ -769,7 +763,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify correct type');
         }
 
-        return $this->add('value', new Expr\Value($key, $value), $append);
+        return $this->add('value', new QueryBuilder\Expr\Value($key, $value), $append);
     }
 
     /**
@@ -786,9 +780,9 @@ class QueryBuilder
         }
 
         if (is_string($value)) {
-            return $this->add('bind', new Expr\Bind('('.$value.')'.' AS '.$key), $append);
+            return $this->add('bind', new QueryBuilder\Expr\Bind('('.$value.')'.' AS '.$key), $append);
         } else {
-            return $this->add('bind', new Expr\Bind(is_array($value) ? $value : func_get_args()), $append);
+            return $this->add('bind', new QueryBuilder\Expr\Bind(is_array($value) ? $value : func_get_args()), $append);
         }
     }
 
@@ -804,7 +798,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify what you want to render optional');
         }
         $optional = is_array($optional) ? $optional : [$optional];
-        $optional = new Expr\Optional($optional);
+        $optional = new QueryBuilder\Expr\Optional($optional);
 
         return $this->add('optional', $optional, $append);
     }
@@ -822,7 +816,7 @@ class QueryBuilder
         }
 
         $filter = is_array($filter) ? $filter : [$filter];
-        $filter = new Expr\Filter($filter);
+        $filter = new QueryBuilder\Expr\Filter($filter);
 
         return $this->add('filter', $filter, $append);
     }
@@ -844,7 +838,7 @@ class QueryBuilder
             $this->offset = 0;
         }
 
-        $orderBy = ($sort instanceof Expr\OrderBy) ? $sort : new Expr\OrderBy($sort, $order);
+        $orderBy = ($sort instanceof QueryBuilder\Expr\OrderBy) ? $sort : new QueryBuilder\Expr\OrderBy($sort, $order);
 
         return $this->add('orderBy', $orderBy, $append);
     }

@@ -1,7 +1,7 @@
 <?php
 namespace Conjecto\Nemrod\ResourceManager\Tests\Fixtures\TestBundle\RdfResource;
 
-use Conjecto\Nemrod\ResourceManager\Resource\Resource as BaseResource;
+use Conjecto\Nemrod\Resource as BaseResource;
 use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
 
 /**

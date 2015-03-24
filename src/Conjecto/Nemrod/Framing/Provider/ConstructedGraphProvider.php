@@ -1,7 +1,7 @@
 <?php
 namespace Conjecto\Nemrod\Framing\Provider;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 
@@ -67,7 +67,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     protected function getQueryBuilder($frame, $resource)
     {
         $rm = $this->rm;
-        if ($resource instanceof \Conjecto\Nemrod\ResourceManager\Resource\Resource) {
+        if ($resource instanceof \Conjecto\Nemrod\Resource) {
             $rm = $resource->getRm();
         }
 

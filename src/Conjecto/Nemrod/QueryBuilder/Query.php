@@ -8,10 +8,11 @@
 
 namespace Conjecto\Nemrod\QueryBuilder;
 
+use Conjecto\Nemrod\QueryBuilder;
 use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\AbstractHydrator;
 use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\ArrayHydrator;
 use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\CollectionHydrator;
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use EasyRdf\Collection;
 use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;

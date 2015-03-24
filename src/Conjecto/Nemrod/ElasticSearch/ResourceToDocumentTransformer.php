@@ -92,7 +92,7 @@ class ResourceToDocumentTransformer
                 return $res;
             }
 
-            return new \Conjecto\Nemrod\ResourceManager\Resource\Resource($uri, $graph);
+            return new \Conjecto\Nemrod\Resource($uri, $graph);
         }
 
         return;

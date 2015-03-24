@@ -8,7 +8,7 @@
 
 namespace Conjecto\Nemrod\ResourceManager\Tests\Manager;
 
-use Conjecto\Nemrod\ResourceManager\Manager\SnapshotContainer;
+use Conjecto\Nemrod\ResourceManager\SnapshotContainer;
 
 class SnapshotContainerTest extends ManagerTestCase
 {

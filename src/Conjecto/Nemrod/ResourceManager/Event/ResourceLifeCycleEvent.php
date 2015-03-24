@@ -6,9 +6,9 @@
  * Time: 15:52.
  */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager\Event;
+namespace Conjecto\Nemrod\ResourceManager\Event;
 
-use Conjecto\Nemrod\ResourceManager\Resource\Resource;
+use Conjecto\Nemrod\Resource;
 use Symfony\Component\EventDispatcher\Event;
 
 /**

@@ -1,7 +1,7 @@
 <?php
-namespace Conjecto\Nemrod\ResourceManager\Resource;
+namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;

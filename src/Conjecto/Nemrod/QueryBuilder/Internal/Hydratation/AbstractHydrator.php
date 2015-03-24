@@ -9,7 +9,7 @@
 namespace Conjecto\Nemrod\QueryBuilder\Internal\Hydratation;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
 
@@ -39,7 +39,7 @@ abstract class AbstractHydrator
         }
 
         if (!$this->rm instanceof Manager) {
-            throw new UnexpectedTypeException('Attempting a Conjecto\Nemrod\ResourceManager\Manager\Manager', $this->rm);
+            throw new UnexpectedTypeException('Attempting a Conjecto\Nemrod\Manager', $this->rm);
         }
     }
 

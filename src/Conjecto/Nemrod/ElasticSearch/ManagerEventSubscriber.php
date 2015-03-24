@@ -8,7 +8,7 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Event\Events;
+use Conjecto\Nemrod\ResourceManager\Event\Events;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;

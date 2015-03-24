@@ -6,7 +6,7 @@
  * Time: 11:39.
  */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager\Event;
+namespace Conjecto\Nemrod\ResourceManager\Event;
 
 /**
  * Class Events defines all.

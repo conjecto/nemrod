@@ -3,7 +3,7 @@
 namespace Conjecto\Nemrod\Bundle\NemrodBundle\DependencyInjection;
 
 use Conjecto\Nemrod\ResourceManager\Mapping\Driver\AnnotationDriver;
-use Conjecto\Nemrod\ResourceManager\Resource\Resource;
+use Conjecto\Nemrod\Resource;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;

@@ -8,8 +8,8 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-use Conjecto\Nemrod\QueryBuilder\QueryBuilder;
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\Manager;
 
 /**
  * Class ESCache.
@@ -22,7 +22,7 @@ class ESCache
     protected $rm;
 
     /**
-     * @var \Conjecto\Nemrod\QueryBuilder\QueryBuilder
+     * @var \Conjecto\Nemrod\QueryBuilder
      */
     protected $qb;
 
@@ -189,7 +189,7 @@ class ESCache
      * @param $type
      * @param $frame
      *
-     * @return \Conjecto\Nemrod\QueryBuilder\QueryBuilder
+     * @return \Conjecto\Nemrod\QueryBuilder
      */
     protected function getTypeRequest($type, $frame, &$properties)
     {

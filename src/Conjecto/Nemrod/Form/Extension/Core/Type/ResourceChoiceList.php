@@ -9,9 +9,9 @@
 namespace Conjecto\Nemrod\Form\Extension\Core\Type;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
-use Conjecto\Nemrod\QueryBuilder\QueryBuilder;
+use Conjecto\Nemrod\QueryBuilder;
 use Conjecto\Nemrod\QueryBuilder\RalQueryBuilderLoader;
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\Exception;
 use EasyRdf\Resource;

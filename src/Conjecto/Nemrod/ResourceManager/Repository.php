@@ -1,9 +1,9 @@
 <?php
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\QueryBuilder\QueryBuilder;
-use Conjecto\Nemrod\ResourceManager\Resource\Resource;
+use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -116,7 +116,7 @@ class Repository
     }
 
     /**
-     * @return \Conjecto\Nemrod\QueryBuilder\QueryBuilder
+     * @return \Conjecto\Nemrod\QueryBuilder
      */
     public function getQueryBuilder()
     {

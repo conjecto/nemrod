@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 06/01/2015
- * Time: 15:27.
- */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
 /**
  * Interface AbstractPersister.

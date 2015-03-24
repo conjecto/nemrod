@@ -8,11 +8,11 @@
         <parameter key="nemrod.namespace_registry.class">Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry</parameter>
         <parameter key="nemrod.sparql.connection.class">EasyRdf\Sparql\Client</parameter>
         <parameter key="nemrod.type_mapper.class">Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry</parameter>
-        <parameter key="nemrod.resource_manager.class">Conjecto\Nemrod\ResourceManager\Manager\Manager</parameter>
-        <parameter key="nemrod.repository_factory.class">Conjecto\Nemrod\ResourceManager\Manager\RepositoryFactory</parameter>
-        <parameter key="nemrod.persister.class">Conjecto\Nemrod\ResourceManager\Manager\SimplePersister</parameter>
+        <parameter key="nemrod.resource_manager.class">Conjecto\Nemrod\Manager</parameter>
+        <parameter key="nemrod.repository_factory.class">Conjecto\Nemrod\ResourceManager\RepositoryFactory</parameter>
+        <parameter key="nemrod.persister.class">Conjecto\ResourceManager\Nemrod\Manager\SimplePersister</parameter>
         <parameter key="nemrod.resource_lifecycle_event_dispatcher.class">Symfony\Component\EventDispatcher\EventDispatcher</parameter>
-        <parameter key="query_manager.class">Conjecto\Nemrod\QueryBuilder\QueryBuilder</parameter>
+        <parameter key="query_manager.class">Conjecto\Nemrod\QueryBuilder</parameter>
 
         <!-- MetadataFactory -->
         <parameter key="nemrod.metadata_factory.class">Metadata\MetadataFactory</parameter>

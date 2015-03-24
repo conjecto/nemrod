@@ -16,7 +16,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\Manager\RepositoryFactory')->setConstructorArgs(array('foo'));
+        $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\RepositoryFactory')->setConstructorArgs(array('foo'));
         $this->manager = $this->mockManager();
     }
 
@@ -26,7 +26,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
     protected function getMockedResource($className, $uri, $graph)
     {
         $mockedResource = $this/*->getMockBuilder('Resource')
-            ->setMethods(array('setRm', 'getUri', 'getGraph'))*/->getMock('Conjecto\Nemrod\ResourceManager\Resource\Resource', array('setRm', 'getUri', 'getGraph'));
+            ->setMethods(array('setRm', 'getUri', 'getGraph'))*/->getMock('Conjecto\Nemrod\Resource', array('setRm', 'getUri', 'getGraph'));
         $mockedResource->method('getUri')->willReturn($uri);
         $mockedResource->method('setRm')->willReturn(null);
         $mockedResource->method('getGraph')->willReturn($graph);
@@ -57,7 +57,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
         );
 
         return $this
-            ->getMockBuilder('Conjecto\Nemrod\ResourceManager\Manager\Manager')
+            ->getMockBuilder('Conjecto\Nemrod\Manager')
             ->setConstructorArgs(array($this->repoFactory, 'foo'))
             ->setMethods(array('getEventDispatcher'))
             ->getMock();
@@ -68,21 +68,6 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function mockUnitOfWork()
     {
-        return $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\Manager\UnitOfWork')->setConstructorArgs(array($this->manager, 'http://foo.fr'))->getMock();
-    }
-
-    /**
-     * @param $metadata
-     *
-     * @return \PHPUnit_Framework_MockObject_MockObject
-     */
-    protected function mockMetadataFactory($metadata)
-    {
-        $mdf = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\Manager\ClassMetadataFactory')->setMethods(array('getMetaDataFor'))->getMock();
-        foreach ($metadata as $class => $md) {
-            $mdf->expects($this->any())->method('getMetadataFor')->with($class)->willReturn($md);
-        }
-
-        return $mdf;
+        return $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\UnitOfWork')->setConstructorArgs(array($this->manager, 'http://foo.fr'))->getMock();
     }
 }

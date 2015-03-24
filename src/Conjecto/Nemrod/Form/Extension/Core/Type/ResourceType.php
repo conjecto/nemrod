@@ -9,7 +9,7 @@
 namespace Conjecto\Nemrod\Form\Extension\Core\Type;
 
 use Conjecto\Nemrod\Form\Extension\Core\DataMapper\ResourceLabelAccessor;
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\Options;

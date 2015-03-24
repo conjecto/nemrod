@@ -1,21 +1,15 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 05/01/2015
- * Time: 16:40.
- */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\ResourceManager\Annotation\Rdf\Resource;
-use Conjecto\Nemrod\ResourceManager\Manager\Event\ClearEvent;
-use Conjecto\Nemrod\ResourceManager\Manager\Event\Events;
-use Conjecto\Nemrod\ResourceManager\Manager\Event\PreFlushEvent;
-use Conjecto\Nemrod\ResourceManager\Manager\Event\ResourceLifeCycleEvent;
+use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
+use Conjecto\Nemrod\ResourceManager\Event\ClearEvent;
+use Conjecto\Nemrod\ResourceManager\Event\Events;
+use Conjecto\Nemrod\ResourceManager\Event\PreFlushEvent;
+use Conjecto\Nemrod\ResourceManager\Event\ResourceLifeCycleEvent;
 use Conjecto\Nemrod\ResourceManager\Mapping\ClassMetadata;
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadata;
-use Conjecto\Nemrod\ResourceManager\Resource\Resource as BaseResource;
+use Conjecto\Nemrod\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use EasyRdf\Container;
 use EasyRdf\Exception;
@@ -103,8 +97,7 @@ class UnitOfWork
      */
     public function registerResource($resource, $fromStore = true)
     {
-        //echo $resource->getUri()." is a ".get_class($resource)."<br />";
-        if (!$this->isRegistered($resource)) { //echo "not registered<br />";
+        if (!$this->isRegistered($resource)) {
             if ($resource instanceof BaseResource) {
                 $resource->setRm($this->_rm);
             }

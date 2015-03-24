@@ -8,7 +8,8 @@
 
 namespace Conjecto\Nemrod\QueryBuilder;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -33,18 +34,18 @@ class RalQueryBuilderLoader
         // If a query builder was passed, it must be a closure or QueryBuilder
         // instance
         if (!($queryBuilder instanceof QueryBuilder || $queryBuilder instanceof \Closure)) {
-            throw new UnexpectedTypeException($queryBuilder, 'Conjecto\Nemrod\QueryBuilder\QueryBuilder or \Closure');
+            throw new UnexpectedTypeException($queryBuilder, 'Conjecto\Nemrod\QueryBuilder or \Closure');
         }
 
         if ($queryBuilder instanceof \Closure) {
             if (!$manager instanceof Manager) {
-                throw new UnexpectedTypeException($manager, 'Conjecto\Nemrod\ResourceManager\Manager\Manager');
+                throw new UnexpectedTypeException($manager, 'Conjecto\Nemrod\Manager');
             }
 
             $queryBuilder = $queryBuilder($manager->getRepository($class));
 
             if (!$queryBuilder instanceof QueryBuilder) {
-                throw new UnexpectedTypeException($queryBuilder, 'Conjecto\Nemrod\QueryBuilder\QueryBuilder');
+                throw new UnexpectedTypeException($queryBuilder, 'Conjecto\Nemrod\QueryBuilder');
             }
         }
 

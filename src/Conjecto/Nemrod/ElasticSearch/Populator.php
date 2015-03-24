@@ -8,7 +8,7 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-use Conjecto\Nemrod\ResourceManager\Manager\Manager;
+use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Elastica\Type;
 

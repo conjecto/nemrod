@@ -1,7 +1,7 @@
 <?php
 namespace Conjecto\Nemrod\ResourceManager\Tests\Manager;
 
-use Conjecto\Nemrod\ResourceManager\Manager\UnitOfWork;
+use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use EasyRdf\Graph;
 
 class UnitOfWorkTest extends ManagerTestCase
@@ -11,7 +11,7 @@ class UnitOfWorkTest extends ManagerTestCase
      */
     public function setUp()
     {
-        $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\Manager\RepositoryFactory')->setConstructorArgs(array('foo'));
+        $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\RepositoryFactory')->setConstructorArgs(array('foo'));
         $this->manager = $this->mockManager();
     }
 

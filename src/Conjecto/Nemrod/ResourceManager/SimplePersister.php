@@ -1,15 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 06/01/2015
- * Time: 15:25.
- */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
-use Conjecto\Nemrod\QueryBuilder\QueryBuilder;
+use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
@@ -77,7 +71,7 @@ class SimplePersister implements PersisterInterface
             }
 
             if (empty($resourceClass)) {
-                $resourceClass = 'Conjecto\Nemrod\ResourceManager\Resource\Resource';
+                $resourceClass = 'Conjecto\Nemrod\Resource';
             }
 
             $resource = $this->resultToResource($uri, $result, $resourceClass);

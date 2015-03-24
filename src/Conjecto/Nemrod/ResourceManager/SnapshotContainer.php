@@ -1,14 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 21/01/2015
- * Time: 10:39.
- */
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\ResourceManager\Resource\Resource as BaseResource;
+use Conjecto\Nemrod\Resource as BaseResource;
 use EasyRdf\Graph;
 use Symfony\Component\Config\Definition\Exception\Exception;
 

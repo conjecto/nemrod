@@ -1,6 +1,6 @@
 <?php
 
-namespace Conjecto\Nemrod\ResourceManager\Manager;
+namespace Conjecto\Nemrod\ResourceManager;
 
 /**
  * Class RepositoryFactory.
