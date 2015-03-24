@@ -77,4 +77,20 @@ class ResourceLifeCycleEvent extends Event
     {
         $this->uris = $uris;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getRm()
+    {
+        return $this->rm;
+    }
+
+    /**
+     * @param mixed $rm
+     */
+    public function setRm($rm)
+    {
+        $this->rm = $rm;
+    }
 }
