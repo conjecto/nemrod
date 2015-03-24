@@ -1,9 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: maxime
- * Date: 26/01/2015
- * Time: 18:15.
+/*
+ * This file is part of the Nemrod package.
+ *
+ * (c) Conjecto <contact@conjecto.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Conjecto\Nemrod\ResourceManager\Mapping\Driver;

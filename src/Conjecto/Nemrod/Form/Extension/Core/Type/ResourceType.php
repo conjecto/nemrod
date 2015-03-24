@@ -1,9 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Erwan
- * Date: 30/12/2014
- * Time: 10:53.
+/*
+ * This file is part of the Nemrod package.
+ *
+ * (c) Conjecto <contact@conjecto.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Conjecto\Nemrod\Form\Extension\Core\Type;
