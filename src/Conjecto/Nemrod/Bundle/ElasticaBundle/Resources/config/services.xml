@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+
+        <!-- Elastica -->
+        <parameter key="nemrod.elastica_client.class">Elastica\Client</parameter>
+        <parameter key="nemrod.elastica_index.class">Elastica\Index</parameter>
+        <parameter key="nemrod.elastica_type.class">Elastica\Type</parameter>
+        <parameter key="nemrod.elastica_cache.class">Conjecto\Nemrod\ElasticSearch\ESCache</parameter>
+        <parameter key="nemrod.elastica_search.class">Conjecto\Nemrod\ElasticSearch\Search</parameter>
+        <parameter key="nemrod.elastica_config_manager.class">Conjecto\Nemrod\ElasticSearch\ConfigManager</parameter>
+        <parameter key="nemrod.elastica_mapping_builder.class">Conjecto\Nemrod\ElasticSearch\MappingBuilder</parameter>
+        <parameter key="nemrod.elastica_resetter.class">Conjecto\Nemrod\ElasticSearch\Resetter</parameter>
+        <parameter key="nemrod.elastica_type_registry.class">Conjecto\Nemrod\ElasticSearch\TypeRegistry</parameter>
+        <parameter key="nemrod.elastica_index_registry.class">Conjecto\Nemrod\ElasticSearch\IndexRegistry</parameter>
+        <parameter key="nemrod.elastica_populator.class">Conjecto\Nemrod\ElasticSearch\Populator</parameter>
+        <parameter key="nemrod.elastica.manager_event_subscriber.class">Conjecto\Nemrod\ElasticSearch\ManagerEventSubscriber</parameter>
+
+    </parameters>
+
+    <services>
+        <!-- elastica indexes, persisters, transformers... -->
+        <service id="nemrod.elastica.client" class="%nemrod.elastica_client.class%" abstract="true" />
+        <service id="nemrod.elastica.index" class="%nemrod.elastica_index.class%" abstract="true" />
+        <service id="nemrod.elastica.type" class="%nemrod.elastica_type.class%" abstract="true" />
+        <service id="nemrod.elastica.search" class="%nemrod.elastica_search.class%" abstract="true" />
+        <service id="nemrod.elastica.config_manager" class="%nemrod.elastica_config_manager.class%" />
+        <service id="nemrod.elastica.mapping_builder" class="%nemrod.elastica_mapping_builder.class%" >
+            <argument type="service" id="nemrod.elastica.config_manager"/>
+            <argument type="service" id="nemrod.elastica.type_registry" />
+        </service>
+        <service id="nemrod.elastica.resetter" class="%nemrod.elastica_resetter.class%" >
+            <argument type="service" id="nemrod.elastica.config_manager"/>
+            <argument type="service" id="nemrod.elastica.mapping_builder"/>
+        </service>
+        <service id="nemrod.elastica.cache" class="%nemrod.elastica_cache.class%" />
+        <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
+        <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
+        <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
+            <argument type="service" id="rm" />
+            <argument type="service" id="nemrod.elastica.index_registry" />
+            <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="nemrod.elastica.resetter" />
+            <argument type="service" id="nemrod.type_mapper" />
+            <argument type="service" id="nemrod.elastica.cache" />
+        </service>
+        <service id="nemrod.elastica.manager_event_subscriber" class="%nemrod.elastica.manager_event_subscriber.class%">
+            <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" method="onPreFlush" endpoint="ogbd" />
+            <argument type="service" id="nemrod.elastica.cache" />
+            <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="service_container" />
+        </service>
+
+    </services>
+
+</container>
