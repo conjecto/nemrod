@@ -1,5 +1,5 @@
-README
-====
+Nemrod
+======
 
 What is Nemrod?
 -----------------
@@ -42,10 +42,10 @@ Then you need to add one (or two) bundle(s) to the AppKernel.php:
     	public function registerBundles()
     	{
         	$bundles = array(
-				...
+			    ...
 			    new Conjecto\Nemrod\Bundle\NemrodBundle\NemrodBundle(),
-    			new Conjecto\Nemrod\Bundle\ElasticaBundle\ElasticaBundle(),
-				...
+    		    new Conjecto\Nemrod\Bundle\ElasticaBundle\ElasticaBundle(),
+			    ...
 			);
 		}
 	}
@@ -130,9 +130,8 @@ If you need to encapsulate specific logic over your data, you can overload the d
 
 	+-- ProductBundle
 	|   +-- Controller
-	|   +-- Entity
-	|   +-- Dependency
-	|   +-- Resource
+	|   +-- DependencyInjection
+	|   +-- Resources
 	|   +-- RdfResource
 	|		+-- Product
 
