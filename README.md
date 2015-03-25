@@ -1,5 +1,5 @@
 README
-======
+====
 
 What is Nemrod?
 -----------------
@@ -59,11 +59,11 @@ A little bit of configuration is necessary to let Nemrod know one thing or two a
         my_endpoint: "http://www.foo.org/sparql"
     	another_endpoint: "http://www.bar.net/sparql"
   	  default_endpoint: my_endpoint
-  	  namespaces:
+ 	 namespaces:
         rdfs: "http://www.w3.org/2000/01/rdf-schema#"
         foaf: "http://xmlns.com/foaf/0.1/"
         #add the namespaces you need
-		mycompany: "http://www.example.org/"
+		mycompany: "http://www.example.org/mycompany"
 
 At this point, Nemrod knows enough to access to your data. Use the 'rm' service's `findAll()` (which is an alias for 'nemrod.resource\_manager.my\_endpoint'):
 
@@ -160,15 +160,23 @@ the @Resource annotation allows to map your class and RDF types, so you can get 
 
 will fill `$products` with an array of `MyCompany\ProductBundle\RdfResource\Product` objects.
 
-An URI pattern can also be provided with `uriPattern`. It will be used to set an URI for a new resource. 
+An URI pattern can also be provided with `uriPattern`. It will be used to set an URI for a new resource. For now, the specified pattern is just used as a prefix
 
 Documentation
 -------------
 
 - [Using the Query Builder](doc/querybuilder.md)
 - [Creating forms](doc/forms.md)
-- Serializing resources to Json-ld
+- [Serializing resources to Json-ld](doc/serializer.md)
 - [Using ElasticSearch to index your data](doc/elasticsearch.md)
 
 Contributing
 ------------
+
+- Feel free to install and test the framework. We'd love to have some feedback about it.
+- A lot of tests has to be written. We are currently putting effort on that point. Any help would be appreciated.
+
+
+Licensing
+-----
+The Nemrod framework is licensed under the [MIT](http://opensource.org/licenses/MIT) license.
