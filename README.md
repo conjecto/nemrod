@@ -3,7 +3,8 @@ Nemrod
 
 What is Nemrod?
 -----------------
-Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project, in the same way Symfony users are using Doctrine. The framework provides five main components :
+Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project,
+in the same way Symfony users are using Doctrine. The framework provides five main components:
 
 - a resource manager (similar to Doctrine's resource manager)
 - a SPARQL query builder allowing to interact directly with your sparql endpoint(s)
@@ -26,7 +27,15 @@ Requirements
 
 Installation
 ------------
-Nemrod can be installed using composer :
+Nemrod can be installed using composer. You first need to set the minimum stability level to "dev" in your composer.json:
+
+    {
+        ...
+        "minimum-stability": "dev"
+        ...
+    }
+
+you can then install the framework using the command:
 
     composer require conjecto/nemrod
 
