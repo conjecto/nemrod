@@ -33,7 +33,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Conjecto\\Nemrod": "src"
+            "Conjecto\\Nemrod\\": "src"
         }
     },
     "minimum-stability": "stable"
