@@ -3,14 +3,13 @@ Nemrod
 
 What is Nemrod?
 -----------------
-Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project, in the same way Symfony users are used
-to do using Doctrine. The framework provides five main components :
+Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project, in the same way Symfony users are using Doctrine. The framework provides five main components :
 
 - a resource manager (similar to Doctrine's resource manager)
-- a SPARQL query builder allowing to interact directly with yout sparql endpoint(s)
+- a SPARQL query builder allowing to interact directly with your sparql endpoint(s)
 - a form extension allowing to build forms to create or update data
 - a json-ld serializer allowing to produce framed json-ld representation of RDF
-- Optionally, a set of services can be set up that populates and update an Elastic Search server wrt triple store content.
+- Optionally, a set of services can be set up that populates and update an Elasticsearch server wrt triple store content.
 
  Nemrod mainly relies on
   
