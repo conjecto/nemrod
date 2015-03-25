@@ -33,7 +33,7 @@ Nemrod can be installed using composer :
 
 you can also add dependency directly in your composer.json file:
 
-    "conjecto/nemrod": "~1.0@dev"
+    "conjecto/nemrod": "~0.1.0@dev"
 
 Then you need to add one (or two) bundle(s) to the AppKernel.php:
 
@@ -58,8 +58,8 @@ A little bit of configuration is necessary to let Nemrod know one thing or two a
 	  endpoints:
         my_endpoint: "http://www.foo.org/sparql"
     	another_endpoint: "http://www.bar.net/sparql"
-  	  default_endpoint: my_endpoint
- 	 namespaces:
+      default_endpoint: my_endpoint
+      namespaces:
         rdfs: "http://www.w3.org/2000/01/rdf-schema#"
         foaf: "http://xmlns.com/foaf/0.1/"
         #add the namespaces you need
@@ -178,4 +178,4 @@ Contributing
 
 Licensing
 -----
-The Nemrod framework is licensed under the [MIT](http://opensource.org/licenses/MIT) license.
+The Nemrod framework is licensed under the [BSD-3-Clause](LICENSE.md) license.

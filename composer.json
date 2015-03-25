@@ -1,39 +1,40 @@
 {
     "name": "conjecto/nemrod",
+    "version": "0.9.1",
+    "description": "Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project",
     "type": "library",
-    "description": "The RAL Semantic framework",
-    "keywords": ["framework"],
-    "homepage": "http://conjecto.com",
-    "license": "MIT",
+    "keywords": ["RDF", "Semantic Web", "Linked Data", "Turtle", "RDFa", "SPARQL", "JsonLD"],
+    "homepage": "http://www.conjecto.com",
+    "license": "BSD-3-Clause",
     "authors": [
         {
-            "name": "Blaise de Carné",
-            "email": "blaise@conjecto.com"
+            "name": "Conjecto",
+            "homepage": "http://wwww.conjecto.com",
+            "email": "contact@conjecto.com"
         }
     ],
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
         "easyrdf/easyrdf": "dev-master",
+        "doctrine/orm": "~2.2,>=2.2.3,<2.5",
 		"ml/json-ld": "~1.0",
-        "ruflin/elastica": "~1.4.3",
-        "jms/serializer-bundle": "~0.13",
-        "doctrine/orm": "~2.2,>=2.2.3,<2.5"
+        "jms/serializer": "~0.11",
+        "ruflin/elastica": "~1.4.3"
+    },
+    "suggest": {
+        "jms/serializer-bundle": "~0.13"
     },
     "require-dev": {
+        "jms/serializer-bundle": "~0.13",
         "phpunit/phpunit": "4.3.*",
         "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
         "fabpot/php-cs-fixer": "~1.5"
     },
     "autoload": {
-        "psr-0": { "Conjecto\\Nemrod": "src/" },
-        "classmap": [],
-        "files": [ ]
-    },
-    "minimum-stability": "stable",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
+        "psr-4": {
+            "Conjecto\\Nemrod": "src"
         }
-    }
+    },
+    "minimum-stability": "stable"
 }
