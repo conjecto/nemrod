@@ -1,4 +1,4 @@
-README
+Nemrod
 ======
 
 What is Nemrod?
@@ -42,10 +42,10 @@ Then you need to add one (or two) bundle(s) to the AppKernel.php:
     	public function registerBundles()
     	{
         	$bundles = array(
-				...
+			    ...
 			    new Conjecto\Nemrod\Bundle\NemrodBundle\NemrodBundle(),
-    			new Conjecto\Nemrod\Bundle\ElasticaBundle\ElasticaBundle(),
-				...
+    		    new Conjecto\Nemrod\Bundle\ElasticaBundle\ElasticaBundle(),
+			    ...
 			);
 		}
 	}
@@ -58,8 +58,8 @@ A little bit of configuration is necessary to let Nemrod know one thing or two a
 	  endpoints:
         my_endpoint: "http://www.foo.org/sparql"
     	another_endpoint: "http://www.bar.net/sparql"
-  	  default_endpoint: my_endpoint
-  	  namespaces:
+      default_endpoint: my_endpoint
+      namespaces:
         rdfs: "http://www.w3.org/2000/01/rdf-schema#"
         foaf: "http://xmlns.com/foaf/0.1/"
         #add the namespaces you need
@@ -130,9 +130,8 @@ If you need to encapsulate specific logic over your data, you can overload the d
 
 	+-- ProductBundle
 	|   +-- Controller
-	|   +-- Entity
-	|   +-- Dependency
-	|   +-- Resource
+	|   +-- DependencyInjection
+	|   +-- Resources
 	|   +-- RdfResource
 	|		+-- Product
 
@@ -167,7 +166,7 @@ Documentation
 
 - [Using the Query Builder](doc/querybuilder.md)
 - [Creating forms](doc/forms.md)
-- Serializing resources to Json-ld
+- [Serializing resources to Json-ld](doc/serializer.md)
 - [Using ElasticSearch to index your data](doc/elasticsearch.md)
 
 Contributing
