@@ -14,15 +14,16 @@ to do using Doctrine. The framework provides five main components :
 
  Nemrod mainly relies on
   
-- EasyRdf
-- ml/json-ld
-- Elastica
-- jms/serializer-bundle
+- [EasyRdf](https://github.com/njh/easyrdf)
+- [Json-ld](https://github.com/lanthaler/JsonLD)
+- [Elastica](https://github.com/ruflin/Elastica)
+- [jms/serializer-bundle](https://github.com/schmittjoh/JMSSerializerBundle)
 
 
 
 Requirements
 ------------
+- Symfony > 2.3
 
 Installation
 ------------
@@ -61,7 +62,7 @@ A little bit of configuration is necessary to let Nemrod know one thing or two a
   	  namespaces:
         rdfs: "http://www.w3.org/2000/01/rdf-schema#"
         foaf: "http://xmlns.com/foaf/0.1/"
-        #you can of course add your own namespaces
+        #add the namespaces you need
 		mycompany: "http://www.example.org/"
 
 At this point, Nemrod knows enough to access to your data. Use the 'rm' service's `findAll()` (which is an alias for 'nemrod.resource\_manager.my\_endpoint'):
@@ -74,7 +75,7 @@ At this point, Nemrod knows enough to access to your data. Use the 'rm' service'
 	class ProductsController extends Controller
 	{
     	/**
-     	 * @Route("/all/", name="person.index")
+     	 * @Route("/all/", name="product.index")
      	 * @Template("ProductsBundle:index.html.twig")
      	 */
     	public function indexAction()
@@ -88,7 +89,7 @@ At this point, Nemrod knows enough to access to your data. Use the 'rm' service'
 Alternatively, you can refine the set of data you want to get using the `findBy()` method:
 
     	/**
-     	 * @Route("/category/{category}", name="person.index")
+     	 * @Route("/category/{category}", name="product.category")
      	 * @Template("ProductsBundle:index.html.twig")
      	 */
     	public function categoryAction($category)
@@ -108,6 +109,22 @@ You can then display your data using twig:
       	{% endfor %}
     </ul>
 
+Another possibility is to ask for a specific resource using its uri:
+
+    	/**
+     	 * @Route("/view/{uri}", name="product.view")
+     	 * @Template("ProductsBundle:view.html.twig")
+     	 */
+    	public function viewAction($uri)
+    	{
+			$product = $this->container->get('rm')
+				->getRepository('mycompany:Products')
+				->find($uri);
+			...
+			return array("product" => $product);
+		}
+
+
 If you need to encapsulate specific logic over your data, you can overload the default resource abstraction class. Overloading class must be defined in a RdfResource directory of your bundle directory:
 
 
@@ -119,7 +136,7 @@ If you need to encapsulate specific logic over your data, you can overload the d
 	|   +-- RdfResource
 	|		+-- Product
 
-and must extend `Conjecto\Nemrod\Resource`:
+and must extend `Conjecto\Nemrod\Resource` (which is the default abstraction class):
 	
 	<?php
 	
@@ -129,18 +146,25 @@ and must extend `Conjecto\Nemrod\Resource`:
 	use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
 	
 	/**
-	 * Class ExampleResource
-	 * @package ConjectoDemo\EasyRdfBundle\RdfResource
+	 * Class Product
 	 * @Resource(types={"mycompany:Product"}, uriPattern = "mycompany:product:")
 	 */
-	class Genealogiste extends BaseResource
+	class Product extends BaseResource
 	{
 
+	}
 
+the @Resource annotation allows to map your class and RDF types, so you can get an instance of this class when asking for object with the given types:
+
+An URI pattern can also be provided with `uriPattern`. It will be used to set an URI for a new resource. 
 
 Documentation
 -------------
-A more detailed documentation will be released soon.
+
+- [Using the Query Builder](doc/querybuilder.md)
+- [Creating forms](doc/forms.md)
+- Serializing resources to Json-ld
+- [Using ElasticSearch to index your data](doc/elasticsearch.md)
 
 Contributing
 ------------
