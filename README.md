@@ -80,7 +80,7 @@ At this point, Nemrod knows enough to access to your data. Use the 'rm' service'
      	 */
     	public function indexAction()
     	{
-			$products = $this->container->get('rm')->getRepository('mycompany:Products')->findAll();
+			$products = $this->container->get('rm')->getRepository('mycompany:Product')->findAll();
 			...
 			return array("products" => $products);
 		}
@@ -95,7 +95,7 @@ Alternatively, you can refine the set of data you want to get using the `findBy(
     	public function categoryAction($category)
     	{
 			$products = $this->container->get('rm')
-				->getRepository('mycompany:Products')
+				->getRepository('mycompany:Product')
 				->findBy(array('mycompany:category' => $category));
 			...
 			return array("products" => $products);
@@ -118,7 +118,7 @@ Another possibility is to ask for a specific resource using its uri:
     	public function viewAction($uri)
     	{
 			$product = $this->container->get('rm')
-				->getRepository('mycompany:Products')
+				->getRepository('mycompany:Product')
 				->find($uri);
 			...
 			return array("product" => $product);
@@ -140,7 +140,7 @@ and must extend `Conjecto\Nemrod\Resource` (which is the default abstraction cla
 	
 	<?php
 	
-	namespace ConjectoDemo\EasyRdfBundle\RdfResource;
+	namespace MyCompany\ProductBundle\RdfResource;
 	
 	use Conjecto\Nemrod\Resource as BaseResource;
 	use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
@@ -155,6 +155,10 @@ and must extend `Conjecto\Nemrod\Resource` (which is the default abstraction cla
 	}
 
 the @Resource annotation allows to map your class and RDF types, so you can get an instance of this class when asking for object with the given types:
+
+	$product = $this->container->get('rm')->getRepository('mycompany:Product')->find($uri);
+
+will fill `$products` with an array of `MyCompany\ProductBundle\RdfResource\Product` objects.
 
 An URI pattern can also be provided with `uriPattern`. It will be used to set an URI for a new resource. 
 
