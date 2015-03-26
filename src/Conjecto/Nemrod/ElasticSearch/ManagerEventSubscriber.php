@@ -97,6 +97,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
     /**
      * @param $event
+     *
      * @todo do it work !
      */
     public function onPostFlush($event)
@@ -134,7 +135,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 }
 
                 if ($index && $this->esCache->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    /**
+                    /*
                      * @var Type
                      */
                     $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $newType));
@@ -151,7 +152,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $index = $this->typeRegistry->getType($oldType);
                     if ($index != null) {
                         $index = $index->getIndex()->getName();
-                        /**
+                        /*
                          * @var Type
                          */
                         $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $oldType));

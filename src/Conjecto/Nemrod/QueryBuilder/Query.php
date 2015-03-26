@@ -262,7 +262,7 @@ class Query
             for ($cnt = 1; $cnt <= count($this->result); $cnt++) {
                 $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
             }
-        } else if ($hydratation == self::HYDRATE_ARRAY) {
+        } elseif ($hydratation == self::HYDRATE_ARRAY) {
 
             //if resources are not managed yet, we register them. Otherwise
             foreach ($this->result as $k => $res) {

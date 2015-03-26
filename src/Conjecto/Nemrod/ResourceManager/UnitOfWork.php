@@ -546,9 +546,11 @@ class UnitOfWork
 
     /**
      * returns the status for a triple inside the unit of work.
+     *
      * @param \EasyRdf\Resource $resource
      * @param $property
      * @param $value
+     *
      * @return string
      */
     private function tripleStatus($resource, $property, $value)
@@ -573,8 +575,9 @@ class UnitOfWork
         if ($valueInSnapShot) {
             if ($valueInResource) {
                 return self::STATUS_TRIPLE_UNCHANGED;
+            } else {
+                return self::STATUS_TRIPLE_REMOVED;
             }
-            else return self::STATUS_TRIPLE_REMOVED;
         } else {
             if ($valueInResource) {
                 return self::STATUS_TRIPLE_ADDED;

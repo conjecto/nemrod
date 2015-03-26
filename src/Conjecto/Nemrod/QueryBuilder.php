@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\Manager;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;

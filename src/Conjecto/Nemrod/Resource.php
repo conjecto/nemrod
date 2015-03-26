@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -256,5 +255,4 @@ class Resource extends BaseResource implements \ArrayAccess
 
         return $manResource;
     }
-
 }

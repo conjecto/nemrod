@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod\QueryBuilder;
 
-
 class Parser
 {
     /**
