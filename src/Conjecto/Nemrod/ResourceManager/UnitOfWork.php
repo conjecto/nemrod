@@ -412,7 +412,7 @@ class UnitOfWork
         }
 
         if (!$className) {
-            $className = "Conjecto\\Nemrod\\ResourceManager\\Resource\\Resource";
+            $className = "Conjecto\\Nemrod\\Resource";
         }
 
         /** @var BaseResource $resource */

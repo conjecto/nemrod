@@ -104,7 +104,7 @@ class Manager
     {
         $type = TypeMapper::get($className);
         if (!$type) {
-            TypeMapper::set($className, "Conjecto\\Nemrod\\ResourceManager\\Resource\\Resource");
+            TypeMapper::set($className, "Conjecto\\Nemrod\\Resource");
         }
 
         return $this->repositoryFactory->getRepository($className, $this);
