@@ -17,7 +17,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 /**
  * Class Resource.
  */
-class Resource extends BaseResource implements \ArrayAccess
+class Resource extends BaseResource
 {
     /**
      *
