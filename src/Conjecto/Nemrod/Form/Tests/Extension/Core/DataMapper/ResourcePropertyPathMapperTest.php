@@ -30,4 +30,11 @@ class ResourcePropertyPathMapperTest extends \PHPUnit_Framework_TestCase
         $this->nsRegistry = $this->getMock('Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry');
         $this->mapper = new ResourcePropertyPathMapper($this->nsRegistry);
     }
+
+    /**
+     * @todo ADD TEST !
+     */
+    protected function testFoo(){
+        $this->assertEquals(true, true);
+    }
 }

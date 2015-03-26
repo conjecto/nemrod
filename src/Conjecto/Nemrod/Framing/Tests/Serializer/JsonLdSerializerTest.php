@@ -11,9 +11,11 @@
 namespace Conjecto\Nemrod\Framing\Tests\Loader;
 
 use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
+use Conjecto\Nemrod\Framing\Provider\SimpleGraphProvider;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Graph;
+use Metadata\MetadataFactory;
 
 /**
  * Class JsonLdSerializerTest.
@@ -31,8 +33,13 @@ class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase
 
         $foaf = new Graph('http://njh.me/foaf.rdf');
         $foaf->parseFile(__DIR__.'/Fixtures/foaf.rdf');
+
+        $graphProvider = new SimpleGraphProvider();
+
+        $metadataFactory = $this->getMockBuilder("Metadata\\MetadataFactory")->disableOriginalConstructor()->getMock();// new MetadataFactory();
+
         $resource = $foaf->primaryTopic();
-        $serializer = new JsonLdSerializer($registry, $loader);
+        $serializer = new JsonLdSerializer($registry, $loader, $graphProvider, $metadataFactory);
 
         $serialized = $serializer->serialize($resource, '@namespace/frame.jsonld');
         $decoded = json_decode($serialized, true);
