@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod;
 
-use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -112,7 +111,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof \EasyRdf\Resource) { //we get a resource
+        } elseif ($result instanceof BaseResource) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
