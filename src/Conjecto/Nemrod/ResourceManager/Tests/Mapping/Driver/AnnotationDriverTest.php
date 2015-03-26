@@ -18,7 +18,7 @@ class AnnotationDriverTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetAllClassNames()
     {
-        AnnotationRegistry::registerFile(__DIR__.'/../../../Annotation/Rdf/Resource.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../../Annotation/Resource.php');
 
         $reader = new AnnotationReader();
         $driver = new AnnotationDriver($reader, array( "Conjecto\\Nemrod\\ResourceManager\\Tests\\Fixtures\\TestBundle" => __DIR__.'/../../Fixtures/TestBundle/RdfResource'));

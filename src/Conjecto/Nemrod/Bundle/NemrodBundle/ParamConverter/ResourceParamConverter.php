@@ -57,7 +57,7 @@ class ResourceParamConverter implements ParamConverterInterface
      *
      * @return boolean True if the object has been successfully set, else false
      */
-    public function apply(Request $request, ConfigurationInterface $configuration)
+    public function apply(Request $request, ParamConverter $configuration)
     {
         $name    = $configuration->getName();
         $class   = $configuration->getClass();
@@ -248,7 +248,7 @@ class ResourceParamConverter implements ParamConverterInterface
      *
      * @return boolean True if the object is supported, else false
      */
-    public function supports(ConfigurationInterface $configuration)
+    public function supports(ParamConverter $configuration)
     {
         if (!$configuration instanceof ParamConverter) {
             return false;

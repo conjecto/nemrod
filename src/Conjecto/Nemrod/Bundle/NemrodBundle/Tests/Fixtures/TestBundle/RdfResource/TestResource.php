@@ -11,7 +11,7 @@
 namespace Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource;
 
 use Conjecto\Nemrod\Resource as BaseResource;
-use Conjecto\Nemrod\ResourceManager\Annotation\Rdf\Resource;
+use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
 
 /**
  * Class ExampleResource.

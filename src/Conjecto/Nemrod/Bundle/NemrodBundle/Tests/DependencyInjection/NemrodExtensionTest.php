@@ -28,14 +28,14 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         //have to manually register annotation
-        AnnotationRegistry::registerFile(__DIR__.'/../../../../ResourceManager/Annotation/Rdf/Resource.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../../../ResourceManager/Annotation/Resource.php');
         $this->container = new ContainerBuilder();
         $this->container->setParameter('kernel.bundles', array('Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
         $this->container->setParameter('kernel.root_dir', __DIR__."/../../../../");
         $this->extension = new NemrodExtension();
         $this->container->registerExtension($this->extension);
 
-        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'), 'elasticsearch' => array())));
+        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'))));
     }
 
     protected function load($config)
@@ -85,8 +85,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
                 'namespaces' => array(
                     'foo'    => 'http://purl.org/ontology/foo/',
                     'bar'    => 'http://www.w3.org/ns/bar#',
-                ),
-                'elasticsearch' => array(),
+                )
             ),
         );
 
