@@ -10,15 +10,13 @@
 
 namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\Manager;
-use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Class Resource.
  */
-class Resource extends BaseResource implements \ArrayAccess
+class Resource extends BaseResource
 {
     /**
      *
@@ -113,7 +111,7 @@ class Resource extends BaseResource implements \ArrayAccess
             }
 
             return;
-        } elseif ($result instanceof \EasyRdf\Resource) { //we get a resource
+        } elseif ($result instanceof BaseResource) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -256,5 +254,4 @@ class Resource extends BaseResource implements \ArrayAccess
 
         return $manResource;
     }
-
 }

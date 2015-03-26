@@ -14,8 +14,8 @@
     </php>
 
     <testsuites>
-        <testsuite name="RAL Test Suite">
-            <directory>./src/Conjecto/RAL/*/Tests/</directory>
+        <testsuite name="Nemrod Test Suite">
+            <directory>./src/Conjecto/Nemrod/*/Tests/</directory>
         </testsuite>
     </testsuites>
 
@@ -30,8 +30,8 @@
         <whitelist>
             <directory>./src/Conjecto/RAL/</directory>
             <exclude>
-                <directory>./src/Conjecto/RAL/*/Tests</directory>
-                <directory>./src/Conjecto/RAL/*/Resources</directory>
+                <directory>./src/Conjecto/Nemrod/*/Tests</directory>
+                <directory>./src/Conjecto/Nemrod/*/Resources</directory>
             </exclude>
         </whitelist>
     </filter>

@@ -11,8 +11,6 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\Framing\Provider\ConstructedGraphProvider;
-use Conjecto\Nemrod\QueryBuilder;
-use Conjecto\Nemrod\Manager;
 use EasyRdf\Resource;
 
 /**
@@ -124,6 +122,6 @@ class SerializerHelper
             return $this->requests[$index][$type][$key];
         }
 
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+        throw new \Exception('No matching found for index '.$index.' and type '.$type);
     }
 }

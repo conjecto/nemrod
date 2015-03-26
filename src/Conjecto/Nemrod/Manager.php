@@ -10,11 +10,9 @@
 
 namespace Conjecto\Nemrod;
 
-use Conjecto\Nemrod\QueryBuilder;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
-use Conjecto\Nemrod\Resource;
 use EasyRdf\Sparql\Client;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;

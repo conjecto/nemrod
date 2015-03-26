@@ -1,16 +1,15 @@
 language: php
 
 php:
-    - 5.3.3
     - 5.3
     - 5.4
     - 5.5
     - 5.6
-    - hhvm-nightly
+    - hhvm
 
 install:
   - composer install --dev --no-interaction --prefer-source
 
 script:
-  - vendor/bin/php-cs-fixer fix --level=symfony --config=sf23 -v --dry-run /
+  - vendor/bin/php-cs-fixer fix --level=symfony --config=sf23 -v --dry-run .
   - vendor/bin/phpunit -c phpunit.xml.dist
