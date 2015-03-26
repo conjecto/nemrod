@@ -34,7 +34,8 @@ class ResourcePropertyPathMapperTest extends \PHPUnit_Framework_TestCase
     /**
      * @todo ADD TEST !
      */
-    public function testFoo(){
+    public function testFoo()
+    {
         $this->assertEquals(true, true);
     }
 }

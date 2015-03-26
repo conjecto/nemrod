@@ -85,7 +85,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
                 'namespaces' => array(
                     'foo'    => 'http://purl.org/ontology/foo/',
                     'bar'    => 'http://www.w3.org/ns/bar#',
-                )
+                ),
             ),
         );
 

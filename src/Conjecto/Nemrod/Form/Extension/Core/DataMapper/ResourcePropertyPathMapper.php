@@ -193,7 +193,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     {
         if ($resources) {
             if (is_array($resources)) {
-                $array = [];
+                $array = array();
                 foreach ($resources as $resource) {
                     $array[] = $this->getLiteralValue($resource);
                 }
