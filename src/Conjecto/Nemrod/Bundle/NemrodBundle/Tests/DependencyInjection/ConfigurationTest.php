@@ -10,6 +10,7 @@
 
 namespace Conjecto\Nemrod\Bundle\NemrodBundle\Tests\DependencyInjection\Configuration;
 
+use Conjecto\Nemrod\Bundle\NemrodBundle\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\Processor;
 
 class ConfigurationTest extends \PHPUnit_Framework_TestCase

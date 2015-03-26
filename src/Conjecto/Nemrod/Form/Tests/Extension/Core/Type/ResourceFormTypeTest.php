@@ -24,7 +24,7 @@ class ResourceFormTypeTest extends TypeTestCase
     /**
      * @todo ADD TEST !
      */
-    protected function testFoo(){
+    public function testFoo(){
         $this->assertEquals(true, true);
     }
 }
