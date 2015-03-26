@@ -12,8 +12,8 @@ in the same way Symfony users are using Doctrine. The framework provides five ma
 - a json-ld serializer allowing to produce framed json-ld representation of RDF
 - Optionally, a set of services can be set up that populates and update an Elasticsearch server wrt triple store content.
 
- Nemrod mainly relies on
-  
+Nemrod mainly relies on
+
 - [EasyRdf](https://github.com/njh/easyrdf)
 - [Json-ld](https://github.com/lanthaler/JsonLD)
 - [Elastica](https://github.com/ruflin/Elastica)
@@ -23,7 +23,7 @@ in the same way Symfony users are using Doctrine. The framework provides five ma
 
 Requirements
 ------------
-- Symfony > 2.3
+- Symfony > 2.3, [Begin a Symfony Project](http://symfony.com/get-started)
 
 Installation
 ------------
