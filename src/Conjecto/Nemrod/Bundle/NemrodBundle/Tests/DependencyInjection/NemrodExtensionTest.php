@@ -15,7 +15,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 
-class RALExtensionTest extends \PHPUnit_Framework_TestCase
+class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
 {
     /** @var  ContainerBuilder */
     private $container;
