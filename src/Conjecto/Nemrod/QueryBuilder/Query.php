@@ -251,7 +251,10 @@ class Query
 
         //echo $this->completeSparqlQuery;
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
-        $this->result = $this->resultToGraph($this->result);
+
+        if ($this->type == QueryBuilder::CONSTRUCT) {
+            $this->result = $this->resultToGraph($this->result);
+        }
 
         if (($hydrator = $this->newHydrator($hydratation)) != null) {
             $this->result = $hydrator->hydrateResources($options);
