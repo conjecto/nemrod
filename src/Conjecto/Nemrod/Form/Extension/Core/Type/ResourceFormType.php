@@ -11,7 +11,7 @@
 namespace Conjecto\Nemrod\Form\Extension\Core\Type;
 
 use Conjecto\Nemrod\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
-use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
+use Conjecto\Nemrod\Manager;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -32,7 +32,7 @@ class ResourceFormType extends FormType
      * @param RdfNamespaceRegistry      $nsRegistry
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct(RdfNamespaceRegistry $nsRegistry, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct(Manager $nsRegistry, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->nsRegistry = $nsRegistry;
         parent::__construct($propertyAccessor);
@@ -50,38 +50,6 @@ class ResourceFormType extends FormType
     }
 
     /**
-     * Guess the suffix URI for a new Resource with type name and type value.
-     *
-     * @param $all
-     *
-     * @return string
-     */
-    public function findNameInForm($all)
-    {
-        $first = true;
-        $firstName = "";
-
-        foreach ($all as $one) {
-            if ($one->getName() == 'rdfs:label' || $one->getName() == 'foaf:name') {
-                $parentResourceName = $one->getParent()->getParent()->getName();
-                foreach ($this->nsRegistry->namespaces() as $key => $namespace) {
-                    if (strcmp($parentResourceName, $key) > 1) {
-                        $parentResourceName = str_replace($key, '', $parentResourceName);
-                        break;
-                    }
-                }
-
-                return $parentResourceName.'-'.$one->getViewData();
-            } elseif ($first) {
-                $first = false;
-                $firstName = $one->getName().'-'.$one->getViewData();
-            }
-        }
-
-        return $firstName;
-    }
-
-    /**
      * Set default_options
      * Set data_class to EasyRdf\Resource by default
      * If a new item is added to a collection, a new resource is created.
@@ -93,12 +61,9 @@ class ResourceFormType extends FormType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => '\EasyRdf\Resource',
+            'data_class' => 'rdfs:Resource',
             'empty_data' => function (FormInterface $form) {
-                $parseUri = $form->getRoot()->getData()->parseUri();
-                $newUri = $parseUri->getScheme().'://'.$parseUri->getAuthority().'/#'.$this->findNameInForm($form->all());
-
-                return new \EasyRdf\Resource($newUri, new \EasyRdf\Graph());
+                return $this->rm->getRepository('rdfs:Resource')->create();
             },
         ));
     }
