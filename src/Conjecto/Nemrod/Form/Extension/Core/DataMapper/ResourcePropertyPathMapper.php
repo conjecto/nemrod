@@ -147,6 +147,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         //$objectOrArray = new \EasyRdf_Resource();
         $property = (string) $propertyPath;
 
+        $literalClass = $this->getClassForType($formConfig->getType()->getName());
+
         if (is_array($value) || $value instanceof \Traversable) {
             $itemsToAdd = is_object($value) ? iterator_to_array($value) : $value;
             $itemToRemove = array();
@@ -173,13 +175,13 @@ class ResourcePropertyPathMapper implements DataMapperInterface
                 $objectOrArray->delete($property, $item);
             }
             foreach ($itemsToAdd as $item) {
-                $objectOrArray->add($property, $item);
+                $objectOrArray->add($property, new $literalClass($item));
             }
 
             return;
         }
 
-        return $objectOrArray->set($property, $value);
+        return $objectOrArray->set($property, new $literalClass($value));
     }
 
     /**
@@ -218,4 +220,23 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         return $resource;
     }
+
+    /**
+     * @param $type
+     * @return string
+     */
+    protected function getClassForType($type)
+    {
+        switch ($type) {
+            case 'date':
+                return "EasyRdf\\Literal\\Date";
+            case 'number':
+                return "EasyRdf\\Literal\\Decimal";
+            case 'integer':
+                return "EasyRdf\\Literal\\Integer";
+            default:
+                return "EasyRdf\\Literal";
+        }
+    }
+
 }
