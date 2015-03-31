@@ -147,6 +147,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         //$objectOrArray = new \EasyRdf_Resource();
         $property = (string) $propertyPath;
 
+        $formConfig->getType()->getName();
         $literalClass = $this->getClassForType($formConfig->getType()->getName());
 
         if (is_array($value) || $value instanceof \Traversable) {
@@ -175,13 +176,13 @@ class ResourcePropertyPathMapper implements DataMapperInterface
                 $objectOrArray->delete($property, $item);
             }
             foreach ($itemsToAdd as $item) {
-                $objectOrArray->add($property, new $literalClass($item));
+                $objectOrArray->add($property, $literalClass ? new $literalClass($value) : $value);
             }
 
             return;
         }
 
-        return $objectOrArray->set($property, new $literalClass($value));
+        return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
     }
 
     /**
@@ -231,12 +232,19 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             case 'date':
                 return "EasyRdf\\Literal\\Date";
             case 'number':
+            case 'money':
+            case 'percent':
                 return "EasyRdf\\Literal\\Decimal";
             case 'integer':
                 return "EasyRdf\\Literal\\Integer";
-            default:
+            case 'text':
+            case 'textarea':
+            case 'email':
+            case 'password':
+            case 'url':
                 return "EasyRdf\\Literal";
         }
+        return null;
     }
 
 }
