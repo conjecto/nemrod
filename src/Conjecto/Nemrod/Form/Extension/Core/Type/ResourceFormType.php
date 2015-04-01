@@ -61,7 +61,7 @@ class ResourceFormType extends FormType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'rdfs:Resource',
+            'data_class' => 'Conjecto\Nemrod\Resource',
             'empty_data' => function (FormInterface $form) {
                 return $this->rm->getRepository('rdfs:Resource')->create();
             },
