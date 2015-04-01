@@ -176,13 +176,19 @@ class ResourcePropertyPathMapper implements DataMapperInterface
                 $objectOrArray->delete($property, $item);
             }
             foreach ($itemsToAdd as $item) {
-                $objectOrArray->add($property, $literalClass ? new $literalClass($value) : $value);
+                if ($item != null) {
+                    $objectOrArray->add($property, $literalClass ? new $literalClass($item) : $item);
+                }
             }
 
             return;
         }
 
-        return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
+        if ($value != null) {
+            return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
+        }
+
+        return null;
     }
 
     /**
