@@ -11,8 +11,10 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
+use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
+use Conjecto\Nemrod\Resource;
 use EasyRdf\Graph;
-use EasyRdf\Resource;
+use EasyRdf\Resource as BaseResource;
 use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;
 
@@ -21,7 +23,7 @@ class ResourceToDocumentTransformer
     /**
      * @var SerializerHelper
      */
-    protected $esCache;
+    protected $serializerHelper;
 
     /**
      * @var TypeRegistry
@@ -29,32 +31,49 @@ class ResourceToDocumentTransformer
     protected $typeRegistry;
 
     /**
+     * @var JsonLdSerializer
+     */
+    protected $jsonLdSerializer;
+
+    /**
      * @var TypeMapperRegistry
      */
     protected $typeMapperRegistry;
 
-    public function __construct(SerializerHelper $esCache, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry)
+    /**
+     * @param SerializerHelper $serializerHelper
+     * @param TypeRegistry $typeRegistry
+     * @param TypeMapperRegistry $typeMapperRegistry
+     * @param JsonLdSerializer $jsonLdSerializer
+     */
+    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
-        $this->esCache = $esCache;
+        $this->serializerHelper = $serializerHelper;
         $this->typeRegistry = $typeRegistry;
         $this->typeMapperRegistry = $typeMapperRegistry;
+        $this->jsonLdSerializer = $jsonLdSerializer;
     }
 
+    /**
+     * Transform a resource to an elastica document
+     * @param $uri
+     * @param $type
+     * @return Document|null
+     */
     public function transform($uri, $type)
     {
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
-            return;
+            return null;
         }
 
         $index = $index->getIndex()->getName();
-        if ($index && $this->esCache->isTypeIndexed($index, $type)) {
-            $jsonLdSerializer = new JsonLd();
-            $graph = $this->esCache->getRequest($index, $uri, $type)->getQuery()->execute();
-            $jsonLd = $jsonLdSerializer->serialise($graph, 'jsonld', ['context' => $this->esCache->getTypeContext($index, $type), 'frame' => $this->esCache->getTypeFrame($index, $type)]);
+        if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
+            $graph = $this->serializerHelper->getGraph($index, $uri, $type);
+            $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $this->serializerHelper->getTypeFramePath($index, $type));
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
-                return;
+                return null;
             }
             $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
@@ -63,39 +82,38 @@ class ResourceToDocumentTransformer
             return new Document($uri, $json, $type, $index);
         }
 
-        return;
+        return null;
     }
 
+    /**
+     * Transform an elastica document to a resource
+     * @param Document $document
+     * @return Resource|null
+     */
     public function reverseTransform(Document $document)
     {
         if ($document) {
             $uri = $document->getParam('_id');
             $data = $document->getData();
-            $data = json_decode($data, true);
-
-            if (!isset($data['@graph'][0])) {
-                return;
-            }
-
-            $data = json_encode($data['@graph'][0]);
             $data = str_replace('_type', 'rdf:type', $data);
             $data = json_decode($data, true);
             unset($data['_id']);
 
             $graph = new Graph($uri);
             foreach ($data as $property => $value) {
-                $graph->add($uri, $property, $value);
+                if (is_string($value)) {
+                    $graph->add($uri, $property, $value);
+                }
             }
+
             $phpClass = $this->typeMapperRegistry->get($data['rdf:type']);
             if ($phpClass) {
-                $res = new $phpClass($uri, $graph);
-
-                return $res;
+                return new $phpClass($uri, $graph);
             }
 
-            return new \Conjecto\Nemrod\Resource($uri, $graph);
+            return new Resource($uri, $graph);
         }
 
-        return;
+        return null;
     }
 }

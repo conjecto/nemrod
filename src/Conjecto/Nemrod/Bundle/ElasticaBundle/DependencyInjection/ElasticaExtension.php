@@ -89,6 +89,7 @@ class ElasticaExtension extends Extension
 
         $cacheDefinition = $container->getDefinition('nemrod.elastica.serializer_helper');
         $cacheDefinition->addMethodCall('setConstructedGraphProvider', array(new Reference('nemrod.jsonld.graph_provider')));
+        $cacheDefinition->addMethodCall('setJsonLdFrameLoader', array(new Reference('nemrod.jsonld.frame.loader.filesystem')));
         $cacheDefinition->addMethodCall('setConfig', array($config));
     }
 

@@ -23,7 +23,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     /**
      * @var SerializerHelper
      */
-    protected $esCache;
+    protected $serializerHelper;
 
     /**
      * @var TypeRegistry
@@ -40,9 +40,9 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     protected $changesRequests;
 
-    public function __construct(SerializerHelper $esCache, TypeRegistry $typeRegistry, Container $container)
+    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, Container $container)
     {
-        $this->esCache = $esCache;
+        $this->serializerHelper = $serializerHelper;
         $this->typeRegistry = $typeRegistry;
         $this->container = $container;
     }
@@ -102,8 +102,10 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     public function onPostFlush($event)
     {
-        return;
-        $resourceToDocumentTransformer = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->container->get('nemrod.type_mapper'));
+        $resourceToDocumentTransformer = new ResourceToDocumentTransformer(
+            $this->serializerHelper, $this->typeRegistry, $this->container->get('nemrod.type_mapper'), $this->container->get('nemrod.jsonld.serializer')
+        );
+
         $qb = $event->getRm()->getQueryBuilder();
         $qb->reset();
         $qb->construct("?uri a ?t")->where("?uri a ?t");
@@ -134,11 +136,11 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $index = $index->getIndex()->getName();
                 }
 
-                if ($index && $this->esCache->isTypeIndexed($index, $newType, $infos['properties'])) {
+                if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
                     /*
                      * @var Type
                      */
-                    $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $newType));
+                    $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $newType));
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
                         $esType->addDocument($document);
@@ -155,7 +157,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                         /*
                          * @var Type
                          */
-                        $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->esCache->getTypeName($index, $oldType));
+                        $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $oldType));
                         $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
                     }
                 }

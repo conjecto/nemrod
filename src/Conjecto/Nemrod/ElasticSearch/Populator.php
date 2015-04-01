@@ -31,20 +31,24 @@ class Populator
     /** @var  TypeMapperRegistry */
     protected $typeMapperRegistry;
 
+    /** @var  @var JsonLdSerializer */
+    protected $jsonLdSerializer
+
     /**
      * @param $resourceManager
      * @param $indexManager
      * @param $typeRegistry
      * @param $resetter
      */
-    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $esCache)
+    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $serializerHelper, $jsonLdSerializer)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
         $this->typeRegistry = $typeRegistry;
         $this->resetter = $resetter;
         $this->typeMapperRegistry = $typeMapperRegistry;
-        $this->esCache = $esCache;
+        $this->serializerHelper = $serializerHelper;
+        $this->jsonLdSerializer = $jsonLdSerializer;
     }
 
     /**
@@ -69,7 +73,7 @@ class Populator
             $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct("?s a ".$key)->where("?s a ".$key)->getQuery()
                 ->execute();
 
-            $trans = new ResourceToDocumentTransformer($this->esCache, $this->typeRegistry, $this->typeMapperRegistry);
+            $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
             /* @var Resource $add */
             foreach ($result->resources() as $res) {
