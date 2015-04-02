@@ -190,7 +190,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             return $objectOrArray->delete($property);
         }
 
-        return null;
+        return;
     }
 
     /**
@@ -232,6 +232,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
     /**
      * @param $type
+     *
      * @return string
      */
     protected function getClassForType($type)
@@ -252,7 +253,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             case 'url':
                 return "EasyRdf\\Literal";
         }
-        return null;
-    }
 
+        return;
+    }
 }

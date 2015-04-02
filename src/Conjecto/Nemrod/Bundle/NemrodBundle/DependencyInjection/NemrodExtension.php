@@ -165,6 +165,10 @@ class NemrodExtension extends Extension
 
         // registering all annotation mappings.
         $service = $container->getDefinition('nemrod.type_mapper');
+
+        //setting default resource
+        $service->addMethodCall('setDefaultResourceClass', array($container->getParameter('nemrod.resource.class')));
+
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
         //adding paths to annotation driver

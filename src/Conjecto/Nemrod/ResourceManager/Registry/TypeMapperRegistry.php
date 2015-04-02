@@ -34,6 +34,24 @@ class TypeMapperRegistry
     }
 
     /**
+     * @param $class
+     *
+     * @return string
+     */
+    public function setDefaultResourceClass($class)
+    {
+        return TypeMapper::setDefaultResourceClass($class);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefaultResourceClass()
+    {
+        return TypeMapper::getDefaultResourceClass();
+    }
+
+    /**
      * @param $type
      *
      * @return string

@@ -28,6 +28,10 @@
 
         <!-- ParamConverter -->
         <parameter key="nemrod.resource.param_convecter.class">Conjecto\Nemrod\Bundle\NemrodBundle\ParamConverter\ResourceParamConverter</parameter>
+
+        <!-- Nemrod resource class-->
+        <parameter key="nemrod.resource.class">Conjecto\Nemrod\Resource</parameter>
+
     </parameters>
 
     <services>
