@@ -352,12 +352,13 @@ class SimplePersister implements PersisterInterface
                     if (!empty($value)) {
                         foreach ($value as $val) {
                             if ($val['type'] == 'literal') {
-                                $tripleStr = "";
-                                if (empty($val['datatype'])) {
-                                    $tripleStr = "<".$uri."> <".$property."> \"".$val['value']."\"";
-                                } else {
-                                    $tripleStr = "<".$uri."> <".$property."> \"".$val['value']."\"^^<".$val['datatype'].">";
+                                $tripleStr = "<".$uri."> <".$property."> \"".addcslashes($val['value'], '"')."\"";
+                                if (!empty($val['lang'])) {
+                                    $tripleStr .= "@".$val['lang']."";
+                                } else if (!empty($val['datatype'])) {
+                                    $tripleStr .= "^^<".$val['datatype'].">";
                                 }
+
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
                             } elseif ($val['type'] == 'uri') {

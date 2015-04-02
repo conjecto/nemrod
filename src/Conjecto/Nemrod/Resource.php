@@ -56,7 +56,9 @@ class Resource extends BaseResource
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
-                $llResult[] = $this->_rm->find(null, $res->getUri());
+                if ($res instanceof Resource && (!empty($this->_rm))) {
+                    $llResult[] = $this->_rm->find(null, $res->getUri());
+                }
             }
 
             return $llResult;
@@ -104,8 +106,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof Resource) { //we get a resource
-
+        } elseif ($result instanceof Resource  && (!empty($this->_rm))) { //we get a resource
             try {
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
@@ -137,33 +138,24 @@ class Resource extends BaseResource
     public function set($property, $value)
     {
         //resource: check if managed (for further save
-        if ($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
 
-        $managed = $this->getManagedResource();
-        if ($managed && ($managed !== $this)) {
-            $managed->set($property, $value);
-        }
-
         return $out;
     }
 
     /**
      * @return int|void
      */
-    public function add($property, $value, $propagate = true)
+    public function add($property, $value)
     {
         //resource: check if managed (for further save
-        if ($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($property instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
-        $managed = $this->getManagedResource();
-        if (($managed) && ($managed !== $this) && ($propagate)) {
-            $managed->add($property, $value);
-        }
 
         return $out;
     }
@@ -171,13 +163,9 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function delete($property, $value = null, $propagate = true)
+    public function delete($property, $value = null)
     {
         $out = parent::delete($property, $value);
-        $managed = $this->getManagedResource();
-        if (($managed !== $this) && ($propagate)) {
-            $managed->delete($property, $value);
-        }
 
         return $out;
     }
@@ -215,18 +203,5 @@ class Resource extends BaseResource
         }
 
         return array($first, $rest);
-    }
-
-    /**
-     *
-     */
-    public function getManagedResource()
-    {
-        if (!isset($this->_rm)) {
-            return $this;
-        }
-        $manResource = $this->_rm->getUnitOfWork()->retrieveResource($this->getUri());
-
-        return $manResource;
     }
 }
