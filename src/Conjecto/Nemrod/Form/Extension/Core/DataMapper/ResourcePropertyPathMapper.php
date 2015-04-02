@@ -186,6 +186,8 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         if ($value != null) {
             return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
+        } else {
+            return $objectOrArray->delete($property);
         }
 
         return null;
