@@ -70,7 +70,7 @@ class ResourceToDocumentTransformer
         $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $graph = $this->serializerHelper->getGraph($index, $uri, $type);
-            $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $this->serializerHelper->getTypeFramePath($index, $type));
+            $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri, $graph), $this->serializerHelper->getTypeFramePath($index, $type));
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
                 return null;
