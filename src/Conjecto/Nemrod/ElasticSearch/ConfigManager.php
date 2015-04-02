@@ -9,6 +9,7 @@
  */
 
 namespace Conjecto\Nemrod\ElasticSearch;
+use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
 
 /**
  * Class ConfigManager stores and manages mainly (elastica) type mappings.
@@ -23,11 +24,34 @@ class ConfigManager
     private $config;
 
     /**
+     * @var JsonLdFrameLoader
+     */
+    private $jsonLdFrameLoader;
+
+    function __construct(JsonLdFrameLoader $jsonLdFrameLoader)
+    {
+        $this->jsonLdFrameLoader = $jsonLdFrameLoader;
+    }
+
+    /**
      * @param $type
      * @param $data
      */
     public function setConfig($type, $data)
     {
+        $frame = $this->jsonLdFrameLoader->load($data['frame']);
+        $properties = array();
+
+        foreach ($frame as $key => $property) {
+            if (!strstr($key, '@')) {
+                if (!isset($property['@mapping'])) {
+                    $property['@mapping'] = '~';
+                }
+                $properties[$key] = $property['@mapping'];
+            }
+        }
+
+        $data['properties'] = $properties;
         $this->config[$type] = $data;
     }
 

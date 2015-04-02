@@ -134,16 +134,17 @@ class SerializerHelper
     {
         $this->requests[$index][$settings['type']]['name'] = $type;
         $this->requests[$index][$settings['type']]['frame'] = $settings['frame'];
-        $properties = $this->getProperties($settings['properties']);
+        $properties = $this->getProperties($this->jsonLdFrameLoader->load($settings['frame']));
         $this->requests[$index][$settings['type']]['properties'] = $properties;
     }
 
-    protected function getProperties($jsonProperties)
+    protected function getProperties($frame)
     {
         $properties = array();
-
-        foreach ($jsonProperties as $key => $property) {
-            $properties[] = $key;
+        foreach ($frame as $key => $property) {
+            if (!strstr($key, '@')) {
+                $properties[] = $key;
+            }
         }
 
         return $properties;

@@ -28,7 +28,9 @@
         <service id="nemrod.elastica.index" class="%nemrod.elastica_index.class%" abstract="true" />
         <service id="nemrod.elastica.type" class="%nemrod.elastica_type.class%" abstract="true" />
         <service id="nemrod.elastica.search" class="%nemrod.elastica_search.class%" abstract="true" />
-        <service id="nemrod.elastica.config_manager" class="%nemrod.elastica_config_manager.class%" />
+        <service id="nemrod.elastica.config_manager" class="%nemrod.elastica_config_manager.class%" >
+            <argument type="service" id="nemrod.jsonld.frame.loader.filesystem" />
+        </service>
         <service id="nemrod.elastica.mapping_builder" class="%nemrod.elastica_mapping_builder.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.type_registry" />
