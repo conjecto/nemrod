@@ -94,19 +94,10 @@ class ResourceToDocumentTransformer
     {
         if ($document) {
             $uri = $document->getParam('_id');
-            $data = $document->getData();
-            $data = str_replace('_type', 'rdf:type', $data);
-            $data = json_decode($data, true);
-            unset($data['_id']);
+            $type = $document->getParam('_type');
+            $graph = $this->serializerHelper->getGraph($document->getParam('_index'), $uri, $type);
 
-            $graph = new Graph($uri);
-            foreach ($data as $property => $value) {
-                if (is_string($value)) {
-                    $graph->add($uri, $property, $value);
-                }
-            }
-
-            $phpClass = $this->typeMapperRegistry->get($data['rdf:type']);
+            $phpClass = $this->typeMapperRegistry->get($type);
             if ($phpClass) {
                 return new $phpClass($uri, $graph);
             }
