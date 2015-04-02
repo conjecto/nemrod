@@ -597,6 +597,7 @@ class UnitOfWork
 
     /**
      * @param $resource
+     *
      * @return BaseResource
      */
     public function replaceResourceInstance($resource)

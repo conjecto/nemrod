@@ -73,7 +73,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('nemrod.type_mapper');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array (array("setDefaultResourceClass", array("Conjecto\\Nemrod\\Resource")), array("set", array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource'))), $calls);
+        $this->assertEquals(array(array("setDefaultResourceClass", array("Conjecto\\Nemrod\\Resource")), array("set", array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource'))), $calls);
     }
 
     /**
