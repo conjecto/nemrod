@@ -54,16 +54,9 @@ class Resource extends BaseResource
         $result = parent::all($property, $type, $lang);
 
         if (is_array($result)) {
-            //@todo do this better.
             $llResult = array();
             foreach ($result as $res) {
-                if ($res instanceof Resource) {
-                    $llResult[] = $this->_rm->find(null, $res->getUri());
-                } elseif ($res instanceof BaseResource) {
-                    $nr = new Resource($res->getUri(), $res->getGraph());
-                    $nr->setRm($this->_rm);
-                    $llResult[] = $nr;
-                }
+                $llResult[] = $this->_rm->find(null, $res->getUri());
             }
 
             return $llResult;
@@ -111,7 +104,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof BaseResource) { //we get a resource
+        } elseif ($result instanceof Resource) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -155,24 +148,6 @@ class Resource extends BaseResource
         }
 
         return $out;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return array
-     */
-    public function allResources($path)
-    {
-        $resources = parent::allResources($path);
-        $nr = array();
-        foreach ($resources as $rs) {
-            $r = new Resource($rs->getUri(), $rs->getGraph());
-            $r->setRm($this->_rm);
-            $nr[] = $r;
-        }
-
-        return $nr;
     }
 
     /**

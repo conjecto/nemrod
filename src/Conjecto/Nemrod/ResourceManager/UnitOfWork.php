@@ -106,9 +106,7 @@ class UnitOfWork
     public function registerResource($resource, $fromStore = true)
     {
         if (!$this->isRegistered($resource)) {
-            if ($resource instanceof BaseResource) {
-                $resource->setRm($this->_rm);
-            }
+            $resource->setRm($this->_rm);
 
             $this->registeredResources[$resource->getUri()] = $resource;
             if ($fromStore) {
@@ -132,7 +130,7 @@ class UnitOfWork
         if (empty($this->registeredResources[$uri])) {
             throw new Exception("no parent resource");
         }
-        /** @var \EasyRdf\Resource $owningResource */
+        /** @var \Conjecto\Nemrod\Resource $owningResource */
         $owningResource = $this->registeredResources[$uri];
 
         /* @var Graph $graph */
@@ -412,7 +410,7 @@ class UnitOfWork
         }
 
         if (!$className) {
-            $className = "Conjecto\\Nemrod\\Resource";
+            $className = TypeMapper::getDefaultResourceClass();
         }
 
         /** @var BaseResource $resource */
@@ -547,7 +545,7 @@ class UnitOfWork
     /**
      * returns the status for a triple inside the unit of work.
      *
-     * @param \EasyRdf\Resource $resource
+     * @param \Conjecto\Nemrod\Resource $resource
      * @param $property
      * @param $value
      *
@@ -594,13 +592,12 @@ class UnitOfWork
      */
     public function isResource($resource)
     {
-        return ($resource instanceof \EasyRdf\Resource);
+        return ($resource instanceof BaseResource);
     }
 
     /**
-     * Replaces an already managed resource instance with another instance of same resource (ie, same URI).
-     *
-     * @param \EasyRdf\Resource $resource
+     * @param $resource
+     * @return BaseResource
      */
     public function replaceResourceInstance($resource)
     {
@@ -712,7 +709,7 @@ class UnitOfWork
         ->execute();
 
         $resources = $result->resources();
-        /** @var \EasyRdf\Resource $re */
+        /** @var \Conjecto\Nemrod\Resource $re */
         foreach ($resources as $re) {
             $this->registerResource($re);
             foreach ($result->properties($re->getUri()) as $prop) {
