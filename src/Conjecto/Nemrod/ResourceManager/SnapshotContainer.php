@@ -12,6 +12,7 @@ namespace Conjecto\Nemrod\ResourceManager;
 
 use Conjecto\Nemrod\Resource as BaseResource;
 use EasyRdf\Graph;
+use EasyRdf\Literal;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
@@ -55,7 +56,7 @@ class SnapshotContainer extends Graph
                         if ($value['type'] == 'bnode' || $value['type'] == 'uri') {
                             $this->addResource($resource2, $property, $value['value']);
                         } elseif ($value['type'] == 'literal') {
-                            $this->addLiteral($resource2, $property, $value['value']);
+                            $this->addLiteral($resource2, $property, Literal::create($value['value'], (isset($value['lang'])) ? $value['lang'] : null, (isset($value['datatype'])) ? $value['datatype'] : null));
                         } else {
                             //@todo check for addType
                         }
