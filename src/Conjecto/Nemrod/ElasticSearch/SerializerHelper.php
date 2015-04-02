@@ -132,11 +132,16 @@ class SerializerHelper
         $framePath = $settings['frame'];
         $frame = $this->jsonLdFrameLoader->load($settings['frame']);
 
-        if (!isset($frame['@type'])) {
-            throw new \Exception("You have to specify a type in jsonLdFrame $framePath");
+        if (!isset($settings['type']) && !isset($frame['@type'])) {
+            throw new \Exception("You have to specify a type in your config or in the jsonLdFrame $framePath");
         }
 
-        $type = $frame['@type'];
+        if (isset($settings['type'])) {
+            $type = $settings['type'];
+        }
+        else if (isset($frame['@type'])) {
+            $type = $frame['@type'];
+        }
         $this->requests[$index][$type]['name'] = $typeName;
         $this->requests[$index][$type]['frame'] = $settings['frame'];
         $this->requests[$index][$type]['properties'] = $this->getProperties($frame);
