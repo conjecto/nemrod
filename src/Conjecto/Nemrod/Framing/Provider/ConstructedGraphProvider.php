@@ -104,12 +104,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             }
         }
 
-        if (empty($frame['@explicit'])) {
-            $triple = '?uri'.' ?w'.(++$this->varCounter).' ?w'.(++$this->varCounter);
-            $qb->andWhere($triple);
-            $qb->addConstruct($triple);
-        }
-
         return $qb;
     }
 
@@ -139,12 +133,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                     $stringedChild = $stringedChild." {} UNION {".$uriChild.' '.$prop.' '.$this->addChild($qb, $val, $uriChildOfChild)."} ";
                     $qb->addConstruct($uriChild.' '.$prop.' '.$this->addChild($qb, $val, $uriChildOfChild));
                 }
-            }
-
-            if (empty($child['@explicit'])) {
-                $triple = $uriChild.' ?w'.(++$this->varCounter).' ?w'.(++$this->varCounter);
-                $stringedChild = $stringedChild." . ".$triple;
-                $qb->addConstruct($triple);
             }
 
             return $stringedChild;

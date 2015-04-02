@@ -115,16 +115,19 @@ class SerializerHelper
     protected function guessRequests()
     {
         foreach ($this->config['indexes'] as $index => $types) {
+            if (!isset($types['types'])) {
+                throw new \Exception('You have to specify types');
+            }
             foreach ($types['types'] as $type => $settings) {
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
                     throw new \Exception('You have to specify a frame for '.$type);
                 }
-                $this->fillTypeRequests($index, $settings);
+                $this->fillTypeRequests($index, $type, $settings);
             }
         }
     }
 
-    protected function fillTypeRequests($index, $settings)
+    protected function fillTypeRequests($index, $typeName, $settings)
     {
         $framePath = $settings['frame'];
         $frame = $this->jsonLdFrameLoader->load($settings['frame']);
@@ -134,8 +137,8 @@ class SerializerHelper
         }
 
         $type = $frame['@type'];
-        $this->requests[$index][$type]['name'] = $type;
-        $this->requests[$index][$type]['frame'] = $frame;
+        $this->requests[$index][$type]['name'] = $typeName;
+        $this->requests[$index][$type]['frame'] = $settings['frame'];
         $this->requests[$index][$type]['properties'] = $this->getProperties($frame);
     }
 

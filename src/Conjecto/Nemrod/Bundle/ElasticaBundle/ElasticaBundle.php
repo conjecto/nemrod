@@ -11,7 +11,6 @@
 namespace Conjecto\Nemrod\Bundle\ElasticaBundle;
 
 use Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass\ElasticaFramingRegistrationPass;
-use Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass\ElasticaIndexRegistrationPass;
 use Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass\ElasticaTypeRegistrationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -27,8 +26,7 @@ class ElasticaBundle extends Bundle
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
-        $container->addCompilerPass(new ElasticaTypeRegistrationPass());
-        $container->addCompilerPass(new ElasticaIndexRegistrationPass());
         $container->addCompilerPass(new ElasticaFramingRegistrationPass());
+        $container->addCompilerPass(new ElasticaTypeRegistrationPass());
     }
 }
