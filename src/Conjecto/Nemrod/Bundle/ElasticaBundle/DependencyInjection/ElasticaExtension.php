@@ -60,33 +60,6 @@ class ElasticaExtension extends Extension
                 )));
         }
 
-        foreach ($config['indexes'] as $name => $types) {
-            $clientRef = new Reference('nemrod.elastica.client.'.$types['client']);
-            $container
-                ->setDefinition('nemrod.elastica.index.'.$name, new DefinitionDecorator('nemrod.elastica.index'))
-                ->setArguments(array($clientRef, $name))
-                ->addTag('nemrod.elastica.name', array('name' => $name));
-
-            foreach ($types['types'] as $typeName => $settings) {
-                //type
-                $container
-                    ->setDefinition('nemrod.elastica.type.'.$name.'.'.$typeName, new DefinitionDecorator('nemrod.elastica.type'))
-                    ->setArguments(array(new Reference('nemrod.elastica.index.'.$name), $settings['type']))
-                    ->addTag('nemrod.elastica.type', array('type' => $settings['type']));
-
-                //search service
-                $container
-                    ->setDefinition('nemrod.elastica.search.'.$name.'.'.$typeName, new DefinitionDecorator('nemrod.elastica.search'))
-                    ->setArguments(array(new Reference('nemrod.elastica.type.'.$name.'.'.$typeName), $typeName));
-
-                //@todo place this in a separate func ?
-                //registering config to configManager
-                $settings['type_service_id'] = 'nemrod.elastica.type.'.$name.'.'.$typeName;
-                $confManager = $container->getDefinition('nemrod.elastica.config_manager');
-                $confManager->addMethodCall('setConfig', array($settings['type'], $settings));
-            }
-        }
-
         $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
         $serializerHelper->addMethodCall('setConstructedGraphProvider', array(new Reference('nemrod.jsonld.graph_provider')));
         $serializerHelper->addMethodCall('setJsonLdFrameLoader', array(new Reference('nemrod.jsonld.frame.loader.filesystem')));

@@ -39,10 +39,9 @@ class ConfigManager
      */
     public function setConfig($type, $data)
     {
-        $frame = $this->jsonLdFrameLoader->load($data['frame']);
         $properties = array();
 
-        foreach ($frame as $key => $property) {
+        foreach ($data['frame'] as $key => $property) {
             if (!strstr($key, '@')) {
                 if (!isset($property['@mapping'])) {
                     $property['@mapping'] = '~';
@@ -51,6 +50,7 @@ class ConfigManager
             }
         }
 
+        unset($data['frame']);
         $data['properties'] = $properties;
         $this->config[$type] = $data;
     }

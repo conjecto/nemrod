@@ -116,26 +116,27 @@ class SerializerHelper
     {
         foreach ($this->config['indexes'] as $index => $types) {
             foreach ($types['types'] as $type => $settings) {
-                if (!isset($settings['type']) || empty($settings['type'])) {
-                    throw new \Exception('You have to specify a type for '.$type);
-                }
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
                     throw new \Exception('You have to specify a frame for '.$type);
                 }
-//                if (!isset($settings['properties']) || empty($settings['properties'])) {
-//                    throw new \Exception('You have to specify properties for '.$type);
-//                }
-                $this->fillTypeRequests($index, $type, $settings);
+                $this->fillTypeRequests($index, $settings);
             }
         }
     }
 
-    protected function fillTypeRequests($index, $type, $settings)
+    protected function fillTypeRequests($index, $settings)
     {
-        $this->requests[$index][$settings['type']]['name'] = $type;
-        $this->requests[$index][$settings['type']]['frame'] = $settings['frame'];
-        $properties = $this->getProperties($this->jsonLdFrameLoader->load($settings['frame']));
-        $this->requests[$index][$settings['type']]['properties'] = $properties;
+        $framePath = $settings['frame'];
+        $frame = $this->jsonLdFrameLoader->load($settings['frame']);
+
+        if (!isset($frame['@type'])) {
+            throw new \Exception("You have to specify a type in jsonLdFrame $framePath");
+        }
+
+        $type = $frame['@type'];
+        $this->requests[$index][$type]['name'] = $type;
+        $this->requests[$index][$type]['frame'] = $frame;
+        $this->requests[$index][$type]['properties'] = $this->getProperties($frame);
     }
 
     protected function getProperties($frame)
