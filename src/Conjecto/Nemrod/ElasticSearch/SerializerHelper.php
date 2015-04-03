@@ -93,7 +93,19 @@ class SerializerHelper
         return $this->getTypeKey($index, $type, 'frame');
     }
 
-    protected function getTypeFrame($index, $type)
+    public function getAllFrames()
+    {
+        $array = array();
+        foreach ($this->requests as $index => $types) {
+            foreach ($types as $typeName => $type) {
+                $array[$index][$typeName] = $this->getTypeFrame($index, $typeName);
+            }
+        }
+
+        return $array;
+    }
+
+    public function getTypeFrame($index, $type)
     {
         return $this->jsonLdFrameLoader->load($this->getTypeFramePath($index, $type));
     }
@@ -109,7 +121,7 @@ class SerializerHelper
             return $this->requests[$index][$type][$key];
         }
 
-        throw new \Exception('No matching found for index '.$index.' and type '.$type);
+        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
     }
 
     protected function guessRequests()
@@ -120,7 +132,7 @@ class SerializerHelper
             }
             foreach ($types['types'] as $type => $settings) {
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
-                    throw new \Exception('You have to specify a frame for '.$type);
+                    throw new \Exception('You have to specify a frame for ' . $type);
                 }
                 $this->fillTypeRequests($index, $type, $settings);
             }
@@ -147,7 +159,7 @@ class SerializerHelper
         $this->requests[$index][$type]['properties'] = $this->getProperties($frame);
     }
 
-    protected function getProperties($frame)
+    public function getProperties($frame)
     {
         $properties = array();
         foreach ($frame as $key => $property) {

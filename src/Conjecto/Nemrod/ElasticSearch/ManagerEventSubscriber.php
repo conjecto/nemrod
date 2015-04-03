@@ -36,6 +36,11 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     protected $container;
 
     /**
+     * @var CascadeUpdateSearch
+     */
+    protected $cascadeUpdateSearch;
+
+    /**
      * @var array
      */
     protected $changesRequests;
@@ -45,6 +50,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         $this->serializerHelper = $serializerHelper;
         $this->typeRegistry = $typeRegistry;
         $this->container = $container;
+        $this->cascadeUpdateSearch = new CascadeUpdateSearch($this->serializerHelper, $this->container);
     }
 
     /**
@@ -137,10 +143,11 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 }
 
                 if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    /*
-                     * @var Type
-                     */
+                    /**
+                     * @var Type $esType
+                     **/
                     $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $newType));
+//                    $this->cascadeUpdateSearch->search($uri, $newType, $infos['properties'], $resourceToDocumentTransformer);
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
                         $esType->addDocument($document);
