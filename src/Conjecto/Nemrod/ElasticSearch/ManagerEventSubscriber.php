@@ -148,6 +148,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                      **/
                     $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $newType));
 //                    $this->cascadeUpdateSearch->search($uri, $newType, $infos['properties'], $resourceToDocumentTransformer);
+//                    return;
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
                         $esType->addDocument($document);
@@ -165,7 +166,14 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                          * @var Type
                          */
                         $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $oldType));
-                        $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
+
+                        // Trow an exeption if document does not exist
+                        try {
+                            $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
+                        }
+                        catch(\Exception $e) {
+
+                        }
                     }
                 }
             }
