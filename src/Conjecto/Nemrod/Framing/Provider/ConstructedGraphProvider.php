@@ -131,7 +131,38 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 if (substr($prop, 0, 1) != '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
                     $stringedChild = $stringedChild." {} UNION {".$uriChild.' '.$prop.' '.$this->addChild($qb, $val, $uriChildOfChild)."} ";
-                    $qb->addConstruct($uriChild.' '.$prop.' '.$this->addChild($qb, $val, $uriChildOfChild));
+                    $qb->addConstruct($uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild));
+                }
+            }
+
+            return $stringedChild;
+        }
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     * @param $child
+     * @param $uriChild
+     *
+     * @return string
+     */
+    protected function addConstructChild($qb, $child, $uriChild)
+    {
+        if (!count($child)) {
+            return $uriChild;
+        } else {
+            $stringedChild = $uriChild.".";
+
+            foreach ($child as $prop => $val) {
+                if ($prop === '@type') {
+                    $stringedChild = $stringedChild." ".$uriChild.' a '.$val. '.';
+                    $qb->addConstruct($uriChild.' a '.$val);
+                }
+                // union for optional trick
+                if (substr($prop, 0, 1) != '@' && is_array($val)) {
+                    $uriChildOfChild = '?c'.(++$this->varCounter);
+                    $stringedChild = $stringedChild. " " . $uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild);
+                    $qb->addConstruct($uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild));
                 }
             }
 
