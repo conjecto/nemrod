@@ -21,7 +21,7 @@ class PopulatorCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('ral:elastica:populate')
+            ->setName('nemrod:elastica:populate')
             ->setDescription('(Remise à zéro et) population des index elastica')
             ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'reset index')

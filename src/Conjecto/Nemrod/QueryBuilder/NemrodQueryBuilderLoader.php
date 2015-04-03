@@ -15,7 +15,7 @@ use Conjecto\Nemrod\Manager;
 use EasyRdf\Graph;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
-class RalQueryBuilderLoader
+class NemrodQueryBuilderLoader
 {
     /**
      * @var string

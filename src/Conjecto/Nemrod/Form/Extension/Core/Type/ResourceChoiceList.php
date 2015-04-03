@@ -12,7 +12,7 @@ namespace Conjecto\Nemrod\Form\Extension\Core\Type;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\QueryBuilder;
-use Conjecto\Nemrod\QueryBuilder\RalQueryBuilderLoader;
+use Conjecto\Nemrod\QueryBuilder\NemrodQueryBuilderLoader;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\Exception;
@@ -274,7 +274,7 @@ class ResourceChoiceList extends ObjectChoiceList
     private function load()
     {
         try {
-            $resources = (new RalQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
+            $resources = (new NemrodQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
 
 //            for ($i = 1 ; $i <= count($resources) ; $i++) {
 //                echo 'replace';

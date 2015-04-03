@@ -20,7 +20,7 @@ class ResetterCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('ral:elastica:reset')
+            ->setName('nemrod:elastica:reset')
             ->setDescription('Remise à zéro des index elastica')
             ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
         ;
