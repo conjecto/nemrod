@@ -21,6 +21,7 @@ use Conjecto\Nemrod\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use EasyRdf\Container;
 use EasyRdf\Exception;
+use EasyRdf\Literal;
 use EasyRdf\Graph;
 use EasyRdf\TypeMapper;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -31,6 +32,7 @@ class UnitOfWork
     const STATUS_MANAGED = 2;
     const STATUS_NEW = 3;
     const STATUS_TEMP = 4;
+    const STATUS_DIRTY = 5;
 
     /**
      * List of status for.
@@ -101,7 +103,8 @@ class UnitOfWork
      * Register a resource to the list of.
      *
      * @param BaseResource $resource
-     * @param boolean      $fromStore
+     * @param boolean $fromStore
+     * @return \Conjecto\Nemrod\Resource|mixed|null
      */
     public function registerResource($resource, $fromStore = true)
     {
@@ -110,7 +113,9 @@ class UnitOfWork
 
             $this->registeredResources[$resource->getUri()] = $resource;
             if ($fromStore) {
-                $this->initialSnapshots->takeSnapshot($resource);
+                //$this->initialSnapshots->takeSnapshot($resource);
+                $resource->setReady();
+                $this->status[$resource->getUri()] = self::STATUS_MANAGED;
             }
 
             return $resource;
@@ -251,6 +256,9 @@ class UnitOfWork
             //@todo perform "ask" on db to check if resource is already there
             //throw new Exception("Resource already exist");
         }
+        if (!isset ($this->status[$resource->getUri()])) {
+            $this->status[$resource->getUri()] = self::STATUS_NEW;
+        }
 
         //@todo relevant do do this here ?
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
@@ -291,7 +299,8 @@ class UnitOfWork
         //collecting
         $concernedResources = array();
         foreach ($this->registeredResources as $resource) {
-            if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
+            //if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
+            if ( $this->status[$resource->getUri()] == self::STATUS_NEW || $this->status[$resource->getUri()] == self::STATUS_DIRTY ) {
                 $concernedResources[$resource->getUri()] = $resource;
                 $uris[] = $resource->getUri();
             }
@@ -389,6 +398,7 @@ class UnitOfWork
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
         //@todo look for uplinks for that resource + manage
+        $this->snapshot($resource);
         $this->removeUplinks($resource);
 
         if (isset($this->registeredResources[$resource->getUri()])) {
@@ -446,6 +456,11 @@ class UnitOfWork
         return ($this->blackListedResources->contains($uri));
     }
 
+    public function setDirty($uri)
+    {
+        $this->status[$uri] = self::STATUS_DIRTY;
+    }
+
     /**
      * @param $resources
      *
@@ -500,7 +515,7 @@ class UnitOfWork
         $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
-            if ($this->isManagementBlackListed($resource)) {
+            if ($this->isManagementBlackListed($resource) ) {
                 continue;
             }
             //bnodes are taken separately
@@ -512,7 +527,6 @@ class UnitOfWork
                         foreach ($values as $value) {
                             //special case of a removed resource
                             if ($this->isManagementBlackListed($value['value'])) {
-                                echo 1234;
                                 continue;
                             }
                             if (isset($this->status[$resource]) && $this->status[$resource] == self::STATUS_REMOVED) {
@@ -558,13 +572,14 @@ class UnitOfWork
 
         $valueInSnapShot = false;
         foreach ($snapshotValues as $val) {
-            if ($val['value'] == $value['value']) {
+            $snapValue =  ($val instanceof Literal) ? $val->getValue() : $val['value'];
+            if (($value instanceof Literal) || $snapValue == $value['value']) {
                 $valueInSnapShot = true;
             }
         }
 
         $valueInResource = false;
-        foreach ($snapshotValues as $val) {
+        foreach ($resourceValues as $val) {
             if ($val['value'] == $value['value']) {
                 $valueInResource = true;
             }
@@ -612,7 +627,7 @@ class UnitOfWork
         //getting all triples of new resource
         $properties = $resource->properties();
         foreach ($properties as $prop) {
-            $values = $resource->all($prop);
+            $values = $resource->getGraph()->all($resource->getUri(), $prop);
             foreach ($values as $value) {
                 $status = $this->tripleStatus($managedInstance, $prop, $value);
 
@@ -682,6 +697,26 @@ class UnitOfWork
         }
 
         return $snapshot;
+    }
+
+    /**
+     * Takes a snapshot for a single triplet
+     * @param $uri
+     * @param $prop
+     * @param null $value
+     */
+    public function snapshotForTriple($uri, $prop, $value = null)
+    {
+        $this->initialSnapshots->add($uri, $prop, $value);
+    }
+
+    /**
+     * Takes a snapshot for a whole resource
+     * @param $resource
+     */
+    public function snapshot($resource)
+    {
+        $this->initialSnapshots->takeSnapshot($resource);
     }
 
     /**

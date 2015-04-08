@@ -11,6 +11,7 @@
 namespace Conjecto\Nemrod;
 
 use EasyRdf\Resource as BaseResource;
+use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\DateTimeParamConverter;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
@@ -18,6 +19,18 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  */
 class Resource extends BaseResource
 {
+    /**
+     * Is the resource ready for usage within Nemrod ?
+     * @var bool
+     */
+    protected $isReady = false;
+
+    /**
+     * Tells if the resource was modified after being loaded.
+     * @var bool
+     */
+    protected $isDirty = false;
+
     /**
      *
      */
@@ -107,6 +120,7 @@ class Resource extends BaseResource
 
             return;
         } elseif ($result instanceof Resource  && (!empty($this->_rm))) { //we get a resource
+
             try {
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
@@ -137,8 +151,12 @@ class Resource extends BaseResource
      */
     public function set($property, $value)
     {
+        $this->snapshot($property);
+
+        //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
         if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
@@ -151,7 +169,8 @@ class Resource extends BaseResource
      */
     public function add($property, $value)
     {
-        //resource: check if managed (for further save
+        $this->snapshot();
+        //resource: check if managed (for further save)
         if ($property instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
@@ -165,6 +184,7 @@ class Resource extends BaseResource
      */
     public function delete($property, $value = null)
     {
+        $this->snapshot();
         $out = parent::delete($property, $value);
 
         return $out;
@@ -204,4 +224,28 @@ class Resource extends BaseResource
 
         return array($first, $rest);
     }
+
+    /**
+     * @param $property
+     * @param $value
+     */
+    private function snapshot()
+    {
+        if (!$this->isReady) return;
+
+        if (!empty ($this->_rm) && !$this->isDirty) {
+            $this->_rm->getUnitOfWork()->snapshot($this);
+            $this->isDirty = true;
+            $this->_rm->getUnitOfWork()->setDirty($this->getUri());
+        }
+    }
+
+    /**
+     * Sets the resource as ready for usage within Nemrod
+     */
+    public function setReady()
+    {
+        $this->isReady = true;
+    }
+
 }
