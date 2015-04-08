@@ -11,7 +11,6 @@
 namespace Conjecto\Nemrod;
 
 use EasyRdf\Resource as BaseResource;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\DateTimeParamConverter;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
@@ -21,12 +20,14 @@ class Resource extends BaseResource
 {
     /**
      * Is the resource ready for usage within Nemrod ?
+     *
      * @var bool
      */
     protected $isReady = false;
 
     /**
      * Tells if the resource was modified after being loaded.
+     *
      * @var bool
      */
     protected $isDirty = false;
@@ -156,7 +157,6 @@ class Resource extends BaseResource
         //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
         if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
-
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
@@ -231,9 +231,11 @@ class Resource extends BaseResource
      */
     private function snapshot()
     {
-        if (!$this->isReady) return;
+        if (!$this->isReady) {
+            return;
+        }
 
-        if (!empty ($this->_rm) && !$this->isDirty) {
+        if (!empty($this->_rm) && !$this->isDirty) {
             $this->_rm->getUnitOfWork()->snapshot($this);
             $this->isDirty = true;
             $this->_rm->getUnitOfWork()->setDirty($this->getUri());
@@ -241,11 +243,10 @@ class Resource extends BaseResource
     }
 
     /**
-     * Sets the resource as ready for usage within Nemrod
+     * Sets the resource as ready for usage within Nemrod.
      */
     public function setReady()
     {
         $this->isReady = true;
     }
-
 }

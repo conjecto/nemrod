@@ -355,7 +355,7 @@ class SimplePersister implements PersisterInterface
                                 $tripleStr = "<".$uri."> <".$property."> \"".addcslashes($val['value'], '"')."\"";
                                 if (!empty($val['lang'])) {
                                     $tripleStr .= "@".$val['lang']."";
-                                } else if (!empty($val['datatype'])) {
+                                } elseif (!empty($val['datatype'])) {
                                     $tripleStr .= "^^<".$val['datatype'].">";
                                 }
 

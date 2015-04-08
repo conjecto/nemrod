@@ -103,7 +103,8 @@ class UnitOfWork
      * Register a resource to the list of.
      *
      * @param BaseResource $resource
-     * @param boolean $fromStore
+     * @param boolean      $fromStore
+     *
      * @return \Conjecto\Nemrod\Resource|mixed|null
      */
     public function registerResource($resource, $fromStore = true)
@@ -256,7 +257,7 @@ class UnitOfWork
             //@todo perform "ask" on db to check if resource is already there
             //throw new Exception("Resource already exist");
         }
-        if (!isset ($this->status[$resource->getUri()])) {
+        if (!isset($this->status[$resource->getUri()])) {
             $this->status[$resource->getUri()] = self::STATUS_NEW;
         }
 
@@ -300,7 +301,7 @@ class UnitOfWork
         $concernedResources = array();
         foreach ($this->registeredResources as $resource) {
             //if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
-            if ( $this->status[$resource->getUri()] == self::STATUS_NEW || $this->status[$resource->getUri()] == self::STATUS_DIRTY ) {
+            if ($this->status[$resource->getUri()] == self::STATUS_NEW || $this->status[$resource->getUri()] == self::STATUS_DIRTY) {
                 $concernedResources[$resource->getUri()] = $resource;
                 $uris[] = $resource->getUri();
             }
@@ -515,7 +516,7 @@ class UnitOfWork
         $tmpMinus = array();
 
         foreach ($rdfArray1 as $resource => $properties) {
-            if ($this->isManagementBlackListed($resource) ) {
+            if ($this->isManagementBlackListed($resource)) {
                 continue;
             }
             //bnodes are taken separately
@@ -700,7 +701,8 @@ class UnitOfWork
     }
 
     /**
-     * Takes a snapshot for a single triplet
+     * Takes a snapshot for a single triplet.
+     *
      * @param $uri
      * @param $prop
      * @param null $value
@@ -711,7 +713,8 @@ class UnitOfWork
     }
 
     /**
-     * Takes a snapshot for a whole resource
+     * Takes a snapshot for a whole resource.
+     *
      * @param $resource
      */
     public function snapshot($resource)
