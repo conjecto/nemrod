@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:doap="http://usefulinc.com/ns/doap#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/">
+
+  <doap:Project rdf:about="https://raw.githubusercontent.com/conjecto/nemrod/v0.1.0/doap.rdf#nemrod">
+    <doap:name>Nemrod Framework</doap:name>
+    <doap:shortname>nemrod</doap:shortname>
+    <doap:revision>0.1.0</doap:revision>
+    <doap:shortdesc xml:lang="en">Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project.</doap:shortdesc>
+    <doap:homepage rdf:resource="http://conjecto.github.io/nemrod"/>
+    <doap:programming-language>PHP</doap:programming-language>
+    <doap:description xml:lang="en">Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project.</doap:description>
+    <doap:license rdf:resource="http://usefulinc.com/doap/licenses/bsd"/>
+    <doap:download-page rdf:resource="http://github.com/conjecto/nemrod/downloads"/>
+    <doap:bug-database rdf:resource="http://github.com/conjecto/nemrod/issues"/>
+    <doap:category rdf:resource="http://dbpedia.org/resource/Resource_Description_Framework"/>
+    <doap:category rdf:resource="http://dbpedia.org/resource/PHP"/>
+    <doap:category rdf:resource="http://www.dbpedialite.org/things/24131#id"/>
+    <doap:category rdf:resource="http://www.dbpedialite.org/things/53847#id"/>
+    <doap:repository>
+      <doap:GitRepository>
+        <doap:browse rdf:resource="http://github.com/conjecto/nemrod"/>
+        <doap:location rdf:resource="git://github.com/conjecto/nemrod.git"/>
+      </doap:GitRepository>
+    </doap:repository>
+  </doap:Project>
+
+</rdf:RDF>
