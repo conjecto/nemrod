@@ -10,7 +10,7 @@
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
 
-use Doctrine\ORM\Query\Expr\Base;
+use Conjecto\Nemrod\QueryBuilder\Expr\Base;
 
 class OrderBy extends Base
 {
