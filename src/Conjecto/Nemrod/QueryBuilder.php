@@ -10,6 +10,7 @@
 
 namespace Conjecto\Nemrod;
 
+use Conjecto\Nemrod\QueryBuilder\Query;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -463,6 +464,8 @@ class QueryBuilder
     public function setDistinct($distinct)
     {
         $this->sparqlParts['distinct'] = $distinct;
+
+        return $this;
     }
 
     /**

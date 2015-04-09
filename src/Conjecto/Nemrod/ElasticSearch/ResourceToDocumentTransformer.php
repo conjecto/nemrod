@@ -60,7 +60,7 @@ class ResourceToDocumentTransformer
      * @param $type
      * @return Document|null
      */
-    public function transform($uri, $type, $frame = null)
+    public function transform($uri, $type)
     {
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
@@ -70,9 +70,7 @@ class ResourceToDocumentTransformer
         $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $graph = $this->serializerHelper->getGraph($index, $uri, $type);
-            if (!$frame) {
-                $frame = $this->serializerHelper->getTypeFramePath($index, $type);
-            }
+            $frame = $this->serializerHelper->getTypeFramePath($index, $type);
             $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri, $graph), $frame);
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
