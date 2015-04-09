@@ -99,7 +99,7 @@ class SnapshotContainer extends Graph
     /**
      * @param BaseResource $resource
      *
-     * @return \EasyRdf\Resource
+     * @return \Conjecto\Nemrod\Resource
      */
     public function getSnapshot($resource)
     {

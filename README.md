@@ -17,9 +17,13 @@ Nemrod mainly relies on
 - [EasyRdf](https://github.com/njh/easyrdf)
 - [Json-ld](https://github.com/lanthaler/JsonLD)
 - [Elastica](https://github.com/ruflin/Elastica)
-- [jms/serializer-bundle](https://github.com/schmittjoh/JMSSerializerBundle)
+- [jms/serializer](https://github.com/schmittjoh/serializer)
 
 
+
+Demo project
+------------
+A quick way to test Nemrod Abilities before installing it into your project is to try our [demo project](https://github.com/conjecto/nemrod-demo)
 
 Requirements
 ------------

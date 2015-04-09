@@ -19,6 +19,20 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 class Resource extends BaseResource
 {
     /**
+     * Is the resource ready for usage within Nemrod ?
+     *
+     * @var bool
+     */
+    protected $isReady = false;
+
+    /**
+     * Tells if the resource was modified after being loaded.
+     *
+     * @var bool
+     */
+    protected $isDirty = false;
+
+    /**
      *
      */
     const PROPERTY_PATH_SEPARATOR = "/";
@@ -54,15 +68,10 @@ class Resource extends BaseResource
         $result = parent::all($property, $type, $lang);
 
         if (is_array($result)) {
-            //@todo do this better.
             $llResult = array();
             foreach ($result as $res) {
-                if ($res instanceof Resource) {
+                if ($res instanceof Resource && (!empty($this->_rm))) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
-                } elseif ($res instanceof BaseResource) {
-                    $nr = new Resource($res->getUri(), $res->getGraph());
-                    $nr->setRm($this->_rm);
-                    $llResult[] = $nr;
                 }
             }
 
@@ -111,7 +120,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof BaseResource) { //we get a resource
+        } elseif ($result instanceof Resource  && (!empty($this->_rm))) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -143,52 +152,29 @@ class Resource extends BaseResource
      */
     public function set($property, $value)
     {
+        $this->snapshot($property);
+
+        //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
-        if ($value instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
 
-        $managed = $this->getManagedResource();
-        if ($managed && ($managed !== $this)) {
-            $managed->set($property, $value);
-        }
-
         return $out;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return array
-     */
-    public function allResources($path)
-    {
-        $resources = parent::allResources($path);
-        $nr = array();
-        foreach ($resources as $rs) {
-            $r = new Resource($rs->getUri(), $rs->getGraph());
-            $r->setRm($this->_rm);
-            $nr[] = $r;
-        }
-
-        return $nr;
     }
 
     /**
      * @return int|void
      */
-    public function add($property, $value, $propagate = true)
+    public function add($property, $value)
     {
-        //resource: check if managed (for further save
-        if ($property instanceof Resource && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        $this->snapshot();
+        //resource: check if managed (for further save)
+        if ($property instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
-        $managed = $this->getManagedResource();
-        if (($managed) && ($managed !== $this) && ($propagate)) {
-            $managed->add($property, $value);
-        }
 
         return $out;
     }
@@ -196,13 +182,10 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function delete($property, $value = null, $propagate = true)
+    public function delete($property, $value = null)
     {
+        $this->snapshot();
         $out = parent::delete($property, $value);
-        $managed = $this->getManagedResource();
-        if (($managed !== $this) && ($propagate)) {
-            $managed->delete($property, $value);
-        }
 
         return $out;
     }
@@ -243,15 +226,27 @@ class Resource extends BaseResource
     }
 
     /**
-     *
+     * @param $property
+     * @param $value
      */
-    public function getManagedResource()
+    private function snapshot()
     {
-        if (!isset($this->_rm)) {
-            return $this;
+        if (!$this->isReady) {
+            return;
         }
-        $manResource = $this->_rm->getUnitOfWork()->retrieveResource($this->getUri());
 
-        return $manResource;
+        if (!empty($this->_rm) && !$this->isDirty) {
+            $this->_rm->getUnitOfWork()->snapshot($this);
+            $this->isDirty = true;
+            $this->_rm->getUnitOfWork()->setDirty($this->getUri());
+        }
+    }
+
+    /**
+     * Sets the resource as ready for usage within Nemrod.
+     */
+    public function setReady()
+    {
+        $this->isReady = true;
     }
 }

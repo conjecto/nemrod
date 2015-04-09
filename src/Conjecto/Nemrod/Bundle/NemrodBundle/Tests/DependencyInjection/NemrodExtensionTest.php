@@ -32,6 +32,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $this->container = new ContainerBuilder();
         $this->container->setParameter('kernel.bundles', array('Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
         $this->container->setParameter('kernel.root_dir', __DIR__."/../../../../");
+
         $this->extension = new NemrodExtension();
         $this->container->registerExtension($this->extension);
 
@@ -72,7 +73,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('nemrod.type_mapper');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array("set", array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource')), $calls[0]);
+        $this->assertEquals(array(array("setDefaultResourceClass", array("Conjecto\\Nemrod\\Resource")), array("set", array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource'))), $calls);
     }
 
     /**

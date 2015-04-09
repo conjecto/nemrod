@@ -82,7 +82,14 @@ class Repository
     {
         $options['limit'] = 1;
 
-        return $this->findBy($criterias, $options);
+        $result = $this->findBy($criterias, $options);
+
+        if (count($result) == 0) {
+            return null;
+        }
+
+        reset($result);
+        return current($result);
     }
 
     /**
