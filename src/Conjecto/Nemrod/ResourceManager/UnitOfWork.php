@@ -323,7 +323,7 @@ class UnitOfWork
             array('correspondence' => $this->uriCorrespondances));
 
         //triggering pre-flush event
-        $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt)));
+        $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt), $this->_rm));
 
         //update if needed
         if (!empty($chSt[0]) || !empty($chSt[1])) {

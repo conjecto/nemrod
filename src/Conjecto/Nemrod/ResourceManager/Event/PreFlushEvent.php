@@ -10,6 +10,7 @@
 
 namespace Conjecto\Nemrod\ResourceManager\Event;
 
+use Conjecto\Nemrod\Manager;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -20,11 +21,17 @@ class PreFlushEvent extends Event
     protected $changes;
 
     /**
+     * @var Manager $rm
+     */
+    protected $rm;
+
+    /**
      *
      */
-    public function __construct($changes)
+    public function __construct($changes, $rm)
     {
         $this->changes = $changes;
+        $this->rm = $rm;
     }
 
     /**
@@ -41,5 +48,21 @@ class PreFlushEvent extends Event
     public function setChanges($changes)
     {
         $this->changes = $changes;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRm()
+    {
+        return $this->rm;
+    }
+
+    /**
+     * @param mixed $rm
+     */
+    public function setRm($rm)
+    {
+        $this->rm = $rm;
     }
 }
