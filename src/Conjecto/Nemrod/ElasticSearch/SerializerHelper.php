@@ -115,6 +115,20 @@ class SerializerHelper
         return $this->getTypeKey($index, $type, 'name');
     }
 
+    public function getAllPropertiesFromAllIndexesFromResourceType($resourceType)
+    {
+        $allProperties = array();
+        foreach ($this->requests as $index => $types) {
+            foreach ($types as $type) {
+                if ($type['type'] == $resourceType) {
+                    $allProperties = array_merge($allProperties, $type['properties']);
+                }
+            }
+        }
+
+        return array_unique($allProperties);
+    }
+
     protected function getTypeKey($index, $type, $key)
     {
         if (isset($this->requests[$index][$type][$key])) {
@@ -155,6 +169,7 @@ class SerializerHelper
             $type = $frame['@type'];
         }
         $this->requests[$index][$type]['name'] = $typeName;
+        $this->requests[$index][$type]['type'] = $type;
         $this->requests[$index][$type]['frame'] = $settings['frame'];
         $this->requests[$index][$type]['properties'] = $this->getProperties($frame);
     }

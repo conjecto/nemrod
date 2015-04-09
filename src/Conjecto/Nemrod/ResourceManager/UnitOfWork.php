@@ -355,7 +355,13 @@ class UnitOfWork
                 }
                 $eventChangeSet[$uri]['insert'] = array();
             }
-            $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
+
+            if (is_array($changes) && current(array_keys($changes)) == 'all') {
+                $eventChangeSet[$uri]['delete'] = 'all';
+            } else {
+                $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
+            }
+
         }
 
         foreach ($chSet[1] as $uri => $changes) {

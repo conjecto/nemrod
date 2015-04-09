@@ -12,7 +12,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\ResourceManager\Event\Events;
 use EasyRdf\RdfNamespace;
-use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\Container;
@@ -36,7 +35,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     protected $container;
 
     /**
-     * @var CascadeUpdateSearch
+     * @var CascadeUpdate
      */
     protected $cascadeUpdateSearch;
 
@@ -45,33 +44,27 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     protected $changesRequests;
 
+    /**
+     * @var
+     */
+    protected $arrayResourcesToUpdateAfterDeletion;
+
+    /**
+     * @param SerializerHelper $serializerHelper
+     * @param TypeRegistry $typeRegistry
+     * @param Container $container
+     */
     public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, Container $container)
     {
         $this->serializerHelper = $serializerHelper;
         $this->typeRegistry = $typeRegistry;
         $this->container = $container;
-        $this->cascadeUpdateSearch = new CascadeUpdateSearch($this->serializerHelper, $this->container);
+        $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->container);
     }
 
     /**
-     * Returns an array of event names this subscriber wants to listen to.
-     *
-     * The array keys are event names and the value can be:
-     *
-     *  * The method name to call (priority defaults to 0)
-     *  * An array composed of the method name to call and the priority
-     *  * An array of arrays composed of the method names to call and respective
-     *    priorities, or 0 if unset
-     *
-     * For instance:
-     *
-     *  * array('eventName' => 'methodName')
-     *  * array('eventName' => array('methodName', $priority))
-     *  * array('eventName' => array(array('methodName1', $priority), array('methodName2'))
-     *
-     * @return array The event names to listen to
-     *
-     * @api
+     * Subscribe to events
+     * @return array
      */
     public static function getSubscribedEvents()
     {
@@ -82,37 +75,57 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     *
+     * Called when preFlush event is received
+     * We get all resources has been modified into changeRequests
+     * We get all properties has been modified by resource
+     * We get all resources wich have to be updated in ES after a mapped resource has been deleted
+     * If event->changes[type][delete] = all so this resource will be deleted in the triple store
+     * @param $event
      */
     public function onPreFlush($event)
     {
-        $this->changesRequests = [];
+        $arrayResourcesDeleted = array();
+        $this->changesRequests = array();
+
         foreach ($event->getChanges() as $key => $change) {
             foreach (['insert', 'delete'] as $action) {
+                if ($change[$action] == 'all' && $action == 'delete') {
+                    $arrayResourcesDeleted[$key] = $change['type'];
+                }
                 if (isset($this->changesRequests[$key]['properties'])) {
                     $properties = $this->changesRequests[$key]['properties'];
-                }
-                else {
+                } else {
                     $properties = array();
                 }
-                foreach ($change[$action] as $keyType => $actionType) {
-                    if (!isset($properties[$keyType])) {
-                        $properties[$keyType] = $actionType;
+                if (is_array($change[$action])) {
+                    foreach ($change[$action] as $keyType => $actionType) {
+                        if (!in_array($keyType, $properties)) {
+                            $properties[] = $keyType;
+                        }
                     }
                 }
                 $this->changesRequests[$key]['type'] = $change['type'];
                 $this->changesRequests[$key]['properties'] = $properties;
             }
         }
+
+        $this->arrayResourcesToUpdateAfterDeletion = $this->cascadeUpdateHelper->searchResourcesToCascadeRemove($arrayResourcesDeleted, $event->getRm());
     }
 
     /**
+     * Called when postFlush event is received
+     * We get all types of all resources modified
+     * If a type is mapped, we update the resource in ES
+     * If a resource have been change of type and its old type was mapped, the ES document related is removed
+     * At the end, we make a cascade update of the modified resources, and a cascade remove if needed
      * @param $event
-     *
-     * @todo do it work !
      */
     public function onPostFlush($event)
     {
+        if (empty($this->changesRequests)) {
+            return;
+        }
+
         $resourceToDocumentTransformer = new ResourceToDocumentTransformer(
             $this->serializerHelper, $this->typeRegistry, $this->container->get('nemrod.type_mapper'), $this->container->get('nemrod.jsonld.serializer')
         );
@@ -122,23 +135,20 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         $qb->construct("?uri a ?t")->where("?uri a ?t");
         $uris = '';
 
-        if (empty($this->changesRequests)) {
-            return;
-        }
-
         foreach ($this->changesRequests as $uri => $infos) {
             $uris .= ' <'.$uri.'>';
         }
 
         $qb->value('?uri', $uris);
         $result = $qb->getQuery()->execute();
-        $jsonLdSerializer = new JsonLd();
         $resourcesModified = array();
 
+        // foreach resources modified
         foreach ($this->changesRequests as $uri => $infos) {
             $types = $result->all($uri, 'rdf:type');
             $newTypes = array();
 
+            // check all resource type to check if this type is indexed in ES
             foreach ($types as $type) {
                 $newType = RdfNamespace::shorten($type->getUri());
                 $newTypes[] = $newType;
@@ -148,47 +158,53 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $index = $index->getIndex()->getName();
                 }
 
-                if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, array_keys($infos['properties']))) {
+                // update the ES document
+                if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
                     /**
                      * @var Type $esType
                      **/
                     $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $newType));
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
-                        $resourcesModified[$index][$uri][] = $newType;
+                        $resourcesModified[$uri][] = $newType;
                         $esType->addDocument($document);
                     }
                 }
             }
 
-            if (array_key_exists($uri, $this->changesRequests)) {
-                $oldType = $this->changesRequests[$uri]['type'];
-                if (!in_array($oldType, $newTypes)) {
-                    $index = $this->typeRegistry->getType($oldType);
-                    if ($index != null) {
-                        $index = $index->getIndex()->getName();
-                        /**
-                         * @var Type
-                         **/
-                        $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $oldType));
+            $oldType = $this->changesRequests[$uri]['type'];
+            if (!in_array($oldType, $newTypes)) {
+                $index = $this->typeRegistry->getType($oldType);
+                if ($index != null) {
+                    $index = $index->getIndex()->getName();
+                    /**
+                     * @var Type
+                     **/
+                    $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $oldType));
 
-                        // Trow an exeption if document does not exist
-                        try {
-                            $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
-                        }
-                        catch(\Exception $e) {
+                    // Trow an exeption if document does not exist
+                    try {
+                        $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
+                    } catch (\Exception $e) {
 
-                        }
                     }
                 }
             }
         }
 
-        foreach ($resourcesModified as $index => $uris) {
-            foreach ($uris as $uri => $types) {
-                foreach ($types as $type) {
-                    $this->cascadeUpdateSearch->search($uri, $type, $this->changesRequests[$uri]['properties'], $resourceToDocumentTransformer, $event->getRm(), $resourcesModified);
-                }
+        // cascade update
+        foreach ($resourcesModified as $uri => $types) {
+            foreach ($types as $type) {
+                $this->cascadeUpdateHelper->cascadeUpdate($uri, $type, $this->changesRequests[$uri]['properties'], $resourceToDocumentTransformer, $event->getRm(), $resourcesModified);
+            }
+        }
+
+        // cascade remove
+        foreach ($this->arrayResourcesToUpdateAfterDeletion as $uri => $type) {
+            $index = $this->typeRegistry->getType($type);
+            if ($index != null) {
+                $index = $index->getIndex()->getName();
+                $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $resourceToDocumentTransformer);
             }
         }
     }
