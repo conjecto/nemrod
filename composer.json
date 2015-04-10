@@ -17,7 +17,6 @@
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
         "easyrdf/easyrdf": "dev-master",
-        "doctrine/orm": "~2.2,>=2.2.3,<2.5",
 		"ml/json-ld": "~1.0",
         "jms/serializer": "~0.11",
         "ruflin/elastica": "~1.4.3"
