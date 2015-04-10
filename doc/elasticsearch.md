@@ -3,7 +3,6 @@ Indexing your data using ElasticSearch
 
 Configuration
 ------------
-
 Nemrod permits to index rdf resources.
 First, you have to fill-in the elastica configuration in your config.yml like this :
 
@@ -21,7 +20,10 @@ elastica:
           frame: '@User/user-es.jsonld'
 
 You can specify several indexes and several resources by index.
-The frame value is the path to a file wich contains a JsonLd frame. With this path, the file can be found at UserBundle/Resources/frames/user-es.jsonld.
+
+Secondly, you have to fill-in a JsonLd frame for the resources. You can use the same frame for multiple resources.
+
+The frame value in the config is the path to a file wich contains the JsonLd frame. With the specified value, the file can be found at UserBundle/Resources/frames/user-es.jsonld.
 
 The content of this file could be:
 {
@@ -31,7 +33,7 @@ The content of this file could be:
   },
   "@explicit": "true",
   "@embed": "true",
-  "@type": "ex:User",
+  "@type": "foaf:Person",
   "foaf:name": {
     "@default": "",
     "@mapping": {
