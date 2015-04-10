@@ -100,11 +100,13 @@ class CascadeUpdateHelper
         $arrayResult = array();
 
         foreach ($qbByIndex as $index => $qb) {
-            $res = $qb->getQuery()->execute();
-            foreach ($res as $result) {
-                $uri = $result->uri->getUri();
-                $typeName = RdfNamespace::shorten($result->typeName->getUri());
-                $arrayResult[$uri] = $typeName;
+            if ($qb != null) {
+                $res = $qb->getQuery()->execute();
+                foreach ($res as $result) {
+                    $uri = $result->uri->getUri();
+                    $typeName = RdfNamespace::shorten($result->typeName->getUri());
+                    $arrayResult[$uri] = $typeName;
+                }
             }
         }
 
@@ -134,12 +136,14 @@ class CascadeUpdateHelper
     protected function updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified)
     {
         foreach ($qbByIndex as $index => $qb) {
-            $res = $qb->getQuery()->execute();
-            foreach ($res as $result) {
-                $uri = $result->uri->getUri();
-                $typeName = RdfNamespace::shorten($result->typeName->getUri());
-                if (!array_key_exists($uri, $resourcesModified)) {
-                    $this->updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer);
+            if ($qb != null) {
+                $res = $qb->getQuery()->execute();
+                foreach ($res as $result) {
+                    $uri = $result->uri->getUri();
+                    $typeName = RdfNamespace::shorten($result->typeName->getUri());
+                    if (!array_key_exists($uri, $resourcesModified)) {
+                        $this->updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer);
+                    }
                 }
             }
         }
@@ -178,15 +182,18 @@ class CascadeUpdateHelper
                     $arrayUnion[] = $stringWhere;
                 }
             }
-            $_qb = clone $qb->reset()->select('?uri ?typeName')->setDistinct(true);
             if (count($arrayUnion) > 0) {
+                $_qb = clone $qb->reset()->select('?uri ?typeName')->setDistinct(true);
                 if (count($arrayUnion) > 1) {
                     $_qb->addUnion($arrayUnion);
                 } else {
                     $_qb->where($arrayUnion[0]);
                 }
+                $arrayOfTypes[$index] = $_qb;
             }
-            $arrayOfTypes[$index] = $_qb;
+            else {
+                $arrayOfTypes[$index] = null;
+            }
         }
 
         return $arrayOfTypes;
