@@ -50,12 +50,6 @@ class ResourceFormType extends FormType
     }
 
     /**
-     * Set default_options
-     * Set data_class to EasyRdf\Resource by default
-     * If a new item is added to a collection, a new resource is created.
-     *
-     * @todo change URI guessing
-     *
      * @param OptionsResolverInterface $resolver
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
