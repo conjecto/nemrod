@@ -11,6 +11,7 @@
 namespace Conjecto\Nemrod\Framing\Provider;
 
 use Conjecto\Nemrod\Manager;
+use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 
@@ -76,12 +77,11 @@ class ConstructedGraphProvider extends SimpleGraphProvider
         if ($resource instanceof \Conjecto\Nemrod\Resource) {
             $rm = $resource->getRm();
         }
-
+        $this->varCounter = 0;
         $qb = clone $rm->getQueryBuilder();
         $qb->construct();
-        $properties = array();
         //add the construct part
-
+        $construct = "";
         foreach ($frame as $prop => $val) {
             if ($prop === '@type') {
                 if (is_array($val)) {
@@ -98,23 +98,18 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             // union for optional trick
             if (substr($prop, 0, 1) != '@' && is_array($val)) {
                 $uriChild = '?c'.(++$this->varCounter);
-                $qb->addConstruct('?uri '.$prop.' '.$uriChild);
-                $qb->addUnion(array("", '?uri'.' '.$prop.' '.$this->addChild($qb, $val, $uriChild)));
-                $properties[] = $prop;
+                $counter = $this->varCounter;
+                $construct .= ('?uri'.' '.$prop.' '.$this->addConstructChild($val, $uriChild));
+                $this->varCounter = $counter;
+                $qb->addUnion(array("", '?uri'.' '.$prop.' '.$this->addChild($val, $uriChild)));
             }
         }
 
+        $qb->addConstruct($construct);
         return $qb;
     }
 
-    /**
-     * @param QueryBuilder $qb
-     * @param $child
-     * @param $uriChild
-     *
-     * @return string
-     */
-    protected function addChild($qb, $child, $uriChild)
+    protected function addConstructChild($child, $uriChild)
     {
         // no child but in the frame for @explicit
         if (!count($child)) {
@@ -124,14 +119,12 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild." ".$uriChild.' a '.$val;
-                    $qb->addConstruct($uriChild.' a '.$val);
+                    $stringedChild .= " ".$uriChild.' a '.$val . ' . ';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) != '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
-                    $stringedChild = $stringedChild." {} UNION {".$uriChild.' '.$prop.' '.$this->addChild($qb, $val, $uriChildOfChild)."} ";
-                    $qb->addConstruct($uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild));
+                    $stringedChild .= $uriChild.' '.$prop.' '.$this->addConstructChild($val, $uriChildOfChild)." ";
                 }
             }
 
@@ -146,8 +139,9 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      *
      * @return string
      */
-    protected function addConstructChild($qb, $child, $uriChild)
+    protected function addChild($child, $uriChild)
     {
+        // no child but in the frame for @explicit
         if (!count($child)) {
             return $uriChild;
         } else {
@@ -155,14 +149,12 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild." ".$uriChild.' a '.$val. '.';
-                    $qb->addConstruct($uriChild.' a '.$val);
+                    $stringedChild = $stringedChild." ".$uriChild.' a '.$val;
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) != '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
-                    $stringedChild = $stringedChild. " " . $uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild);
-                    $qb->addConstruct($uriChild.' '.$prop.' '.$this->addConstructChild($qb, $val, $uriChildOfChild));
+                    $stringedChild = $stringedChild." {} UNION {".$uriChild.' '.$prop.' '.$this->addChild($val, $uriChildOfChild)."} ";
                 }
             }
 
