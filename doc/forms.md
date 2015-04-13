@@ -37,6 +37,11 @@ Indeed, the form type of property is not recognized like with doctrine.
 
 You can use all form types you want (text, integer, date, ...). You can also use resource form type wich replace entity form type.
 
+    use Conjecto\Nemrod\QueryBuilder;
+    use Conjecto\Nemrod\ResourceManager\Repository;
+    
+    ...
+    
     $builder->add('ex:property', 'resource', [
             'label' => 'Property',
             'expanded' => true,
@@ -59,7 +64,7 @@ The form in twig file
 -----------------
 
     {{ form_start(form) }}
-    form_widget(form['foaf:name']
+    form_widget(form['ex:property']
     {{ form_rest(form) }}
     <button type="submit" >Save</button>
     {{ form_end(form) }}

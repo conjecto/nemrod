@@ -20,6 +20,8 @@ You can use the query builder like the doctrine query builder. The difference is
 
 Some examples :
 
+    use Conjecto\Nemrod\QueryBuilder;
+
     $qb->construct('?uri a foaf:Person');
     $qb->addConstruct('?s vcard:hasAddress ?o');
     $qb->where('?uri a foaf:Person');

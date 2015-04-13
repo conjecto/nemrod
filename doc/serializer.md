@@ -6,9 +6,9 @@ This service needs the resource to serialize and a JsonLd frame.
 
 You can specify a frame with different ways.
 
-You can use a file frame file like "@User/user-es.jsonld" :
+You can use a file frame file like "@User/user.jsonld" :
 
-    $jsonLd = $this->jsonLdSerializer->serialize(new Resource($uri), "@User/user.jsonld");
+    $jsonLd = $this->jsonLdSerializer->serialize($resource, "@User/user.jsonld");
 
 You can also specify a frame for a resource, a controller or an action.
 
@@ -16,6 +16,7 @@ Specify a frame for a resource like this:
 
     use Conjecto\Nemrod\Framing\Annotation as Serializer;
     use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
+    use Conjecto\Nemrod\Resource as BaseResource;
     
     /**
      * Class User
