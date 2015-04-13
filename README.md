@@ -136,7 +136,18 @@ Another possibility is to ask for a specific resource using its uri:
 			return array("product" => $product);
 		}
 
+You can also use the paramConverter to get the resource directly. In this example, the product variable is automatically instanciated.
 
+        /**
+     	 * @Route("/view/{uri}", name="product.view")
+     	 * @ParamConverter("product", class="mycompany:Product")
+     	 * @Template("ProductsBundle:view.html.twig")
+     	 */
+    	public function viewAction($product)
+    	{
+			return array("product" => $product);
+		}
+		
 If you need to encapsulate specific logic over your data, you can overload the default resource abstraction class. Overloading class must be defined in a RdfResource directory of your bundle directory:
 
 
