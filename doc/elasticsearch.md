@@ -86,6 +86,11 @@ The content of this file could be:
 
 If a resource has a property specified in the frame wich is not filled-in in the triple store, the resource won't be updated in elasticsearch if there is no @default for this property in the frame.
 
+Note that for the @context frame part, Nemrod concatanes the nemrod:namespaces part in config.yml with the frame context. Accordingly, in this, example, if you have specified the 
+vcard and the foaf prefixes in config.yml, it is not necessary to specify these a second time in the @context part in this frame.
+
+The elastica mapping is specified in the frame with the property @mapping.
+
 Additional tools
 ------------
 You can use the commands nemrod:elastica:reset  and nemrod:elastica:populate to reset or populate indexes.
