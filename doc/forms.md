@@ -4,7 +4,8 @@ Building forms
 Create a form
 -----------------
 In your controller, create your form normally :
-$form = $this->createForm(new FormType(), $resource);
+
+    $form = $this->createForm(new FormType(), $resource);
 
 Your form has to repect the parent form "resource_form" to use rdf resources.
 You form should seems like this :
