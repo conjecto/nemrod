@@ -55,6 +55,8 @@ You can use hydratator to hydrate results. You can hydrate the result as a array
 
 To do this, specify the hydrate parameter like follow:
 
+    use use Conjecto\Nemrod\QueryBuilder\Query;
+    
     $qb->getQuery()->execute(Query::HYDRATE_COLLECTION);
     or
     $qb->getQuery()->execute(Query::HYDRATE_ARRAY);
