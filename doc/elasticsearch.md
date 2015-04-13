@@ -25,7 +25,7 @@ The resource frame
 ------------
 Secondly, you have to fill-in a JsonLd frame for the resources. You can use the same frame for multiple resources.
 
-The frame value in the config is the path to a file wich contains the JsonLd frame. With the specified value path '@User/user-es.jsonld', the file can be found at UserBundle/Resources/frames/user-es.jsonld.
+The frame value in the config is the path to a file which contains the JsonLd frame. With the specified value path '@User/user-es.jsonld', the file can be found at UserBundle/Resources/frames/user-es.jsonld.
 
 The content of this file could be:
 
@@ -84,15 +84,15 @@ The content of this file could be:
       }
     }
 
-If a resource has a property specified in the frame wich is not filled-in in the triple store, the resource won't be updated in elasticsearch if there is no @default for this property in the frame.
+If a resource has a property specified in the frame which is not filled-in in the triple store, the resource won't be updated in elasticsearch if there is no @default for this property in the frame.
 
-Note that for the @context frame part, Nemrod concatanes the nemrod:namespaces part in config.yml with the frame context. Accordingly, in this, example, if you have specified the 
+Note that for the @context frame part, Nemrod concatenates the nemrod:namespaces part in config.yml with the frame context. Accordingly, in this example, if you have specified the 
 vcard and the foaf prefixes in config.yml, it is not necessary to specify these a second time in the @context part in this frame.
 
-The elastica mapping is specified in the frame with the property @mapping.
+The elasticsearch mapping is specified in the frame with the property @mapping.
 
 Additional tools
 ------------
-You can use the commands nemrod:elastica:reset  and nemrod:elastica:populate to reset or populate indexes.
+You can use the commands nemrod:elastica:reset and nemrod:elastica:populate to reset or populate indexes.
 
 Finally, you can use the service nemrod.elastica.search to search documents.

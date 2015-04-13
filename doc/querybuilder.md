@@ -12,7 +12,7 @@ You can also get a query builder preconfigured for a specific repository like th
 
     $qb = $container->get('rm')->getRepository('foaf:Person')->getQueryBuilder();
 
-You can use this query builer to make select, construct, describe, ask, delete, insert and delete-insert queries.
+You can use this query builder to make select, construct, describe, ask, delete, insert and delete-insert queries.
 
 How to use the query builder
 ------------

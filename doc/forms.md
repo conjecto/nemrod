@@ -29,7 +29,7 @@ You form should seems like this :
 
 Form types
 -----------------
-In your builderForm function, be carrefull to the form type
+In your builderForm function, be careful to the form type
 
     $builder->add('foaf:name', 'text', array());
 
@@ -61,6 +61,6 @@ The form in twig file
     {{ form_start(form) }}
     form_widget(form['foaf:name']
     {{ form_rest(form) }}
-    <button type="submit" >Enregistrer</button>
+    <button type="submit" >Save</button>
     {{ form_end(form) }}
 
