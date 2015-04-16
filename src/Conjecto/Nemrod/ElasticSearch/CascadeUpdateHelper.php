@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -13,7 +14,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\RdfNamespace;
-use Elastica\Document;
 use Elastica\Type;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -166,7 +166,7 @@ class CascadeUpdateHelper
         foreach ($frames as $index => $types) {
             $arrayUnion = array();
             foreach ($types as $type => $frame) {
-                $stringWhere = "?uri a ?typeName;";
+                $stringWhere = '?uri a ?typeName;';
                 $arrayWhere = array();
                 if ($this->checkIfFrameHasSearchedResourceType($frame, $resourceType, $propertiesUpdated, $arrayWhere)) {
                     $arrayWhere = array_reverse($arrayWhere);

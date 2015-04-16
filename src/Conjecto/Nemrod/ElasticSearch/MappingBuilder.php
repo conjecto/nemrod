@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -46,7 +47,7 @@ class MappingBuilder
     {
         $mappingData = $this->configManager->getConfig($type, 'properties');
         if (!$mappingData) {
-            throw new \Exception("no mapping for type");
+            throw new \Exception('no mapping for type');
         }
 
         /** @var Type $typeObj */

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -102,7 +103,7 @@ class Manager
     {
         $type = TypeMapper::get($className);
         if (!$type) {
-            TypeMapper::set($className, "Conjecto\\Nemrod\\Resource");
+            TypeMapper::set($className, 'Conjecto\\Nemrod\\Resource');
         }
 
         return $this->repositoryFactory->getRepository($className, $this);
@@ -222,7 +223,7 @@ class Manager
     {
         $query = new Query($this);
 
-        if (! empty($sparqlQuery)) {
+        if (!empty($sparqlQuery)) {
             $query->setSparqlQuery($sparqlQuery);
         }
 
@@ -263,7 +264,7 @@ class Manager
     /**
      * @param $resource
      *
-     * @return boolean
+     * @return bool
      */
     public function isResource($resource)
     {

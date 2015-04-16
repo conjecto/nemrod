@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -82,10 +83,10 @@ abstract class Base
     {
         if ($arg !== null && (!$arg instanceof self || $arg->count() > 0)) {
             // If we decide to keep Expr\Base instances, we can use this check
-            if (! is_string($arg)) {
+            if (!is_string($arg)) {
                 $class = get_class($arg);
 
-                if (! in_array($class, $this->allowedClasses)) {
+                if (!in_array($class, $this->allowedClasses)) {
                     throw new \InvalidArgumentException("Expression of type '$class' not allowed in this context.");
                 }
             }
@@ -97,7 +98,7 @@ abstract class Base
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function count()
     {

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -230,8 +231,8 @@ class ResourceChoiceList extends ObjectChoiceList
      *
      * @param mixed $entity The choice to create an index for
      *
-     * @return integer|string A unique index containing only ASCII letters,
-     *                        digits and underscores.
+     * @return int|string A unique index containing only ASCII letters,
+     *                    digits and underscores.
      */
     protected function createIndex($resource)
     {
@@ -247,7 +248,7 @@ class ResourceChoiceList extends ObjectChoiceList
      *
      * @param mixed $entity The choice to create a value for
      *
-     * @return integer|string A unique value without character limitations.
+     * @return int|string A unique value without character limitations.
      */
     protected function createValue($resource)
     {
@@ -260,7 +261,7 @@ class ResourceChoiceList extends ObjectChoiceList
     protected function fixIndex($index)
     {
         $index = parent::fixIndex($index);
-        $index = rtrim(base64_encode($index), "=");
+        $index = rtrim(base64_encode($index), '=');
 
         return $index;
     }

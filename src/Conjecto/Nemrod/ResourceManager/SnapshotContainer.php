@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -73,7 +74,7 @@ class SnapshotContainer extends Graph
      *
      * @param BaseResource $resource
      *
-     * @return boolean
+     * @return bool
      */
     public function removeSnapshot(BaseResource $resource)
     {

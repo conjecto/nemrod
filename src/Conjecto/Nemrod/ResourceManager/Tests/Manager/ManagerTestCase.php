@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -43,7 +44,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
     {
         $rdfphpgraph = array($uri => array_merge($props, array('rdf:type' => array(array('type' => 'uri', 'value' => $class)))));
         $mockedGraph = $this->getMock('EasyRdf\Graph');
-        $mockedGraph->expects($this->any())->method("toRdfPhp")->willReturn($rdfphpgraph);
+        $mockedGraph->expects($this->any())->method('toRdfPhp')->willReturn($rdfphpgraph);
 
         return $mockedGraph;
     }
@@ -54,8 +55,8 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
     protected function mockManager()
     {
         $metadata = array(
-            'Foo\Bar\ResourceClass' => array( 'type' => 'foo:Type', 'uriPattern' => ''),
-            'Foo\Bar\ResourceClass' => array( 'type' => 'foo:Type', 'uriPattern' => ''),
+            'Foo\Bar\ResourceClass' => array('type' => 'foo:Type', 'uriPattern' => ''),
+            'Foo\Bar\ResourceClass' => array('type' => 'foo:Type', 'uriPattern' => ''),
         );
 
         return $this

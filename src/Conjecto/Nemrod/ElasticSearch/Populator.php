@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -70,7 +71,7 @@ class Populator
                 $this->resetter->reset($key);
             }
             echo $key;
-            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct("?s a ".$key)->where("?s a ".$key)->getQuery()
+            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct('?s a '.$key)->where('?s a '.$key)->getQuery()
                 ->execute();
 
             $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);

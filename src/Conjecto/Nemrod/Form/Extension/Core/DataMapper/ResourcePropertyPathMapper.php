@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -239,19 +240,19 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     {
         switch ($type) {
             case 'date':
-                return "EasyRdf\\Literal\\Date";
+                return 'EasyRdf\\Literal\\Date';
             case 'number':
             case 'money':
             case 'percent':
-                return "EasyRdf\\Literal\\Decimal";
+                return 'EasyRdf\\Literal\\Decimal';
             case 'integer':
-                return "EasyRdf\\Literal\\Integer";
+                return 'EasyRdf\\Literal\\Integer';
             case 'text':
             case 'textarea':
             case 'email':
             case 'password':
             case 'url':
-                return "EasyRdf\\Literal";
+                return 'EasyRdf\\Literal';
         }
 
         return;
