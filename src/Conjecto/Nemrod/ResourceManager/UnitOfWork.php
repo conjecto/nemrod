@@ -109,7 +109,7 @@ class UnitOfWork
      *
      * @return \Conjecto\Nemrod\Resource|mixed|null
      */
-    public function registerResource(Resource $resource, $fromStore = true)
+    public function registerResource(BaseResource $resource, $fromStore = true)
     {
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
@@ -168,7 +168,7 @@ class UnitOfWork
      *
      * @return bool
      */
-    public function isRegistered(Resource $resource)
+    public function isRegistered(BaseResource $resource)
     {
         return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
     }
@@ -401,7 +401,7 @@ class UnitOfWork
     /**
      * @param BaseResource $resource
      */
-    public function remove(Resource $resource)
+    public function remove(BaseResource $resource)
     {
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
@@ -572,7 +572,7 @@ class UnitOfWork
      *
      * @return string
      */
-    private function tripleStatus(Resource $resource, $property, $value)
+    private function tripleStatus(BaseResource $resource, $property, $value)
     {
         $snapshotValues = $this->initialSnapshots->all($resource, $property);
         $resourceValues = $resource->all($resource, $property);
@@ -622,7 +622,7 @@ class UnitOfWork
      *
      * @return BaseResource
      */
-    public function replaceResourceInstance(Resource $resource)
+    public function replaceResourceInstance(BaseResource $resource)
     {
         /** @var BaseResource $managedInstance */
         $managedInstance = $this->retrieveResource($resource->getUri());
@@ -682,7 +682,7 @@ class UnitOfWork
      *
      * @return array
      */
-    private function getSnapshotForResource(Resource $resources)
+    private function getSnapshotForResource(\Traversable $resources)
     {
         $snapshot = array();
         foreach ($resources as $resource) {
@@ -723,7 +723,7 @@ class UnitOfWork
      *
      * @param $resource
      */
-    public function snapshot(Resource $resource)
+    public function snapshot(BaseResource $resource)
     {
         $this->initialSnapshots->takeSnapshot($resource);
     }
@@ -733,7 +733,7 @@ class UnitOfWork
      *
      * @param $resource
      */
-    private function removeUplinks(Resource $resource)
+    private function removeUplinks(BaseResource $resource)
     {
         /** @var Graph $result */
         $result = $this->_rm->createQueryBuilder()
