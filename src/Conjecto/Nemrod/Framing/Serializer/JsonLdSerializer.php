@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -85,13 +86,13 @@ class JsonLdSerializer
         $frame = $this->loadFrame($frame);
 
         // if compacting without context, extract it from the frame
-        if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame["@context"])) {
-            $options['context'] = $frame["@context"];
+        if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
+            $options['context'] = $frame['@context'];
         }
 
         // if the $data is a resource, add the @id in the frame
-        if ($resource instanceof Resource && $frame && !isset($frame["@id"])) {
-            $frame["@id"] = $resource->getUri();
+        if ($resource instanceof Resource && $frame && !isset($frame['@id'])) {
+            $frame['@id'] = $resource->getUri();
         }
 
         // get the graph form the GraphProvider
@@ -99,7 +100,7 @@ class JsonLdSerializer
 
         $options['frame'] = json_encode($frame, JSON_FORCE_OBJECT);
 
-        return $graph->serialise("jsonld", $options);
+        return $graph->serialise('jsonld', $options);
     }
 
     /**
@@ -121,10 +122,10 @@ class JsonLdSerializer
         // merge context from namespace registry
         // @todo limit merge to usefull namespaces
         $namespaces = $this->nsRegistry->namespaces();
-        if (isset($frame["@context"])) {
-            $frame["@context"] = array_merge($frame["@context"], $namespaces);
+        if (isset($frame['@context'])) {
+            $frame['@context'] = array_merge($frame['@context'], $namespaces);
         } else {
-            $frame["@context"] = $namespaces;
+            $frame['@context'] = $namespaces;
         }
 
         return $frame;

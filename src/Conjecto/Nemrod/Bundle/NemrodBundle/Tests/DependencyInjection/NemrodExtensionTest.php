@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -31,12 +32,12 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         AnnotationRegistry::registerFile(__DIR__.'/../../../../ResourceManager/Annotation/Resource.php');
         $this->container = new ContainerBuilder();
         $this->container->setParameter('kernel.bundles', array('Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\FixtureTestBundle'));
-        $this->container->setParameter('kernel.root_dir', __DIR__."/../../../../");
+        $this->container->setParameter('kernel.root_dir', __DIR__.'/../../../../');
 
         $this->extension = new NemrodExtension();
         $this->container->registerExtension($this->extension);
 
-        $this->load(array( array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), "default_endpoint" => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'))));
+        $this->load(array(array('endpoints' => array('foopoint' => 'http://bar.org/sparql'), 'default_endpoint' => 'foopoint', 'namespaces' => array('foo' => 'http://www.example.org/foo#'))));
     }
 
     protected function load($config)
@@ -49,7 +50,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('nemrod.namespace_registry');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array("set", array('foo', 'http://www.example.org/foo#')), $calls[0]);
+        $this->assertEquals(array('set', array('foo', 'http://www.example.org/foo#')), $calls[0]);
     }
 
     public function testExtensionRegisterClient()
@@ -73,7 +74,7 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $service = $this->getServiceDefinition('nemrod.type_mapper');
         $calls = $service->getMethodCalls();
 
-        $this->assertEquals(array(array("setDefaultResourceClass", array("Conjecto\\Nemrod\\Resource")), array("set", array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource'))), $calls);
+        $this->assertEquals(array(array('setDefaultResourceClass', array('Conjecto\\Nemrod\\Resource')), array('set', array('foo:Class', 'Conjecto\Nemrod\Bundle\NemrodBundle\Tests\Fixtures\TestBundle\RdfResource\TestResource'))), $calls);
     }
 
     /**
@@ -95,8 +96,8 @@ class NemrodExtensionTest extends \PHPUnit_Framework_TestCase
         $definition = $this->container->getDefinition('nemrod.namespace_registry');
 
         $this->assertEquals(array(
-            array("set", array("foo", 'http://purl.org/ontology/foo/')),
-            array("set", array("bar", 'http://www.w3.org/ns/bar#')),
+            array('set', array('foo', 'http://purl.org/ontology/foo/')),
+            array('set', array('bar', 'http://www.w3.org/ns/bar#')),
         ), $definition->getMethodCalls());
     }
 

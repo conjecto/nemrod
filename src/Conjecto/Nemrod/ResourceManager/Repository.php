@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -10,7 +11,6 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\QueryBuilder;
 use Conjecto\Nemrod\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -139,8 +139,8 @@ class Repository
         $qb = $this->_rm->createQueryBuilder();
         if ($this->className) {
             $qb->construct(
-                "?s a ".$this->className.". ?s ?p ?o"
-            )->where("?s a ".$this->className.". ?s ?p ?o");
+                '?s a '.$this->className.'. ?s ?p ?o'
+            )->where('?s a '.$this->className.'. ?s ?p ?o');
         }
 
         return $qb;

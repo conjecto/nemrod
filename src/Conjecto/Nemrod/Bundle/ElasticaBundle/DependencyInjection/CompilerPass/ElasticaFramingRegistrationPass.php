@@ -1,11 +1,11 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Erwan
  * Date: 02/04/2015
  * Time: 11:41.
  */
-
 namespace Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -36,7 +36,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                 $frame = $jsonLdFrameLoader->load($settings['frame']);
                 $settings['frame'] = $frame;
                 if (isset($frame['@type']) || isset($settings['type'])) {
-                    $type = "";
+                    $type = '';
                     if (isset($settings['type'])) {
                         $type = $settings['type'];
                     } elseif (isset($frame['@type'])) {

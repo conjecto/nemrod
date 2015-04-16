@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -55,7 +56,7 @@ class ResourceParamConverter implements ParamConverterInterface
      * @param Request                $request       The request
      * @param ConfigurationInterface $configuration Contains the name, class and options of the object
      *
-     * @return boolean True if the object has been successfully set, else false
+     * @return bool True if the object has been successfully set, else false
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
@@ -246,7 +247,7 @@ class ResourceParamConverter implements ParamConverterInterface
      *
      * @param ConfigurationInterface $configuration Should be an instance of ParamConverter
      *
-     * @return boolean True if the object is supported, else false
+     * @return bool True if the object is supported, else false
      */
     public function supports(ParamConverter $configuration)
     {

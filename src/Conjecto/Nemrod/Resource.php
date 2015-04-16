@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -35,7 +36,7 @@ class Resource extends BaseResource
     /**
      *
      */
-    const PROPERTY_PATH_SEPARATOR = "/";
+    const PROPERTY_PATH_SEPARATOR = '/';
 
     /**
      * @var Manager
@@ -70,7 +71,7 @@ class Resource extends BaseResource
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
-                if ($res instanceof Resource && (!empty($this->_rm))) {
+                if ($res instanceof self && (!empty($this->_rm))) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
                 }
             }
@@ -120,7 +121,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof Resource  && (!empty($this->_rm))) { //we get a resource
+        } elseif ($result instanceof self  && (!empty($this->_rm))) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -156,7 +157,7 @@ class Resource extends BaseResource
 
         //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
-        if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
@@ -171,7 +172,7 @@ class Resource extends BaseResource
     {
         $this->snapshot();
         //resource: check if managed (for further save)
-        if ($property instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($property instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
@@ -214,12 +215,12 @@ class Resource extends BaseResource
     private function split($path)
     {
         $first = $path;
-        $rest = "";
+        $rest = '';
         $firstSep = strpos($path, $this::PROPERTY_PATH_SEPARATOR);
 
         if ($firstSep) {
             $first = substr($path, 0, $firstSep);
-            $rest = substr($path, $firstSep+1);
+            $rest = substr($path, $firstSep + 1);
         }
 
         return array($first, $rest);

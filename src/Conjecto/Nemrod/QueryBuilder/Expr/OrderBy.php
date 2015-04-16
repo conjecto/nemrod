@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -9,7 +10,6 @@
  */
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
-
 
 class OrderBy extends Base
 {

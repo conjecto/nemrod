@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -25,7 +26,7 @@ class JsonLdFrameLoaderTest extends \PHPUnit_Framework_TestCase
         $loader = new JsonLdFrameLoader();
         $loader->addPath(__DIR__.'/Fixtures', 'namespace');
 
-        $expected = array('@id' => "http://example.org/test#example");
+        $expected = array('@id' => 'http://example.org/test#example');
 
         // Twig-style
         $this->assertEquals($expected, $loader->load('@namespace/frame.jsonld'));

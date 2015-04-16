@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -24,5 +25,5 @@ final class Resource
     /**
      * @var string
      */
-    public $uriPattern = "";
+    public $uriPattern = '';
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -37,10 +38,10 @@ class UnitOfWork
     /**
      * List of status for.
      */
-    const STATUS_TRIPLE_UNKNOWN = "unknown";
-    const STATUS_TRIPLE_ADDED = "added";
-    const STATUS_TRIPLE_REMOVED = "removed";
-    const STATUS_TRIPLE_UNCHANGED = "unchanged";
+    const STATUS_TRIPLE_UNKNOWN = 'unknown';
+    const STATUS_TRIPLE_ADDED = 'added';
+    const STATUS_TRIPLE_REMOVED = 'removed';
+    const STATUS_TRIPLE_UNCHANGED = 'unchanged';
 
     /**
      * registered resources.
@@ -103,7 +104,7 @@ class UnitOfWork
      * Register a resource to the list of.
      *
      * @param BaseResource $resource
-     * @param boolean      $fromStore
+     * @param bool         $fromStore
      *
      * @return \Conjecto\Nemrod\Resource|mixed|null
      */
@@ -134,7 +135,7 @@ class UnitOfWork
     public function setBNodes($uri, $property, $graph)
     {
         if (empty($this->registeredResources[$uri])) {
-            throw new Exception("no parent resource");
+            throw new Exception('no parent resource');
         }
         /** @var \Conjecto\Nemrod\Resource $owningResource */
         $owningResource = $this->registeredResources[$uri];
@@ -281,7 +282,7 @@ class UnitOfWork
         $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
         /** @var PropertyMetadata $pm */
         foreach ($metadata->propertyMetadata as $pm) {
-            if (is_array($pm->cascade) && in_array("persist", $pm->cascade)) {
+            if (is_array($pm->cascade) && in_array('persist', $pm->cascade)) {
                 $cascadeResources = $resource->allResources($pm->value);
 
                 foreach ($cascadeResources as $res2) {
@@ -466,7 +467,7 @@ class UnitOfWork
     /**
      * @param $uri
      *
-     * @return boolean
+     * @return bool
      */
     public function isManagementBlackListed($uri)
     {
@@ -663,7 +664,7 @@ class UnitOfWork
      * @param $object
      * @param $objectsList
      *
-     * @return boolean
+     * @return bool
      */
     private function containsObject($object, $objectsList)
     {
@@ -758,8 +759,8 @@ class UnitOfWork
     {
         /** @var Graph $result */
         $result = $this->_rm->createQueryBuilder()
-            ->construct("?s a ?t; ?p <".$resource->getUri().">")
-            ->where("?s a ?t; ?p <".$resource->getUri().">")
+            ->construct('?s a ?t; ?p <'.$resource->getUri().'>')
+            ->where('?s a ?t; ?p <'.$resource->getUri().'>')
             ->getQuery()
         ->execute();
 
@@ -768,7 +769,7 @@ class UnitOfWork
         foreach ($resources as $re) {
             $this->registerResource($re);
             foreach ($result->properties($re->getUri()) as $prop) {
-                if ($prop != "rdf:type") {
+                if ($prop != 'rdf:type') {
                     $re->delete($prop);
                 }
             }
@@ -780,7 +781,7 @@ class UnitOfWork
      *
      * @param $uri
      *
-     * @return boolean
+     * @return bool
      */
     public function isBNode($uri)
     {
@@ -798,7 +799,7 @@ class UnitOfWork
      */
     private function generateURI($options = array())
     {
-        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "og_bd:";
+        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : 'og_bd:';
 
         return uniqid($prefix);
     }
@@ -825,7 +826,7 @@ class UnitOfWork
      */
     public function nextBNode()
     {
-        return "_:bn".(++$this->bnodeCount);
+        return '_:bn'.(++$this->bnodeCount);
     }
 
     /**

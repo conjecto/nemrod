@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -135,7 +136,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
         $qb = $event->getRm()->getQueryBuilder();
         $qb->reset();
-        $qb->construct("?uri a ?t")->where("?uri a ?t");
+        $qb->construct('?uri a ?t')->where('?uri a ?t');
         $uris = '';
 
         foreach ($this->changesRequests as $uri => $infos) {
@@ -163,7 +164,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
                 // update the ES document
                 if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    /**
+                    /*
                      * @var Type
                      **/
                     $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $newType));

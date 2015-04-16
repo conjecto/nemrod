@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -15,7 +16,6 @@ use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
 use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
-use EasyRdf\Serialiser\JsonLd;
 use Elastica\Document;
 
 class ResourceToDocumentTransformer

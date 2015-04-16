@@ -103,7 +103,7 @@ class SimplePersister implements PersisterInterface
      */
     public function constructBNode($owningUri, $property)
     {
-        $body = "<".$owningUri."> ".$property." ?bnodeVar. ?bnodeVar ?p ?q.";
+        $body = '<'.$owningUri.'> '.$property.' ?bnodeVar. ?bnodeVar ?p ?q.';
 
         $qb = $this->_rm->getQueryBuilder();
         $qb->construct($body)->where($body);
@@ -152,7 +152,7 @@ class SimplePersister implements PersisterInterface
             }
         }
         if (count($unions) == 1) {
-            $unions[] = "";
+            $unions[] = '';
         }
         if (count($unions)) {
             $qb->addUnion($unions);
@@ -180,7 +180,7 @@ class SimplePersister implements PersisterInterface
     public function constructSet(array $criteria, array $options, $hydrate = Query::HYDRATE_ARRAY)
     {
         //end statments for query (order by, etc)
-        $queryFinal = "";
+        $queryFinal = '';
         $criteriaParts = array();
         $criteriaUnionParts = array();
 
@@ -202,17 +202,17 @@ class SimplePersister implements PersisterInterface
         }
 
         if (isset($options['orderBy'])) {
-            $criteriaUnionParts[] = "?s ".$options['orderBy']." ?orderingvar";
-            $queryFinal .= "?orderingvar";
+            $criteriaUnionParts[] = '?s '.$options['orderBy'].' ?orderingvar';
+            $queryFinal .= '?orderingvar';
         }
 
         $qb = $this->_rm->getQueryBuilder();
-        $qb->construct("?s ?p ?q");
-        $qb->where("?s ?p ?q");
+        $qb->construct('?s ?p ?q');
+        $qb->where('?s ?p ?q');
 
         foreach ($criteriaParts as $triple) {
-            $qb->addConstruct("?s ".$triple);
-            $qb->andWhere("?s ".$triple);
+            $qb->addConstruct('?s '.$triple);
+            $qb->andWhere('?s '.$triple);
         }
 
         foreach ($criteriaUnionParts as $triple) {
@@ -220,7 +220,7 @@ class SimplePersister implements PersisterInterface
         }
 
         if (count($criteriaUnionParts) == 1) {
-            $criteriaUnionParts[] = "";
+            $criteriaUnionParts[] = '';
         }
 
         if (count($criteriaUnionParts)) {
@@ -228,7 +228,7 @@ class SimplePersister implements PersisterInterface
         }
 
         $qb->setOffset(0);
-        if ($queryFinal != "") {
+        if ($queryFinal != '') {
             $qb->orderBy($queryFinal);
         }
 
@@ -337,7 +337,7 @@ class SimplePersister implements PersisterInterface
             }
         }
 
-        return array( $criteriaParts,$whereParts);
+        return array($criteriaParts,$whereParts);
     }
 
     /**
@@ -372,39 +372,39 @@ class SimplePersister implements PersisterInterface
                     $varPred = $this->nextVariable();
                     $varUpSubj = $this->nextVariable();
                     $varUpPred = $this->nextVariable();
-                    $criteriaParts[] = "<".$uri."> ".$varObj." ".$varPred;
-                    $whereParts[] = array("<".$uri."> ".$varObj." ".$varPred);
-                    $criteriaParts[] = $varUpSubj." ".$varUpPred." <".$uri.">";
-                    $whereParts[] = array($varUpSubj." ".$varUpPred." <".$uri.">");
+                    $criteriaParts[] = '<'.$uri.'> '.$varObj.' '.$varPred;
+                    $whereParts[] = array('<'.$uri.'> '.$varObj.' '.$varPred);
+                    $criteriaParts[] = $varUpSubj.' '.$varUpPred.' <'.$uri.'>';
+                    $whereParts[] = array($varUpSubj.' '.$varUpPred.' <'.$uri.'>');
                 } elseif (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
                             if ($val['type'] == 'literal') {
-                                $tripleStr = "<".$uri."> <".$property."> \"".addcslashes($val['value'], '"')."\"";
+                                $tripleStr = '<'.$uri.'> <'.$property.'> "'.addcslashes($val['value'], '"').'"';
                                 if (!empty($val['lang'])) {
-                                    $tripleStr .= "@".$val['lang']."";
+                                    $tripleStr .= '@'.$val['lang'].'';
                                 } elseif (!empty($val['datatype'])) {
-                                    $tripleStr .= "^^<".$val['datatype'].">";
+                                    $tripleStr .= '^^<'.$val['datatype'].'>';
                                 }
 
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
                             } elseif ($val['type'] == 'uri') {
-                                $criteriaParts[] = "<".$uri."> <".$property."> <".$val['value'].">";
-                                $whereParts[] = "<".$uri."> <".$property."> <".$val['value'].">";
+                                $criteriaParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
+                                $whereParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
                             } elseif ($val['type'] == 'bnode') {
                                 if ($bNodesAsVariables) {
                                     $varBnode = $this->nextVariable();
                                     $varBnodePred = $this->nextVariable();
                                     $varBnodeObj = $this->nextVariable();
-                                    $criteriaParts[] = "<".$uri."> <".$property."> ".$varBnode;
-                                    $criteriaParts[] = $varBnode." ".$varBnodePred." ".$varBnodeObj;
-                                    $whereParts[] = "<".$uri."> <".$property."> ".$varBnode;
+                                    $criteriaParts[] = '<'.$uri.'> <'.$property.'> '.$varBnode;
+                                    $criteriaParts[] = $varBnode.' '.$varBnodePred.' '.$varBnodeObj;
+                                    $whereParts[] = '<'.$uri.'> <'.$property.'> '.$varBnode;
                                 } else {
                                     $newBNode = $this->getNewBnode($val['value']);
 
-                                    $criteriaParts[] = "<".$uri."> <".$property."> ".$newBNode."";
-                                    $whereParts[] = "<".$uri."> <".$property."> ".$newBNode."";
+                                    $criteriaParts[] = '<'.$uri.'> <'.$property.'> '.$newBNode.'';
+                                    $whereParts[] = '<'.$uri.'> <'.$property.'> '.$newBNode.'';
                                     if ($followBNodes) {
                                         list($a, $b) = $this->getTriplesForUri($array, $val['value'], $bNodesAsVariables, false);
                                         $criteriaParts = array_merge($criteriaParts, $a);
@@ -412,7 +412,7 @@ class SimplePersister implements PersisterInterface
                                     }
                                 }
                             } elseif ($val['type'] == 'uri') {
-                                $criteriaParts[] = "<".$uri."> <".$property."> ".$val['value']."";
+                                $criteriaParts[] = '<'.$uri.'> <'.$property.'> '.$val['value'].'';
                             }
                         }
                     }
@@ -532,7 +532,7 @@ class SimplePersister implements PersisterInterface
      */
     private function nextCollectionUri()
     {
-        return "_:internalcollection".(++$this->collectionUriCount);
+        return '_:internalcollection'.(++$this->collectionUriCount);
     }
 
     /**
@@ -542,7 +542,7 @@ class SimplePersister implements PersisterInterface
      */
     private function nextVariable()
     {
-        return "?var".(++$this->variableCount);
+        return '?var'.(++$this->variableCount);
     }
 
     /**

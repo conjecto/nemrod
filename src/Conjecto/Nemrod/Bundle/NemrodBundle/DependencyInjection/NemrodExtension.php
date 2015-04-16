@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -95,7 +96,7 @@ class NemrodExtension extends Extension
                   isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'nemrod.sparql.connection.'.$name);
-            if ($name == $config["default_endpoint"]) {
+            if ($name == $config['default_endpoint']) {
                 $container->setAlias('sparql', 'nemrod.sparql.connection.'.$name);
             }
         }
@@ -120,7 +121,7 @@ class NemrodExtension extends Extension
                 ->setArguments(array($endpoint['query_uri']));
 
             $evd = $container->setDefinition('nemrod.resource_lifecycle_event_dispatcher.'.$name, new DefinitionDecorator('nemrod.resource_lifecycle_event_dispatcher'));
-            $evd->addTag('nemrod.event_dispatcher', array("endpoint" => $name));
+            $evd->addTag('nemrod.event_dispatcher', array('endpoint' => $name));
 
             $rm = $container->setDefinition('nemrod.resource_manager.'.$name, new DefinitionDecorator('nemrod.resource_manager'));
             $rm->setArguments(array(new Reference('nemrod.repository_factory.'.$name), $endpoint['query_uri']))
@@ -135,7 +136,7 @@ class NemrodExtension extends Extension
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
             //setting main alias
-            if ($name == $config["default_endpoint"]) {
+            if ($name == $config['default_endpoint']) {
                 $container->setAlias('rm', 'nemrod.resource_manager.'.$name);
             }
         }

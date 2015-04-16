@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -63,7 +64,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
         if (!($data instanceof Resource) || ($data instanceof Graph)) {
-            throw new InvalidArgumentException("JsonLD can only serialize Resource ou Graph object.");
+            throw new InvalidArgumentException('JsonLD can only serialize Resource ou Graph object.');
         }
         $this->resource = $data;
         $this->frame = $context->attributes->get('frame')->getOrElse(null);

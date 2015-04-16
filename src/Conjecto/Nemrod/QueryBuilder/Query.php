@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -40,7 +41,7 @@ class Query
     /**
      * The current state of this query.
      *
-     * @var integer
+     * @var int
      */
     protected $state = self::STATE_DIRTY;
 
@@ -73,14 +74,14 @@ class Query
     /**
      * The first result to return (the "offset").
      *
-     * @var integer
+     * @var int
      */
     protected $offset = null;
 
     /**
      * The maximum number of results to return (the "limit").
      *
-     * @var integer
+     * @var int
      */
     protected $maxResults = null;
 

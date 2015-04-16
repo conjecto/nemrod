@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -36,7 +37,7 @@ class JsonLdSerializerTest extends \PHPUnit_Framework_TestCase
 
         $graphProvider = new SimpleGraphProvider();
 
-        $metadataFactory = $this->getMockBuilder("Metadata\\MetadataFactory")->disableOriginalConstructor()->getMock();// new MetadataFactory();
+        $metadataFactory = $this->getMockBuilder('Metadata\\MetadataFactory')->disableOriginalConstructor()->getMock();// new MetadataFactory();
 
         $resource = $foaf->primaryTopic();
         $serializer = new JsonLdSerializer($registry, $loader, $graphProvider, $metadataFactory);

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -113,7 +114,7 @@ class Search
         // elasticsearch 1.1 compatibility
         // @see https://github.com/elasticsearch/elasticsearch/issues/5253
         $name = $aggregation->getName();
-        $name = preg_replace("/([^a-zA-Z0-9\\-_])/e", "'--'.ord('$1').'--'", $name);
+        $name = preg_replace('/([^a-zA-Z0-9\\-_])/e', "'--'.ord('$1').'--'", $name);
         $aggregation->setName($name);
         // ---
 
@@ -237,7 +238,7 @@ class Search
     public function filterQuery($filter)
     {
         $query = new Query\Filtered(null, $filter);
-        if ($this->getQuery()->hasParam("query")) {
+        if ($this->getQuery()->hasParam('query')) {
             $raw = $this->getQuery()->toArray();
             $query = $query->toArray();
             $query['filtered']['query'] = $raw['query'];
@@ -467,12 +468,12 @@ class Search
 
             // SPECIFIC : daterange
             if (is_string($options) && preg_match('/^(\d{2}\/\d{2}\/\d{4}) - (\d{2}\/\d{2}\/\d{4})$/', $options, $matches)) {
-                $gte = date_create_from_format("d/m/Y", $matches[1]);
-                $lte = date_create_from_format("d/m/Y", $matches[2]);
+                $gte = date_create_from_format('d/m/Y', $matches[1]);
+                $lte = date_create_from_format('d/m/Y', $matches[2]);
                 $options = array(
-                    "type" => "range",
-                    "gte" => $gte->format('Y-m-d'),
-                    "lte" => $lte->format('Y-m-d'),
+                    'type' => 'range',
+                    'gte' => $gte->format('Y-m-d'),
+                    'lte' => $lte->format('Y-m-d'),
                 );
             }
 
