@@ -28,5 +28,13 @@ interface PersisterInterface
      */
     public function constructSet(array $criteria, array $options);
 
+    /**
+     * @param array $criteria
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function constructOne(array $criteria, array $options);
+
     public function constructBNode($owningUri, $property);
 }

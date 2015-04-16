@@ -237,6 +237,17 @@ class UnitOfWork
         return $this->persister->constructSet($criteria, $options);
     }
 
+    /**
+     * @param array $criteria
+     * @param array $options
+     *
+     * @return Collection|\EasyRdf\Collection|void
+     */
+    public function findOneBy(array $criteria, array $options)
+    {
+        return $this->persister->constructOne($criteria, $options);
+    }
+
     public function dumpRegistered()
     {
         echo $this->initialSnapshots->dump();

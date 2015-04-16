@@ -80,16 +80,17 @@ class Repository
      */
     public function findOneBy(array $criterias, array $options = array())
     {
-        $options['limit'] = 1;
-
-        $result = $this->findBy($criterias, $options);
-
-        if (count($result) == 0) {
-            return null;
+        if ($this->className) {
+            if (empty($criterias['rdf:type'])) {
+                $criterias['rdf:type'] = $this->className;
+            } elseif (is_array($criterias['rdfs:Class'])) {
+                $criterias['rdf:type'][] = $this->className;
+            } else {
+                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
+            }
         }
 
-        reset($result);
-        return current($result);
+        return $this->_rm->getUnitOfWork()->findOneBy($criterias, $options);
     }
 
     /**

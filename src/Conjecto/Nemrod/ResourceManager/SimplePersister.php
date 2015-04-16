@@ -269,6 +269,35 @@ class SimplePersister implements PersisterInterface
         return $output;
     }
 
+    public function constructOne(array $criteria, array $options)
+    {
+        $qb = $this->_rm->getQueryBuilder();
+
+        //getting "SELECT" part of the query
+        $select = $qb->select("?uri")->where("?uri a ".$criteria['rdf:type']);
+        foreach ($criteria as $property => $value)
+        {
+            $select->andWhere("?uri ".$property." ".$value);
+        }
+        $select = $select->setMaxResults(1)->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
+        //getting whole "CONSTRUCT" query
+        $query = $qb->setMaxResults(null)->construct("?uri ?p ?o; a ".$criteria['rdf:type'])
+            ->where("?uri ?p ?o; a ".$criteria['rdf:type'])
+            ->andWhere("{".$selectStr."}");
+
+        $result = $query->getQuery()->execute($hydrate = Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
+
+        if (count($result) == 0) {
+            return null;
+        }
+
+        reset($result);
+
+        return current($result);
+    }
+
+
     /**
      * Declares a resource to unit of work. Either the resource is already managed, and the UOW performs an update, or
      * the resource is not managed, and is registered.
