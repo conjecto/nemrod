@@ -21,7 +21,7 @@ class PreFlushEvent extends Event
     protected $changes;
 
     /**
-     * @var Manager $rm
+     * @var Manager
      */
     protected $rm;
 

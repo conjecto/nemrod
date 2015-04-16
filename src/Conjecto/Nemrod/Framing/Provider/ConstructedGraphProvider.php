@@ -74,7 +74,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     protected function getQueryBuilder($frame, $resource)
     {
         $rm = $this->rm;
-        if ($resource instanceof \Conjecto\Nemrod\Resource) {
+        if ($resource instanceof \Conjecto\Nemrod\Resource && $resource->getRm() != null) {
             $rm = $resource->getRm();
         }
         $this->varCounter = 0;
@@ -99,6 +99,9 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             if (substr($prop, 0, 1) != '@' && is_array($val)) {
                 $uriChild = '?c'.(++$this->varCounter);
                 $counter = $this->varCounter;
+                if ($this->addConstructChild($val, $uriChild) == $uriChild && !empty($construct)) {
+                    $construct .= '. ';
+                }
                 $construct .= ('?uri'.' '.$prop.' '.$this->addConstructChild($val, $uriChild));
                 $this->varCounter = $counter;
                 $qb->addUnion(array("", '?uri'.' '.$prop.' '.$this->addChild($val, $uriChild)));
@@ -106,6 +109,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
         }
 
         $qb->addConstruct($construct);
+
         return $qb;
     }
 
@@ -119,7 +123,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild .= " ".$uriChild.' a '.$val . ' . ';
+                    $stringedChild .= " ".$uriChild.' a '.$val.' . ';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) != '@' && is_array($val)) {

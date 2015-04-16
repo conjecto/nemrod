@@ -22,19 +22,19 @@ Some examples :
 
     use Conjecto\Nemrod\QueryBuilder;
 
-    $qb->construct('?uri a foaf:Person');
-    $qb->addConstruct('?s vcard:hasAddress ?o');
-    $qb->where('?uri a foaf:Person');
-    $qb->andWhere('?s vcard:hasAddress ?o');
-    $qb->bind("<uri>", '?uri');
+    $qb->construct('?uri a foaf:Person')
+       ->addConstruct('?uri vcard:hasAddress ?o')
+       ->where('?uri a foaf:Person')
+       ->andWhere('?uri vcard:hasAddress ?o')
+       ->bind("<uri>", '?uri');
 
-    $qb->select('rdf:type');
-    $qb->addSelect('vcard:hasAddress');
-    $qb->where('?uri a foaf:Person');
-    $qb->bind("<uri>", '?uri');
+    $qb->select('rdf:type')
+       ->addSelect('vcard:hasAddress')
+       ->where('?uri a foaf:Person')
+       ->bind("<uri>", '?uri');
 
-    $qb->ask('?uri a foaf:Person');
-    $qb->bind("<uri>", '?uri');
+    $qb->ask('?uri a foaf:Person')
+       ->bind("<uri>", '?uri');
 
     $qb->describe('foaf:Person');
 
@@ -47,11 +47,11 @@ You can also use the repository to get resources.
 
 Execute a query
 ------------
-We your query builder is ready, juste call 
+When your query builder is ready, juste call 
 
     $result = $qb->getQuery()->execute();
 
-You can use hydratator to hydrate results. You can hydrate the result as a array or a easyrdf collection.
+You can use hydratators to hydrate results. You can hydrate the result as a array or a easyrdf collection.
 
 To do this, specify the hydrate parameter like follow:
 

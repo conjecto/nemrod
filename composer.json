@@ -1,6 +1,5 @@
 {
     "name": "conjecto/nemrod",
-    "version": "0.1.0",
     "description": "Nemrod is a framework providing an abstraction layer for handling (consuming and producing) RDF in a Symfony2 project",
     "type": "library",
     "keywords": ["RDF", "Semantic Web", "Linked Data", "Turtle", "RDFa", "SPARQL", "JsonLD"],

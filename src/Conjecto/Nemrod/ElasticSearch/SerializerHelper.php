@@ -20,17 +20,17 @@ use EasyRdf\Resource;
 class SerializerHelper
 {
     /**
-     * @var array $requests
+     * @var array
      */
     protected $requests;
 
     /**
-     * @var ConstructedGraphProvider $cgp
+     * @var ConstructedGraphProvider
      */
     protected $cgp;
 
     /**
-     * @var JsonLdFrameLoader $jsonLdFrameLoader
+     * @var JsonLdFrameLoader
      */
     protected $jsonLdFrameLoader;
 
@@ -135,7 +135,7 @@ class SerializerHelper
             return $this->requests[$index][$type][$key];
         }
 
-        throw new \Exception('No matching found for index ' . $index . ' and type ' . $type);
+        throw new \Exception('No matching found for index '.$index.' and type '.$type);
     }
 
     protected function guessRequests()
@@ -146,7 +146,7 @@ class SerializerHelper
             }
             foreach ($types['types'] as $type => $settings) {
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
-                    throw new \Exception('You have to specify a frame for ' . $type);
+                    throw new \Exception('You have to specify a frame for '.$type);
                 }
                 $this->fillTypeRequests($index, $type, $settings);
             }
@@ -164,8 +164,7 @@ class SerializerHelper
 
         if (isset($settings['type'])) {
             $type = $settings['type'];
-        }
-        else if (isset($frame['@type'])) {
+        } elseif (isset($frame['@type'])) {
             $type = $frame['@type'];
         }
         $this->requests[$index][$type]['name'] = $typeName;
