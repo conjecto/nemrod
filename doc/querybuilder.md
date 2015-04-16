@@ -47,11 +47,11 @@ You can also use the repository to get resources.
 
 Execute a query
 ------------
-We your query builder is ready, juste call 
+When your query builder is ready, juste call 
 
     $result = $qb->getQuery()->execute();
 
-You can use hydratator to hydrate results. You can hydrate the result as a array or a easyrdf collection.
+You can use hydratators to hydrate results. You can hydrate the result as a array or a easyrdf collection.
 
 To do this, specify the hydrate parameter like follow:
 
