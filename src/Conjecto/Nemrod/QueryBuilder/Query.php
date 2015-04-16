@@ -262,7 +262,8 @@ class Query
 
         if ($hydratation == self::HYDRATE_COLLECTION) {
             $this->rm->getUnitOfWork()->blackListCollection($this->result);
-            for ($cnt = 1; $cnt <= count($this->result); $cnt++) {
+            $count = count($this->result);
+            for ($cnt = 1; $cnt <= $count; $cnt++) {
                 $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
             }
         } elseif ($hydratation == self::HYDRATE_ARRAY) {
