@@ -59,7 +59,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     {
         $properties = array();
         foreach ($frame as $key => $val) {
-            if (substr($key, 0, 1) != '@') {
+            if (substr($key, 0, 1) !== '@') {
                 $properties[] = $key;
             }
         }
@@ -75,7 +75,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     protected function getQueryBuilder($frame, $resource)
     {
         $rm = $this->rm;
-        if ($resource instanceof \Conjecto\Nemrod\Resource && $resource->getRm() != null) {
+        if ($resource instanceof \Conjecto\Nemrod\Resource && $resource->getRm() !== null) {
             $rm = $resource->getRm();
         }
         $this->varCounter = 0;
@@ -97,7 +97,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             }
 
             // union for optional trick
-            if (substr($prop, 0, 1) != '@' && is_array($val)) {
+            if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                 $uriChild = '?c'.(++$this->varCounter);
                 $counter = $this->varCounter;
                 if ($this->addConstructChild($val, $uriChild) == $uriChild && !empty($construct)) {
@@ -127,7 +127,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                     $stringedChild .= ' '.$uriChild.' a '.$val.' . ';
                 }
                 // union for optional trick
-                if (substr($prop, 0, 1) != '@' && is_array($val)) {
+                if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
                     $stringedChild .= $uriChild.' '.$prop.' '.$this->addConstructChild($val, $uriChildOfChild).' ';
                 }
@@ -157,7 +157,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                     $stringedChild = $stringedChild.' '.$uriChild.' a '.$val;
                 }
                 // union for optional trick
-                if (substr($prop, 0, 1) != '@' && is_array($val)) {
+                if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
                     $stringedChild = $stringedChild.' {} UNION {'.$uriChild.' '.$prop.' '.$this->addChild($val, $uriChildOfChild).'} ';
                 }
@@ -185,7 +185,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
         foreach ($frame as $prop => $val) {
             // union for optional trick
-            if (substr($prop, 0, 1) != '@' && is_array($val) && count($val)) {
+            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
                 $this->checkDeeper($uri, $type, $val, $buildingUnion.'; '.$prop);
             }
         }
@@ -208,7 +208,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 }
             }
             // union for optional trick
-            if (substr($prop, 0, 1) != '@' && is_array($val) && count($val)) {
+            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
                 $this->checkDeeper($uri, $type, $val, $buildingUnion.'/'.$prop);
             }
         }

@@ -73,7 +73,7 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $this->rm = $rm;
         $this->class = $class;
-        $this->queryBuilder = $queryBuilder == null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
+        $this->queryBuilder = $queryBuilder === null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -276,11 +276,6 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         try {
             $resources = (new NemrodQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
-
-//            for ($i = 1 ; $i <= count($resources) ; $i++) {
-//                echo 'replace';
-//                $resources[$i] = $this->rm->getUnitOfWork()->registerResource($resources[$i]);
-//            }
 
             // The second parameter $labels is ignored by ObjectChoiceList
             if ($resources) {

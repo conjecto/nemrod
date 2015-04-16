@@ -100,7 +100,7 @@ class CascadeUpdateHelper
         $arrayResult = array();
 
         foreach ($qbByIndex as $index => $qb) {
-            if ($qb != null) {
+            if ($qb !== null) {
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
                     $uri = $result->uri->getUri();
@@ -121,7 +121,7 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    protected function search($uri, $resourceType, $propertiesUpdated, $rm)
+    protected function search($uri, $resourceType, $propertiesUpdated, Manager $rm)
     {
         $qb = $rm->getQueryBuilder();
         $frames = $this->getAllFrames($resourceType, $propertiesUpdated);
@@ -135,10 +135,10 @@ class CascadeUpdateHelper
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      * @param array                         $resourcesModified
      */
-    protected function updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified)
+    protected function updateDocuments($qbByIndex, ResourceToDocumentTransformer $resourceToDocumentTransformer, $resourcesModified)
     {
         foreach ($qbByIndex as $index => $qb) {
-            if ($qb != null) {
+            if ($qb !== null) {
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
                     $uri = $result->uri->getUri();
@@ -160,7 +160,7 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    protected function getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, $qb, $uriResourceUpdated)
+    protected function getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, QueryBuilder $qb, $uriResourceUpdated)
     {
         $arrayOfTypes = array();
         foreach ($frames as $index => $types) {
@@ -172,7 +172,7 @@ class CascadeUpdateHelper
                     $arrayWhere = array_reverse($arrayWhere);
                     $i = 0;
                     foreach ($arrayWhere as $key) {
-                        if ($i == 0) {
+                        if ($i === 0) {
                             $stringWhere .= ' '.$key;
                         } else {
                             $stringWhere .= ' / '.$key;
@@ -216,7 +216,7 @@ class CascadeUpdateHelper
 
                 return true;
             }
-            if (isset($values['type']) && $values['type'] == $resourceType && isset($values['properties'])) {
+            if (isset($values['type']) && $values['type'] === $resourceType && isset($values['properties'])) {
                 foreach ($values['properties'] as $property) {
                     if (in_array($property, array_keys($propertiesUpdated))) {
                         $arrayWhere[] = $key;
@@ -242,7 +242,7 @@ class CascadeUpdateHelper
         $types = array();
         foreach ($frame as $key => $value) {
             if (!strstr($key, '@') && isset($value['@type'])) {
-                if ($value['@type'] == $resourceType) {
+                if ($value['@type'] === $resourceType) {
                     foreach ($this->serializerHelper->getProperties($value) as $property) {
                         if (in_array($property, array_keys($propertiesUpdated))) {
                             $types[$key]['type'] = $value['@type'];

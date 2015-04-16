@@ -139,7 +139,7 @@ class Manager
      */
     public function getQueryBuilder()
     {
-        if ($this->qb == null) {
+        if ($this->qb === null) {
             $this->qb = $this->createQueryBuilder();
         }
         $this->qb->reset();

@@ -19,6 +19,7 @@ use Conjecto\Nemrod\ResourceManager\Event\ResourceLifeCycleEvent;
 use Conjecto\Nemrod\ResourceManager\Mapping\ClassMetadata;
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadata;
 use Conjecto\Nemrod\Resource as BaseResource;
+use Conjecto\Nemrod\Manager;
 use Doctrine\Common\Collections\ArrayCollection;
 use EasyRdf\Collection;
 use EasyRdf\Exception;
@@ -94,7 +95,7 @@ class UnitOfWork
         $this->evd = $manager->getEventDispatcher();
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = new arrayCollection();
-        $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
+        $this->initialSnapshots = new SnapshotContainer($this);
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
         $this->uriCorrespondances = new arrayCollection();
@@ -108,21 +109,19 @@ class UnitOfWork
      *
      * @return \Conjecto\Nemrod\Resource|mixed|null
      */
-    public function registerResource($resource, $fromStore = true)
+    public function registerResource(Resource $resource, $fromStore = true)
     {
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
 
             $this->registeredResources[$resource->getUri()] = $resource;
             if ($fromStore) {
-                //$this->initialSnapshots->takeSnapshot($resource);
                 $resource->setReady();
                 $this->status[$resource->getUri()] = self::STATUS_MANAGED;
             }
 
             return $resource;
         } else {
-            //echo "registered<br />";
             $tmp = $this->retrieveResource($resource->getUri());
 
             return $tmp;
@@ -250,7 +249,6 @@ class UnitOfWork
     public function dumpRegistered()
     {
         echo $this->initialSnapshots->dump();
-        //echo $this->initialSnapshots->getGraph()->dump();
     }
 
     /**
@@ -263,7 +261,6 @@ class UnitOfWork
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
             //@todo perform "ask" on db to check if resource is already there
-            //throw new Exception("Resource already exist");
         }
         if (!isset($this->status[$resource->getUri()])) {
             $this->status[$resource->getUri()] = self::STATUS_NEW;
@@ -271,7 +268,7 @@ class UnitOfWork
 
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        $this->registerResource($resource, $fromStore = false);
+        $this->registerResource($resource, false);
 
         //getting entities to be cascade persisted
         $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
@@ -301,14 +298,12 @@ class UnitOfWork
      */
     public function commit()
     {
-        //$correspondances = array();
         $uris = array();
 
         //collecting
         $concernedResources = array();
         foreach ($this->registeredResources as $resource) {
-            //if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
-            if ($this->status[$resource->getUri()] == self::STATUS_NEW || $this->status[$resource->getUri()] == self::STATUS_DIRTY) {
+            if ($this->status[$resource->getUri()] === self::STATUS_NEW || $this->status[$resource->getUri()] === self::STATUS_DIRTY) {
                 $concernedResources[$resource->getUri()] = $resource;
                 $uris[] = $resource->getUri();
             }
@@ -363,7 +358,7 @@ class UnitOfWork
                 $eventChangeSet[$uri]['insert'] = array();
             }
 
-            if (is_array($changes) && current(array_keys($changes)) == 'all') {
+            if (is_array($changes) && current(array_keys($changes)) === 'all') {
                 $eventChangeSet[$uri]['delete'] = 'all';
             } else {
                 $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
@@ -541,7 +536,7 @@ class UnitOfWork
                             if ($this->isManagementBlackListed($value['value'])) {
                                 continue;
                             }
-                            if (isset($this->status[$resource]) && $this->status[$resource] == self::STATUS_REMOVED) {
+                            if (isset($this->status[$resource]) && $this->status[$resource] === self::STATUS_REMOVED) {
                                 $tmpMinus[$index]['all'] = array();
                             } elseif (!isset($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource]) ||
@@ -585,14 +580,14 @@ class UnitOfWork
         $valueInSnapShot = false;
         foreach ($snapshotValues as $val) {
             $snapValue =  ($val instanceof Literal) ? $val->getValue() : $val['value'];
-            if (($value instanceof Literal) || $snapValue == $value['value']) {
+            if (($value instanceof Literal) || $snapValue === $value['value']) {
                 $valueInSnapShot = true;
             }
         }
 
         $valueInResource = false;
         foreach ($resourceValues as $val) {
-            if ($val['value'] == $value['value']) {
+            if ($val['value'] === $value['value']) {
                 $valueInResource = true;
             }
         }
@@ -644,7 +639,7 @@ class UnitOfWork
                 $status = $this->tripleStatus($managedInstance, $prop, $value);
 
                 //we have no trace of this triple. We can add it to resource AND snapshot
-                if (($status == self::STATUS_TRIPLE_UNKNOWN)) {
+                if (($status === self::STATUS_TRIPLE_UNKNOWN)) {
                     $managedInstance->add($prop, $value);
                     $this->initialSnapshots->add($resource->getUri(), $prop, $value);
                 }
@@ -663,15 +658,15 @@ class UnitOfWork
     private function containsObject($object, $objectsList)
     {
         foreach ($objectsList as $obj) {
-            if ($obj['type'] == $object['type']) {
-                if ($obj['type'] == 'uri') {
+            if ($obj['type'] === $object['type']) {
+                if ($obj['type'] === 'uri') {
                     $objValue = ($this->_rm->getNamespaceRegistry()->shorten($obj['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($obj['value']) : $obj['value'];
                     $objectValue = ($this->_rm->getNamespaceRegistry()->shorten($object['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($object['value']) : $object['value'];
 
-                    if ($objValue == $objectValue) {
+                    if ($objValue === $objectValue) {
                         return true;
                     }
-                } elseif ($obj['value'] == $object['value']) {
+                } elseif ($obj['value'] === $object['value']) {
                     return true;
                 }
             }
@@ -700,7 +695,7 @@ class UnitOfWork
                 //getting snapshots also for blank nodes
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
                     foreach ($values as $value) {
-                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] == 'bnode' && isset($bigSnapshot[$value['value']])) {
+                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
                             $snapshot[$value['value']] = $bigSnapshot[$value['value']];
                         }
                     }
@@ -728,7 +723,7 @@ class UnitOfWork
      *
      * @param $resource
      */
-    public function snapshot($resource)
+    public function snapshot(Resource $resource)
     {
         $this->initialSnapshots->takeSnapshot($resource);
     }
@@ -738,7 +733,7 @@ class UnitOfWork
      *
      * @param $resource
      */
-    private function removeUplinks($resource)
+    private function removeUplinks(Resource $resource)
     {
         /** @var Graph $result */
         $result = $this->_rm->createQueryBuilder()
@@ -752,7 +747,7 @@ class UnitOfWork
         foreach ($resources as $re) {
             $this->registerResource($re);
             foreach ($result->properties($re->getUri()) as $prop) {
-                if ($prop != 'rdf:type') {
+                if ($prop !== 'rdf:type') {
                     $re->delete($prop);
                 }
             }
@@ -766,7 +761,7 @@ class UnitOfWork
      */
     public function isBNode($uri)
     {
-        if (substr($uri, 0, 2) == '_:') {
+        if (substr($uri, 0, 2) === '_:') {
             return true;
         } else {
             return false;
@@ -780,7 +775,7 @@ class UnitOfWork
      */
     private function generateURI($options = array())
     {
-        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : 'og_bd:';
+        $prefix = (isset($options['prefix']) && $options['prefix'] !== '') ? $options['prefix'] : 'og_bd:';
 
         return uniqid($prefix);
     }

@@ -64,9 +64,6 @@ class NemrodExtension extends Extension
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
-
-        //register elastica indexes and mappings (done in function registerElasticaIndexes for now)
-        //$this->registerElasticaConfigsToManager($config, $container);
     }
 
     /**
@@ -96,7 +93,7 @@ class NemrodExtension extends Extension
                   isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'nemrod.sparql.connection.'.$name);
-            if ($name == $config['default_endpoint']) {
+            if ($name === $config['default_endpoint']) {
                 $container->setAlias('sparql', 'nemrod.sparql.connection.'.$name);
             }
         }
@@ -113,8 +110,7 @@ class NemrodExtension extends Extension
         foreach ($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
-            $container->setDefinition('nemrod.repository_factory.'.$name, new DefinitionDecorator('nemrod.repository_factory'))
-                ->setArguments(array($name));
+            $container->setDefinition('nemrod.repository_factory.'.$name, new DefinitionDecorator('nemrod.repository_factory'));
 
             //persister
             $container->setDefinition('nemrod.persister.'.$name, new DefinitionDecorator('nemrod.persister'))
@@ -136,7 +132,7 @@ class NemrodExtension extends Extension
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
             //setting main alias
-            if ($name == $config['default_endpoint']) {
+            if ($name === $config['default_endpoint']) {
                 $container->setAlias('rm', 'nemrod.resource_manager.'.$name);
             }
         }

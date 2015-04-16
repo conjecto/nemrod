@@ -54,7 +54,7 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        $body = '<'.$uri.'>'.(($className != null) ? ' a '.($className).';' : '').' ?p ?q';
+        $body = '<'.$uri.'>'.(($className !== null) ? ' a '.($className).';' : '').' ?p ?q';
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
         $qb->construct($body)->where($body);
@@ -69,7 +69,7 @@ class SimplePersister implements PersisterInterface
             $resourceClass = null;
             foreach ($result->all($uri, 'rdf:type') as $type) {
                 $resourceClass = TypeMapper::get($type->getUri());
-                if ($resourceClass != null) {
+                if ($resourceClass !== null) {
                     break;
                 }
             }
@@ -148,7 +148,7 @@ class SimplePersister implements PersisterInterface
                 $qb->andWhere($where);
             }
         }
-        if (count($unions) == 1) {
+        if (count($unions) === 1) {
             $unions[] = '';
         }
         if (count($unions)) {
@@ -156,7 +156,7 @@ class SimplePersister implements PersisterInterface
         }
 
         $q = $qb->getQuery();
-        //echo htmlspecialchars( $q->getSparqlQuery());
+
         $result = $q->update();
 
         return $result;
@@ -188,7 +188,7 @@ class SimplePersister implements PersisterInterface
                         }
                     }
                 }
-                if ($value == '') {
+                if ($value === '') {
                     $criteriaParts[] = $property.' ""';
                 } else {
                     $criteriaParts[] = $property.' '.$value;
@@ -214,7 +214,7 @@ class SimplePersister implements PersisterInterface
             $qb->addConstruct($triple);
         }
 
-        if (count($criteriaUnionParts) == 1) {
+        if (count($criteriaUnionParts) === 1) {
             $criteriaUnionParts[] = '';
         }
 
@@ -223,7 +223,7 @@ class SimplePersister implements PersisterInterface
         }
 
         $qb->setOffset(0);
-        if ($queryFinal != '') {
+        if ($queryFinal !== '') {
             $qb->orderBy($queryFinal);
         }
 
@@ -245,14 +245,14 @@ class SimplePersister implements PersisterInterface
 
         //extraction of collection is done by unit of work
         if (!empty($criteria['rdf:type'])) {
-            if ($hydrate == Query::HYDRATE_COLLECTION) {
+            if ($hydrate === Query::HYDRATE_COLLECTION) {
                 if (is_array($criteria['rdf:type'])) {
                     $rdfTtype = $criteria['rdf:type'][0];
                 } else {
                     $rdfTtype = $criteria['rdf:type'];
                 }
                 $output = $this->extractResources($result, $rdfTtype);
-            } elseif ($hydrate == Query::HYDRATE_ARRAY) {
+            } elseif ($hydrate === Query::HYDRATE_ARRAY) {
                 foreach ($result as $re) {
                     $this->declareResource($re);
                 }
@@ -279,9 +279,9 @@ class SimplePersister implements PersisterInterface
             ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
             ->andWhere('{'.$selectStr.'}');
 
-        $result = $query->getQuery()->execute($hydrate = Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
+        $result = $query->getQuery()->execute(Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
 
-        if (count($result) == 0) {
+        if (count($result) === 0) {
             return;
         }
 
@@ -360,7 +360,7 @@ class SimplePersister implements PersisterInterface
         if (isset($array[$uri])) {
             foreach ($array[$uri] as $property => $value) {
                 //all triples are removed. UpLink are also removed.
-                if ($property == 'all') {
+                if ($property === 'all') {
                     $varObj = $this->nextVariable();
                     $varPred = $this->nextVariable();
                     $varUpSubj = $this->nextVariable();
@@ -372,7 +372,7 @@ class SimplePersister implements PersisterInterface
                 } elseif (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            if ($val['type'] == 'literal') {
+                            if ($val['type'] === 'literal') {
                                 $tripleStr = '<'.$uri.'> <'.$property.'> "'.addcslashes($val['value'], '"').'"';
                                 if (!empty($val['lang'])) {
                                     $tripleStr .= '@'.$val['lang'].'';
@@ -382,10 +382,10 @@ class SimplePersister implements PersisterInterface
 
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
-                            } elseif ($val['type'] == 'uri') {
+                            } elseif ($val['type'] === 'uri') {
                                 $criteriaParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
                                 $whereParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
-                            } elseif ($val['type'] == 'bnode') {
+                            } elseif ($val['type'] === 'bnode') {
                                 if ($bNodesAsVariables) {
                                     $varBnode = $this->nextVariable();
                                     $varBnodePred = $this->nextVariable();
@@ -404,7 +404,7 @@ class SimplePersister implements PersisterInterface
                                         $whereParts = array_merge($whereParts, $b);
                                     }
                                 }
-                            } elseif ($val['type'] == 'uri') {
+                            } elseif ($val['type'] === 'uri') {
                                 $criteriaParts[] = '<'.$uri.'> <'.$property.'> '.$val['value'].'';
                             }
                         }
@@ -511,7 +511,6 @@ class SimplePersister implements PersisterInterface
      */
     private function registerResource($resource)
     {
-        //echo 'reg'.$resource->getUri();
         $this->_rm->getUnitOfWork()->registerResource($resource);
     }
 
@@ -559,7 +558,7 @@ class SimplePersister implements PersisterInterface
         } elseif ($result instanceof Result) {
             $cnt = count($result);
 
-            return ($cnt == 0);
+            return ($cnt === 0);
         }
     }
 }

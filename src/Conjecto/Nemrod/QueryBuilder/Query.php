@@ -244,7 +244,7 @@ class Query
      */
     public function execute($hydratation = null, $options = array())
     {
-        if ($this->state == self::STATE_DIRTY) {
+        if ($this->state === self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
@@ -252,21 +252,21 @@ class Query
         //echo htmlspecialchars($this->completeSparqlQuery);
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
-        if ($this->type == QueryBuilder::CONSTRUCT) {
+        if ($this->type === QueryBuilder::CONSTRUCT) {
             $this->result = $this->resultToGraph($this->result);
         }
 
-        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
             $this->result = $hydrator->hydrateResources($options);
         }
 
-        if ($hydratation == self::HYDRATE_COLLECTION) {
+        if ($hydratation === self::HYDRATE_COLLECTION) {
             $this->rm->getUnitOfWork()->blackListCollection($this->result);
             $count = count($this->result);
             for ($cnt = 1; $cnt <= $count; $cnt++) {
                 $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
             }
-        } elseif ($hydratation == self::HYDRATE_ARRAY) {
+        } elseif ($hydratation === self::HYDRATE_ARRAY) {
 
             //if resources are not managed yet, we register them. Otherwise
             foreach ($this->result as $k => $res) {
@@ -288,7 +288,7 @@ class Query
      */
     public function update($hydratation = null/*self::HYDRATE_ARRAY*/, $options = array())
     {
-        if ($this->state == self::STATE_DIRTY) {
+        if ($this->state === self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
@@ -297,7 +297,7 @@ class Query
 
         $this->result = $this->resultToGraph($this->result);
 
-        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
             $this->result = $hydrator->hydrateResources($options);
         }
 

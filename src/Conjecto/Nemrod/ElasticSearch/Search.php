@@ -211,7 +211,7 @@ class Search
     public function setFilters($filters)
     {
         $this->filters = $filters;
-        if (count($filters) == 1) {
+        if (count($filters) === 1) {
             $filter = current($filters);
         } else {
             $filter = new Bool();
@@ -270,7 +270,7 @@ class Search
     {
         $params = $this->getQuery()->toArray();
         foreach ($params['sort'] as $key => $sort) {
-            if (current(array_keys($sort)) == $field) {
+            if (current(array_keys($sort)) === $field) {
                 unset($params['sort'][$key]);
             }
         }
@@ -367,7 +367,7 @@ class Search
     private function prepareRawQuery($query)
     {
         foreach ($query as $key => $value) {
-            if ($key == 'reverse_nested') {
+            if ($key === 'reverse_nested') {
                 // force object for empty reverse_nested
                 $query[$key] = (object) $query[$key];
             }
@@ -511,7 +511,7 @@ class Search
             $filters[] = $filter;
         }
 
-        if (count($filters) == 1) {
+        if (count($filters) === 1) {
             $filter = reset($filters);
         } else {
             // multiple instances : OR

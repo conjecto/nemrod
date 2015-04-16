@@ -48,7 +48,7 @@ class Resource extends BaseResource
      */
     public function __construct($uri = null, $graph = null)
     {
-        $uri = ($uri == null) ? 'e:-1' : $uri;
+        $uri = ($uri === null) ? 'e:-1' : $uri;
 
         return parent::__construct($uri, $graph);
     }
@@ -85,7 +85,7 @@ class Resource extends BaseResource
                     $re = $this->_rm->find(null, $result->getUri());
                 }
                 if (!empty($re)) {
-                    if ($rest == '') {
+                    if ($rest === '') {
                         return $re;
                     }
 
@@ -132,7 +132,7 @@ class Resource extends BaseResource
                 }
 
                 if (!empty($re)) {
-                    if ($rest == '') {
+                    if ($rest === '') {
                         return $re;
                     }
                     //if rest of path is not empty, we get along it
@@ -155,7 +155,6 @@ class Resource extends BaseResource
     {
         $this->snapshot($property);
 
-        //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
         if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);

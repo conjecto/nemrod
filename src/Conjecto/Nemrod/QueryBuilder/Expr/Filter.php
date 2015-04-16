@@ -48,7 +48,7 @@ class Filter extends Base
      */
     public function __toString()
     {
-        if ($this->count() == 1) {
+        if ($this->count() === 1) {
             return $this->preSeparator.$this->parts[0].$this->postSeparator;
         }
 

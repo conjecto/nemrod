@@ -76,7 +76,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
                 // If the field is of type DateTime and the data is the same skip the update to
                 // keep the original object hash
-                if ($form->getData() instanceof \DateTime && $form->getData() == $this->getValue($data, $propertyPath, $config)) {
+                if ($form->getData() instanceof \DateTime && $form->getData() === $this->getValue($data, $propertyPath, $config)) {
                     continue;
                 }
 
@@ -114,7 +114,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
-        } elseif ($formConfig->getType()->getName() == 'collection') {
+        } elseif ($formConfig->getType()->getName() === 'collection') {
             $resources = $objectOrArray->all($property);
         } else {
             $resources = $objectOrArray->get($property);
@@ -145,7 +145,6 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             throw new UnexpectedTypeException($propertyPath, 'string or Symfony\Component\PropertyAccess\PropertyPathInterface');
         }
 
-        //$objectOrArray = new \EasyRdf_Resource();
         $property = (string) $propertyPath;
 
         $formConfig->getType()->getName();
@@ -173,11 +172,10 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             }
 
             foreach ($itemToRemove as $item) {
-                //call_user_func(array($object, $methods[1]), $item);
                 $objectOrArray->delete($property, $item);
             }
             foreach ($itemsToAdd as $item) {
-                if ($item != null) {
+                if ($item !== null) {
                     $objectOrArray->add($property, $literalClass ? new $literalClass($item) : $item);
                 }
             }
@@ -185,7 +183,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             return;
         }
 
-        if ($value != null) {
+        if ($value !== null) {
             return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
         } else {
             return $objectOrArray->delete($property);

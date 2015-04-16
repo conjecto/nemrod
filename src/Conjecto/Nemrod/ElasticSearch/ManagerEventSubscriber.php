@@ -92,7 +92,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
         foreach ($event->getChanges() as $key => $change) {
             foreach (['insert', 'delete'] as $action) {
-                if ($change[$action] == 'all' && $action == 'delete') {
+                if ($change[$action] === 'all' && $action === 'delete') {
                     $arrayResourcesDeleted[$key] = $change['type'];
                 }
                 if (isset($this->changesRequests[$key]['properties'])) {
@@ -158,7 +158,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $newTypes[] = $newType;
 
                 $index = $this->typeRegistry->getType($newType);
-                if ($index != null) {
+                if ($index !== null) {
                     $index = $index->getIndex()->getName();
                 }
 
@@ -179,7 +179,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             $oldType = $this->changesRequests[$uri]['type'];
             if (!in_array($oldType, $newTypes)) {
                 $index = $this->typeRegistry->getType($oldType);
-                if ($index != null) {
+                if ($index !== null) {
                     $index = $index->getIndex()->getName();
                     /*
                      * @var Type
@@ -205,7 +205,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         // cascade remove
         foreach ($this->arrayResourcesToUpdateAfterDeletion as $uri => $type) {
             $index = $this->typeRegistry->getType($type);
-            if ($index != null) {
+            if ($index !== null) {
                 $index = $index->getIndex()->getName();
                 $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $resourceToDocumentTransformer);
             }
