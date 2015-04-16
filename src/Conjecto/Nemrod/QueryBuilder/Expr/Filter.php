@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
 
-use Conjecto\Nemrod\QueryBuilder\Expr\Base;
 
 class Filter extends Base
 {

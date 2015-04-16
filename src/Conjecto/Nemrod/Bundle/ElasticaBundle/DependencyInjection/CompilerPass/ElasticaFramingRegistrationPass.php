@@ -3,15 +3,13 @@
  * Created by PhpStorm.
  * User: Erwan
  * Date: 02/04/2015
- * Time: 11:41
+ * Time: 11:41.
  */
 
 namespace Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass;
 
-
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -28,7 +26,6 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
         $jsonLdFrameLoader = $container->get('nemrod.jsonld.frame.loader.filesystem');
 
         foreach ($config['indexes'] as $name => $types) {
-
             $clientRef = new Reference('nemrod.elastica.client.'.$types['client']);
             $container
                 ->setDefinition('nemrod.elastica.index.'.$name, new DefinitionDecorator('nemrod.elastica.index'))
@@ -42,8 +39,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                     $type = "";
                     if (isset($settings['type'])) {
                         $type = $settings['type'];
-                    }
-                    else if (isset($frame['@type'])) {
+                    } elseif (isset($frame['@type'])) {
                         $type = $frame['@type'];
                     }
 
@@ -60,7 +56,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
 
                     //@todo place this in a separate func ?
                     //registering config to configManager
-                    $settings['type_service_id'] = 'nemrod.elastica.type.' . $name . '.' . $typeName;
+                    $settings['type_service_id'] = 'nemrod.elastica.type.'.$name.'.'.$typeName;
                     $confManager = $container->getDefinition('nemrod.elastica.config_manager');
                     $confManager->addMethodCall('setConfig', array($type, $settings));
                 }

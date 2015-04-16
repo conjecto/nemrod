@@ -319,7 +319,7 @@ class Query
                 return new ArrayHydrator($this);
                 break;
             default:
-                return null;
+                return;
                 break;
         }
     }

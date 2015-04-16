@@ -109,6 +109,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
         }
 
         $qb->addConstruct($construct);
+
         return $qb;
     }
 
@@ -122,7 +123,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild .= " ".$uriChild.' a '.$val . ' . ';
+                    $stringedChild .= " ".$uriChild.' a '.$val.' . ';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) != '@' && is_array($val)) {

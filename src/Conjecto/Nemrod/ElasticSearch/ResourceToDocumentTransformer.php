@@ -41,10 +41,10 @@ class ResourceToDocumentTransformer
     protected $typeMapperRegistry;
 
     /**
-     * @param SerializerHelper $serializerHelper
-     * @param TypeRegistry $typeRegistry
+     * @param SerializerHelper   $serializerHelper
+     * @param TypeRegistry       $typeRegistry
      * @param TypeMapperRegistry $typeMapperRegistry
-     * @param JsonLdSerializer $jsonLdSerializer
+     * @param JsonLdSerializer   $jsonLdSerializer
      */
     public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
@@ -55,16 +55,18 @@ class ResourceToDocumentTransformer
     }
 
     /**
-     * Transform a resource to an elastica document
+     * Transform a resource to an elastica document.
+     *
      * @param $uri
      * @param $type
+     *
      * @return Document|null
      */
     public function transform($uri, $type)
     {
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
-            return null;
+            return;
         }
 
         $index = $index->getIndex()->getName();
@@ -73,7 +75,7 @@ class ResourceToDocumentTransformer
             $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $frame);
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
-                return null;
+                return;
             }
             $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
@@ -82,12 +84,14 @@ class ResourceToDocumentTransformer
             return new Document($uri, $json, $type, $index);
         }
 
-        return null;
+        return;
     }
 
     /**
-     * Transform an elastica document to a resource
+     * Transform an elastica document to a resource.
+     *
      * @param Document $document
+     *
      * @return Resource|null
      */
     public function reverseTransform(Document $document)
@@ -105,6 +109,6 @@ class ResourceToDocumentTransformer
             return new Resource($uri, $graph);
         }
 
-        return null;
+        return;
     }
 }
