@@ -12,13 +12,11 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Elastica\Aggregation\AbstractAggregation;
-use Elastica\Aggregation\Filter;
 use Elastica\Facet\Terms;
 use Elastica\Filter\AbstractFilter;
 use Elastica\Filter\Bool;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\BoolOr;
-use Elastica\Filter\Range;
 use Elastica\Filter\Term;
 use Elastica\Query;
 use Elastica\SearchableInterface;

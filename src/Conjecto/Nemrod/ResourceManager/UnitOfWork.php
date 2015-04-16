@@ -20,7 +20,7 @@ use Conjecto\Nemrod\ResourceManager\Mapping\ClassMetadata;
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadata;
 use Conjecto\Nemrod\Resource as BaseResource;
 use Doctrine\Common\Collections\ArrayCollection;
-use EasyRdf\Container;
+use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Literal;
 use EasyRdf\Graph;
@@ -88,7 +88,7 @@ class UnitOfWork
      * @param $manager
      * @param $clientUrl
      */
-    public function __construct($manager, $clientUrl)
+    public function __construct(Manager $manager, $clientUrl)
     {
         $this->_rm = $manager;
         $this->evd = $manager->getEventDispatcher();
@@ -132,7 +132,7 @@ class UnitOfWork
     /**
      *
      */
-    public function setBNodes($uri, $property, $graph)
+    public function setBNodes($uri, $property, Graph $graph)
     {
         if (empty($this->registeredResources[$uri])) {
             throw new Exception('no parent resource');
@@ -163,20 +163,18 @@ class UnitOfWork
     }
 
     /**
-     * @todo remove
-     * Tells if a resource is managed by current UnitOfWork
+     * Tells if a resource is managed by current UnitOfWork.
      *
      * @param $resource
      *
      * @return bool
      */
-    public function isRegistered($resource)
+    public function isRegistered(Resource $resource)
     {
         return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
     }
 
     /**
-     * //@todo remove first parameter
      * Register a resource to the list of.
      *
      * @param $className
@@ -256,8 +254,6 @@ class UnitOfWork
     }
 
     /**
-     * //@todo remove first parameter.
-     *
      * @param $className
      * @param BaseResource $resource
      *
@@ -273,7 +269,6 @@ class UnitOfWork
             $this->status[$resource->getUri()] = self::STATUS_NEW;
         }
 
-        //@todo relevant do do this here ?
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
         $this->registerResource($resource, $fromStore = false);
@@ -411,11 +406,10 @@ class UnitOfWork
     /**
      * @param BaseResource $resource
      */
-    public function remove($resource)
+    public function remove(Resource $resource)
     {
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        //@todo look for uplinks for that resource + manage
         $this->snapshot($resource);
         $this->removeUplinks($resource);
 
@@ -583,7 +577,7 @@ class UnitOfWork
      *
      * @return string
      */
-    private function tripleStatus($resource, $property, $value)
+    private function tripleStatus(Resource $resource, $property, $value)
     {
         $snapshotValues = $this->initialSnapshots->all($resource, $property);
         $resourceValues = $resource->all($resource, $property);
@@ -633,7 +627,7 @@ class UnitOfWork
      *
      * @return BaseResource
      */
-    public function replaceResourceInstance($resource)
+    public function replaceResourceInstance(Resource $resource)
     {
         /** @var BaseResource $managedInstance */
         $managedInstance = $this->retrieveResource($resource->getUri());
@@ -693,7 +687,7 @@ class UnitOfWork
      *
      * @return array
      */
-    private function getSnapshotForResource($resources)
+    private function getSnapshotForResource(Resource $resources)
     {
         $snapshot = array();
         foreach ($resources as $resource) {
@@ -740,17 +734,6 @@ class UnitOfWork
     }
 
     /**
-     * Deletes resource from managed and snapshot.
-     *
-     * @param $resource
-     */
-    private function deleteSnapshotForResource($resource)
-    {
-        //iterating through graph
-        $this->initialSnapshots->removeSnapshot($resource);
-    }
-
-    /**
      * Queries for all resources pointing to the current one, and declares resources.
      *
      * @param $resource
@@ -777,8 +760,6 @@ class UnitOfWork
     }
 
     /**
-     * @todo move?
-     *
      * @param $uri
      *
      * @return bool
@@ -840,7 +821,7 @@ class UnitOfWork
     /**
      * @param Collection $coll
      */
-    public function blackListCollection($coll)
+    public function blackListCollection(Collection $coll)
     {
         //going to first element.
         $coll->rewind();

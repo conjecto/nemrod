@@ -153,7 +153,6 @@ class NemrodExtension extends Extension
 
         // foreach bundle, get the rdf resource path
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
-            //@todo check mapping type (annotation is the only one used for now)
             // building resource dir path
             $refl = new \ReflectionClass($class);
             $path = pathinfo($refl->getFileName());

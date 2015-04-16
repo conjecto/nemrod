@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -10,6 +11,7 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
+use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\Collection;
@@ -34,20 +36,15 @@ class SimplePersister implements PersisterInterface
 
     private $bnodeMap = array();
 
-    /**  */
+    /**
+     * @param Manager $rm
+     */
     public function __construct($rm)
     {
         $this->_rm = $rm;
     }
 
-    private function updateQuery($string)
-    {
-        $this->_rm->getClient()->update($string);
-    }
-
     /**
-     * @todo should be renamed
-     *
      * @param $className
      * @param $uri
      *
@@ -57,7 +54,7 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        $body = "<".$uri.">".(($className != null) ? " a ".($className).";" : "")." ?p ?q";
+        $body = '<'.$uri.'>'.(($className != null) ? ' a '.($className).';' : '').' ?p ?q';
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
         $qb->construct($body)->where($body);
@@ -166,8 +163,6 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
-     * @todo second param is temporary
-     *
      * @param array $criteria
      * @param array $options
      *
@@ -189,14 +184,14 @@ class SimplePersister implements PersisterInterface
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            $criteriaParts[] = $property." ".$val;
+                            $criteriaParts[] = $property.' '.$val;
                         }
                     }
                 }
-                if ($value == "") {
-                    $criteriaParts[] = $property." \"\"";
+                if ($value == '') {
+                    $criteriaParts[] = $property.' ""';
                 } else {
-                    $criteriaParts[] = $property." ".$value;
+                    $criteriaParts[] = $property.' '.$value;
                 }
             }
         }
@@ -273,29 +268,27 @@ class SimplePersister implements PersisterInterface
         $qb = $this->_rm->getQueryBuilder();
 
         //getting "SELECT" part of the query
-        $select = $qb->select("?uri")->where("?uri a ".$criteria['rdf:type']);
-        foreach ($criteria as $property => $value)
-        {
-            $select->andWhere("?uri ".$property." ".$value);
+        $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
+        foreach ($criteria as $property => $value) {
+            $select->andWhere('?uri '.$property.' '.$value);
         }
         $select = $select->setMaxResults(1)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
         //getting whole "CONSTRUCT" query
-        $query = $qb->setMaxResults(null)->construct("?uri ?p ?o; a ".$criteria['rdf:type'])
-            ->where("?uri ?p ?o; a ".$criteria['rdf:type'])
-            ->andWhere("{".$selectStr."}");
+        $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->andWhere('{'.$selectStr.'}');
 
         $result = $query->getQuery()->execute($hydrate = Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
 
         if (count($result) == 0) {
-            return null;
+            return;
         }
 
         reset($result);
 
         return current($result);
     }
-
 
     /**
      * Declares a resource to unit of work. Either the resource is already managed, and the UOW performs an update, or
@@ -437,7 +430,6 @@ class SimplePersister implements PersisterInterface
         $this->_rm->getUnitOfWork()->managementBlackList($collUri);
         $coll = new Collection($collUri, $graph);
 
-        //@todo WAY too long
         //building collection
         foreach ($res as $re) {
             $coll->append($re);
@@ -491,7 +483,6 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
-     * //@todo not used anymore
      * temp function : converting a result to a graph.
      *
      * @param Result $result
@@ -500,7 +491,6 @@ class SimplePersister implements PersisterInterface
      */
     private function resultToGraph($result)
     {
-        //@todo
         if ($result instanceof Graph) {
             return $result;
         }

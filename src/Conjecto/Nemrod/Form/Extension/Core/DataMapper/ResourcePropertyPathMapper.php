@@ -15,6 +15,7 @@ use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\PropertyAccess\PropertyPath;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -101,7 +102,6 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     {
         if (!is_a($objectOrArray, 'EasyRdf\Resource')) {
             return $objectOrArray;
-            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf\Resource');
         }
 
         if (is_string($propertyPath)) {

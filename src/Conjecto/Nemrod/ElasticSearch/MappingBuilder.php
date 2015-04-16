@@ -13,7 +13,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use Elastica\Exception\ResponseException;
 use Elastica\Type;
-use Elastica\Type\Mapping;
 
 /**
  * Class MappingBuilder builds a mapping for a given type.

@@ -176,8 +176,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      */
     protected function createUnionPart($uri, $type, $frame)
     {
-        $rez = "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type ";
-
         // each found must show the path  "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type "
         // if not found return null, { path1 } UNION ( path2 }  ... if some found
         // must parse all the frame and contruct by pop and push the request part, when found one add to rez and continue

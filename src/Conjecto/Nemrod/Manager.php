@@ -12,6 +12,7 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\ResourceManager\RepositoryFactory;
 use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Sparql\Client;
@@ -55,7 +56,7 @@ class Manager
     /**
      * @param RepositoryFactory $repositoryFactory
      */
-    public function __construct($repositoryFactory, $sparqlClientUrl)
+    public function __construct(RepositoryFactory $repositoryFactory, $sparqlClientUrl)
     {
         $this->repositoryFactory = $repositoryFactory;
         $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
