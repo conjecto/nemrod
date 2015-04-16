@@ -24,7 +24,6 @@ class RdfNamespaceRegistry
      */
     public function namespaces()
     {
-        //@todo cf. fisrt
         return RdfNamespace::namespaces();
     }
 

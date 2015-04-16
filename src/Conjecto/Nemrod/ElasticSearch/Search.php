@@ -20,7 +20,6 @@ use Elastica\Filter\BoolOr;
 use Elastica\Filter\Term;
 use Elastica\Query;
 use Elastica\SearchableInterface;
-use Elastica\Type;
 use Elastica\Util;
 use Symfony\Component\HttpFoundation\Request;
 

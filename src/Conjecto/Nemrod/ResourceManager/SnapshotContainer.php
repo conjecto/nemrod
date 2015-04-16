@@ -70,7 +70,6 @@ class SnapshotContainer extends Graph
     }
 
     /**
-     * @todo check for better way
      *
      * @param BaseResource $resource
      *
@@ -106,7 +105,6 @@ class SnapshotContainer extends Graph
     {
         //check if $resource is known by getting type.
         //if uri is not known or result is null, resource is not known
-        //@todo check if $resource is known
         try {
             $typ = $this->get($resource->getUri(), 'rdf:type');
 

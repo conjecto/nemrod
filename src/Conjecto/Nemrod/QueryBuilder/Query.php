@@ -249,7 +249,6 @@ class Query
             $this->state = self::STATE_CLEAN;
         }
 
-        //echo htmlspecialchars($this->completeSparqlQuery);
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
         if ($this->type === QueryBuilder::CONSTRUCT) {

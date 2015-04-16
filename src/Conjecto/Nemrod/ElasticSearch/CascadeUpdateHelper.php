@@ -14,7 +14,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\RdfNamespace;
-use Elastica\Type;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
