@@ -92,4 +92,9 @@ class TypeMapperRegistry
     public function onConsoleCommand()
     {
     }
+
+    public function getPhpClasses()
+    {
+        return array_keys($this->rdfClasses);
+    }
 }

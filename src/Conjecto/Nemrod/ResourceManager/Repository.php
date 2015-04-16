@@ -85,10 +85,11 @@ class Repository
         $result = $this->findBy($criterias, $options);
 
         if (count($result) == 0) {
-            return null;
+            return;
         }
 
         reset($result);
+
         return current($result);
     }
 

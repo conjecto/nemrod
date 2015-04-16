@@ -361,7 +361,6 @@ class UnitOfWork
             } else {
                 $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
             }
-
         }
 
         foreach ($chSet[1] as $uri => $changes) {

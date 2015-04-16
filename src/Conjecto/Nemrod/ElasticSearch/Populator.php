@@ -32,7 +32,7 @@ class Populator
     protected $typeMapperRegistry;
 
     /** @var  @var JsonLdSerializer */
-    protected $jsonLdSerializer
+    protected $jsonLdSerializer;
 
     /**
      * @param $resourceManager

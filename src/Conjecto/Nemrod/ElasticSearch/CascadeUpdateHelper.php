@@ -10,7 +10,6 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\RdfNamespace;
@@ -19,38 +18,37 @@ use Elastica\Type;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class CascadeUpdateHelper
- * @package Conjecto\Nemrod\ElasticSearch
+ * Class CascadeUpdateHelper.
  */
 class CascadeUpdateHelper
 {
     /**
-     * @var SerializerHelper $serializerHelper
+     * @var SerializerHelper
      */
     protected $serializerHelper;
 
     /**
-     * @var Container $container
+     * @var Container
      */
     protected $container;
 
     /**
      * @param SerializerHelper $serializerHelper
-     * @param Container $container
+     * @param Container        $container
      */
-    function __construct(SerializerHelper $serializerHelper, Container $container)
+    public function __construct(SerializerHelper $serializerHelper, Container $container)
     {
         $this->serializerHelper = $serializerHelper;
         $this->container = $container;
     }
 
     /**
-     * @param string $uri
-     * @param string $resourceType
-     * @param array $propertiesUpdated
+     * @param string                        $uri
+     * @param string                        $resourceType
+     * @param array                         $propertiesUpdated
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
-     * @param Manager $rm
-     * @param array $resourcesModified
+     * @param Manager                       $rm
+     * @param array                         $resourcesModified
      */
     public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, $resourceToDocumentTransformer, $rm, $resourcesModified)
     {
@@ -59,8 +57,9 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array $arrayResourcesDeleted
+     * @param array   $arrayResourcesDeleted
      * @param Manager $rm
+     *
      * @return array
      */
     public function searchResourcesToCascadeRemove($arrayResourcesDeleted, $rm)
@@ -76,14 +75,14 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param string $uri
-     * @param string $typeName
-     * @param string $index
+     * @param string                        $uri
+     * @param string                        $typeName
+     * @param string                        $index
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
     public function updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer)
     {
-        $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $typeName));
+        $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $typeName));
         $document = $resourceToDocumentTransformer->transform($uri, $typeName);
         if ($document) {
             $esType->addDocument($document);
@@ -92,7 +91,8 @@ class CascadeUpdateHelper
 
     /**
      * @param string $uri
-     * @param array $qbByIndex
+     * @param array  $qbByIndex
+     *
      * @return array
      */
     protected function executeSearchResourcesToCascadeRemoveRequest($uri, $qbByIndex)
@@ -114,10 +114,11 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param string $uri
-     * @param string $resourceType
-     * @param array $propertiesUpdated
+     * @param string  $uri
+     * @param string  $resourceType
+     * @param array   $propertiesUpdated
      * @param Manager $rm
+     *
      * @return array
      */
     protected function search($uri, $resourceType, $propertiesUpdated, $rm)
@@ -125,13 +126,14 @@ class CascadeUpdateHelper
         $qb = $rm->getQueryBuilder();
         $frames = $this->getAllFrames($resourceType, $propertiesUpdated);
         $qbByIndex = $this->getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, $qb, $uri);
+
         return $qbByIndex;
     }
 
     /**
-     * @param array $frames
+     * @param array                         $frames
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
-     * @param array $resourcesModified
+     * @param array                         $resourcesModified
      */
     protected function updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified)
     {
@@ -150,11 +152,12 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array $frames
-     * @param string $resourceType
-     * @param array $propertiesUpdated
+     * @param array        $frames
+     * @param string       $resourceType
+     * @param array        $propertiesUpdated
      * @param QueryBuilder $qb
-     * @param string $uriResourceUpdated
+     * @param string       $uriResourceUpdated
+     *
      * @return array
      */
     protected function getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, $qb, $uriResourceUpdated)
@@ -170,14 +173,13 @@ class CascadeUpdateHelper
                     $i = 0;
                     foreach ($arrayWhere as $key) {
                         if ($i == 0) {
-                            $stringWhere .= ' ' . $key;
-                        }
-                        else {
-                            $stringWhere .= ' / ' . $key;
+                            $stringWhere .= ' '.$key;
+                        } else {
+                            $stringWhere .= ' / '.$key;
                         }
                         $i++;
                     }
-                    $stringWhere .= ' <' . $uriResourceUpdated . '>';
+                    $stringWhere .= ' <'.$uriResourceUpdated.'>';
                     $stringWhere .= " . VALUES ?typeName { $type }";
                     $arrayUnion[] = $stringWhere;
                 }
@@ -190,8 +192,7 @@ class CascadeUpdateHelper
                     $_qb->where($arrayUnion[0]);
                 }
                 $arrayOfTypes[$index] = $_qb;
-            }
-            else {
+            } else {
                 $arrayOfTypes[$index] = null;
             }
         }
@@ -200,23 +201,26 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array $frames
+     * @param array  $frames
      * @param string $resourceType
-     * @param array $propertiesUpdated
-     * @param array $arrayWhere
+     * @param array  $propertiesUpdated
+     * @param array  $arrayWhere
+     *
      * @return bool
      */
     protected function checkIfFrameHasSearchedResourceType($frames, $resourceType, $propertiesUpdated, &$arrayWhere)
     {
         foreach ($frames as $key => $values) {
             if (isset($values['resources']) && $this->checkIfFrameHasSearchedResourceType($values['resources'], $resourceType, $propertiesUpdated, $arrayWhere)) {
-               $arrayWhere[] = $key;
+                $arrayWhere[] = $key;
+
                 return true;
             }
             if (isset($values['type']) && $values['type'] == $resourceType && isset($values['properties'])) {
                 foreach ($values['properties'] as $property) {
                     if (in_array($property, array_keys($propertiesUpdated))) {
                         $arrayWhere[] = $key;
+
                         return true;
                     }
                 }
@@ -227,9 +231,10 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array $frame
+     * @param array  $frame
      * @param string $resourceType
-     * @param array $propertiesUpdated
+     * @param array  $propertiesUpdated
+     *
      * @return array
      */
     protected function getFrameResources($frame, $resourceType, $propertiesUpdated)
@@ -244,8 +249,7 @@ class CascadeUpdateHelper
                             $types[$key]['properties'][] = $property;
                         }
                     }
-                }
-                else {
+                } else {
                     $types[$key]['properties'] = array();
                 }
                 $types[$key]['type'] = $value['@type'];
@@ -258,7 +262,8 @@ class CascadeUpdateHelper
 
     /**
      * @param string $resourceType
-     * @param array $propertiesUpdated
+     * @param array  $propertiesUpdated
+     *
      * @return array
      */
     protected function getAllFrames($resourceType, $propertiesUpdated)
