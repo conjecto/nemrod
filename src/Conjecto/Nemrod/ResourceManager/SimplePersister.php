@@ -57,7 +57,6 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        //echo "plop";
         $body = "<".$uri.">".(($className != null) ? " a ".($className).";" : "")." ?p ?q";
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
