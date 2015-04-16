@@ -306,7 +306,7 @@ class Query
     /**
      * @param $hydratation
      *
-     * @return AbstractHydrator
+     * @return AbstractHydrator|null
      */
     protected function newHydrator($hydratation)
     {
@@ -318,7 +318,7 @@ class Query
                 return new ArrayHydrator($this);
                 break;
             default:
-                return;
+                return null;
                 break;
         }
     }
