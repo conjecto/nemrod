@@ -22,19 +22,19 @@ Some examples :
 
     use Conjecto\Nemrod\QueryBuilder;
 
-    $qb->construct('?uri a foaf:Person');
-    $qb->addConstruct('?s vcard:hasAddress ?o');
-    $qb->where('?uri a foaf:Person');
-    $qb->andWhere('?s vcard:hasAddress ?o');
-    $qb->bind("<uri>", '?uri');
+    $qb->construct('?uri a foaf:Person')
+       ->addConstruct('?uri vcard:hasAddress ?o')
+       ->where('?uri a foaf:Person')
+       ->andWhere('?uri vcard:hasAddress ?o')
+       ->bind("<uri>", '?uri');
 
-    $qb->select('rdf:type');
-    $qb->addSelect('vcard:hasAddress');
-    $qb->where('?uri a foaf:Person');
-    $qb->bind("<uri>", '?uri');
+    $qb->select('rdf:type')
+       ->addSelect('vcard:hasAddress')
+       ->where('?uri a foaf:Person')
+       ->bind("<uri>", '?uri');
 
-    $qb->ask('?uri a foaf:Person');
-    $qb->bind("<uri>", '?uri');
+    $qb->ask('?uri a foaf:Person')
+       ->bind("<uri>", '?uri');
 
     $qb->describe('foaf:Person');
 
