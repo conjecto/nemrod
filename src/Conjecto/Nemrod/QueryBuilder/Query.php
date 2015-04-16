@@ -339,11 +339,11 @@ class Query
 
         if ($this->type < QueryBuilder::INSERT) {
             if ($this->getOffset() >= 0) {
-                $sparqlQuery .= 'OFFSET '.strval($this->getOffset()).' ';
+                $sparqlQuery .= sprintf('OFFSET %s ', strval($this->getOffset()));
             }
 
             if ($this->getMaxResults() > 0) {
-                $sparqlQuery .= 'LIMIT '.strval($this->getMaxResults());
+                $sparqlQuery .= sprintf('LIMIT %s', strval($this->getMaxResults()));
             }
         }
 

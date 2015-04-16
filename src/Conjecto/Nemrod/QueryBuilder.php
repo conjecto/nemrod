@@ -1016,7 +1016,7 @@ class QueryBuilder
         }
 
         if (count($this->getSparqlPart('where')) === 0 && !empty($added)) {
-            return 'WHERE { '.$added.' }';
+            return sprintf('WHERE { %s }', $added);
         } else {
             return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added.' } '));
         }
