@@ -99,7 +99,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             if (substr($prop, 0, 1) != '@' && is_array($val)) {
                 $uriChild = '?c'.(++$this->varCounter);
                 $counter = $this->varCounter;
-                if (!empty($construct)) {
+                if ($this->addConstructChild($val, $uriChild) == $uriChild && !empty($construct)) {
                     $construct .= '. ';
                 }
                 $construct .= ('?uri'.' '.$prop.' '.$this->addConstructChild($val, $uriChild));
