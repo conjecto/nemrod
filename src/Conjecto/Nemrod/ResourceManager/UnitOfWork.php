@@ -682,7 +682,7 @@ class UnitOfWork
      *
      * @return array
      */
-    private function getSnapshotForResource(BaseResource $resources)
+    private function getSnapshotForResource(\Traversable $resources)
     {
         $snapshot = array();
         foreach ($resources as $resource) {
