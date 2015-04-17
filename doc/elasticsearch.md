@@ -95,4 +95,4 @@ Additional tools
 ------------
 You can use the commands nemrod:elastica:reset and nemrod:elastica:populate to reset or populate indexes.
 
-Finally, you can use the service nemrod.elastica.search to search documents (use Conjecto\Nemrod\ElasticSearch\Search).
+Finally, you can use the service nemrod.elastica.search.foaf.person to search documents of foaf person resources on elasticsearch.
