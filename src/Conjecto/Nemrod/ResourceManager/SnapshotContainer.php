@@ -70,7 +70,6 @@ class SnapshotContainer extends Graph
     }
 
     /**
-     *
      * @param BaseResource $resource
      *
      * @return bool

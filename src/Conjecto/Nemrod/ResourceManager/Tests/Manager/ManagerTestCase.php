@@ -19,7 +19,7 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\RepositoryFactory')->setConstructorArgs(array('foo'));
+        $this->repoFactory = $this->getMock('Conjecto\Nemrod\ResourceManager\RepositoryFactory');//->setConstructorArgs(array('foo'))->getMock();
         $this->manager = $this->mockManager();
     }
 
@@ -61,7 +61,8 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
 
         return $this
             ->getMockBuilder('Conjecto\Nemrod\Manager')
-            ->setConstructorArgs(array($this->repoFactory, 'foo'))
+            ->disableOriginalConstructor()
+            //->setConstructorArgs(array($this->repoFactory, 'foo'))
             ->setMethods(array('getEventDispatcher'))
             ->getMock();
     }
