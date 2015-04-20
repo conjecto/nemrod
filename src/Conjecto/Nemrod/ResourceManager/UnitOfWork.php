@@ -114,8 +114,8 @@ class UnitOfWork
     {
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
-
-            $this->registeredResources[$resource->getUri()] = $resource;
+            $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+            $this->registeredResources[$uri] = $uri;
             if ($fromStore) {
                 $resource->setReady();
                 $this->setStatus($resource, self::STATUS_MANAGED);
@@ -134,6 +134,7 @@ class UnitOfWork
      */
     public function setBNodes($uri, $property, Graph $graph)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
         if (empty($this->registeredResources[$uri])) {
             throw new Exception('no parent resource');
         }
@@ -171,7 +172,11 @@ class UnitOfWork
      */
     public function isRegistered(BaseResource $resource)
     {
-        return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
+        if (!method_exists($resource, 'getUri')) {
+            return false;
+        }
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+        return isset($this->registeredResources[$uri]);
     }
 
     /**
@@ -412,7 +417,7 @@ class UnitOfWork
         $this->snapshot($resource);
         $this->removeUplinks($resource);
 
-        if (isset($this->registeredResources[$resource->getUri()])) {
+        if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
             $this->setStatus($resource, $this::STATUS_REMOVED);
         }
         $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
