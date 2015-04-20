@@ -238,7 +238,7 @@ class Resource extends BaseResource
         if (!empty($this->_rm) && !$this->isDirty) {
             $this->_rm->getUnitOfWork()->snapshot($this);
             $this->isDirty = true;
-            $this->_rm->getUnitOfWork()->setDirty($this->getUri());
+            $this->_rm->getUnitOfWork()->setDirty($this);
         }
     }
 

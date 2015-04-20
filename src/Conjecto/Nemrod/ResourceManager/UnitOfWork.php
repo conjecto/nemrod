@@ -113,11 +113,11 @@ class UnitOfWork
     {
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
-
-            $this->registeredResources[$resource->getUri()] = $resource;
+            $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+            $this->registeredResources[$uri] = $resource;
             if ($fromStore) {
                 $resource->setReady();
-                $this->status[$resource->getUri()] = self::STATUS_MANAGED;
+                $this->setStatus($resource, self::STATUS_MANAGED);
             }
 
             return $resource;
@@ -133,6 +133,7 @@ class UnitOfWork
      */
     public function setBNodes($uri, $property, Graph $graph)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
         if (empty($this->registeredResources[$uri])) {
             throw new Exception('no parent resource');
         }
@@ -170,7 +171,12 @@ class UnitOfWork
      */
     public function isRegistered(BaseResource $resource)
     {
-        return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
+        if (!method_exists($resource, 'getUri')) {
+            return false;
+        }
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        return isset($this->registeredResources[$uri]);
     }
 
     /**
@@ -185,6 +191,8 @@ class UnitOfWork
      */
     public function retrieveResource($uri)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
+
         if (!isset($this->registeredResources[$uri])) {
             return;
         }
@@ -262,8 +270,8 @@ class UnitOfWork
         if (!empty($this->registeredResources[$resource->getUri()])) {
 
         }
-        if (!isset($this->status[$resource->getUri()])) {
-            $this->status[$resource->getUri()] = self::STATUS_NEW;
+        if (!$this->getStatus($resource)) {
+            $this->setStatus($resource, self::STATUS_NEW);
         }
 
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
@@ -303,7 +311,8 @@ class UnitOfWork
         //collecting
         $concernedResources = array();
         foreach ($this->registeredResources as $resource) {
-            if ($this->status[$resource->getUri()] === self::STATUS_NEW || $this->status[$resource->getUri()] === self::STATUS_DIRTY) {
+            $status = $this->getStatus($resource);
+            if ($status === self::STATUS_NEW || $status === self::STATUS_DIRTY) {
                 $concernedResources[$resource->getUri()] = $resource;
                 $uris[] = $resource->getUri();
             }
@@ -408,8 +417,8 @@ class UnitOfWork
         $this->snapshot($resource);
         $this->removeUplinks($resource);
 
-        if (isset($this->registeredResources[$resource->getUri()])) {
-            $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
+        if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
+            $this->setStatus($resource, $this::STATUS_REMOVED);
         }
         $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
     }
@@ -463,9 +472,125 @@ class UnitOfWork
         return ($this->blackListedResources->contains($uri));
     }
 
-    public function setDirty($uri)
+    /**
+     * @param BaseResource $resource
+     */
+    public function setDirty(BaseResource $resource)
     {
-        $this->status[$uri] = self::STATUS_DIRTY;
+        $this->setStatus($resource, self::STATUS_DIRTY);
+    }
+
+    /**
+     * provides a blank node uri for collections.
+     *
+     * @return string
+     */
+    public function nextBNode()
+    {
+        return '_:bn'.(++$this->bnodeCount);
+    }
+
+    /**
+     *
+     */
+    public function isManaged(BaseResource $resource)
+    {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        return (isset($this->registeredResources[$uri]));
+    }
+
+    /**
+     * @param Collection $coll
+     */
+    public function blackListCollection(Collection $coll)
+    {
+        //going to first element.
+        $coll->rewind();
+        $ptr = $coll;
+        $head = $ptr->get('rdf:first');
+        $next = $ptr->get('rdf:rest');
+
+        $this->managementBlackList($coll->getUri());
+        //putting all structure collection on a blacklist
+        while ($head) {
+            $this->managementBlackList($next->getUri());
+            $head = $next->get('rdf:first');
+            $next = $next->get('rdf:rest');
+        }
+
+        //and resetting pointer of collection
+        $coll->rewind();
+    }
+
+    /**
+     * @param $resource
+     *
+     * @return bool
+     */
+    public function isResource($resource)
+    {
+        return ($resource instanceof BaseResource);
+    }
+
+    /**
+     * @param $resource
+     *
+     * @return BaseResource
+     */
+    public function replaceResourceInstance(BaseResource $resource)
+    {
+        /** @var BaseResource $managedInstance */
+        $managedInstance = $this->retrieveResource($resource->getUri());
+
+        if (!$managedInstance) {
+            return $resource;
+        }
+
+        //getting all triples of new resource
+        $properties = $resource->properties();
+        foreach ($properties as $prop) {
+            $values = $resource->getGraph()->all($resource->getUri(), $prop);
+            foreach ($values as $value) {
+                //var_dump($managedInstance) ;
+                $status = $this->tripleStatus($managedInstance, $prop, $value);
+
+                //we have no trace of this triple. We can add it to resource AND snapshot
+                if (($status === self::STATUS_TRIPLE_UNKNOWN)) {
+                    $managedInstance->add($prop, $value);
+                    $this->initialSnapshots->add($resource->getUri(), $prop, $value);
+                }
+            }
+        }
+
+        return $managedInstance;
+    }
+
+    /**
+     * @param BaseResource $resource
+     * @param $status
+     */
+    private function setStatus(BaseResource $resource, $status)
+    {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        $this->status[$uri] = $status;
+    }
+
+    /**
+     * @param BaseResource $resource
+     */
+    private function getStatus(BaseResource $resource)
+    {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+        }
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+        if (isset($this->status[$uri])) {
+            return $this->status[$uri];
+        }
+
+        return;
     }
 
     /**
@@ -536,7 +661,7 @@ class UnitOfWork
                             if ($this->isManagementBlackListed($value['value'])) {
                                 continue;
                             }
-                            if (isset($this->status[$resource]) && $this->status[$resource] === self::STATUS_REMOVED) {
+                            if ($this->getStatus($resource) === self::STATUS_REMOVED) {
                                 $tmpMinus[$index]['all'] = array();
                             } elseif (!isset($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource]) ||
@@ -572,8 +697,11 @@ class UnitOfWork
      *
      * @return string
      */
-    private function tripleStatus(BaseResource $resource, $property, $value)
+    private function tripleStatus($resource, $property, $value)
     {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+        }
         $snapshotValues = $this->initialSnapshots->all($resource, $property);
         $resourceValues = $resource->all($resource, $property);
 
@@ -605,48 +733,6 @@ class UnitOfWork
                 return self::STATUS_TRIPLE_UNKNOWN;
             }
         }
-    }
-
-    /**
-     * @param $resource
-     *
-     * @return bool
-     */
-    public function isResource($resource)
-    {
-        return ($resource instanceof BaseResource);
-    }
-
-    /**
-     * @param $resource
-     *
-     * @return BaseResource
-     */
-    public function replaceResourceInstance(BaseResource $resource)
-    {
-        /** @var BaseResource $managedInstance */
-        $managedInstance = $this->retrieveResource($resource->getUri());
-
-        if (!$managedInstance) {
-            return $resource;
-        }
-
-        //getting all triples of new resource
-        $properties = $resource->properties();
-        foreach ($properties as $prop) {
-            $values = $resource->getGraph()->all($resource->getUri(), $prop);
-            foreach ($values as $value) {
-                $status = $this->tripleStatus($managedInstance, $prop, $value);
-
-                //we have no trace of this triple. We can add it to resource AND snapshot
-                if (($status === self::STATUS_TRIPLE_UNKNOWN)) {
-                    $managedInstance->add($prop, $value);
-                    $this->initialSnapshots->add($resource->getUri(), $prop, $value);
-                }
-            }
-        }
-
-        return $managedInstance;
     }
 
     /**
@@ -793,46 +879,5 @@ class UnitOfWork
         $this->uriCorrespondances = new ArrayCollection();
 
         $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
-    }
-
-    /**
-     * provides a blank node uri for collections.
-     *
-     * @return string
-     */
-    public function nextBNode()
-    {
-        return '_:bn'.(++$this->bnodeCount);
-    }
-
-    /**
-     *
-     */
-    public function isManaged(BaseResource $resource)
-    {
-        return (isset($this->registeredResources[$resource->getUri()]));
-    }
-
-    /**
-     * @param Collection $coll
-     */
-    public function blackListCollection(Collection $coll)
-    {
-        //going to first element.
-        $coll->rewind();
-        $ptr = $coll;
-        $head = $ptr->get('rdf:first');
-        $next = $ptr->get('rdf:rest');
-
-        $this->managementBlackList($coll->getUri());
-        //putting all structure collection on a blacklist
-        while ($head) {
-            $this->managementBlackList($next->getUri());
-            $head = $next->get('rdf:first');
-            $next = $next->get('rdf:rest');
-        }
-
-        //and resetting pointer of collection
-        $coll->rewind();
     }
 }

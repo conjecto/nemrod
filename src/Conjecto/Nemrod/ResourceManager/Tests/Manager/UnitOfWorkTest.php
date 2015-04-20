@@ -21,8 +21,8 @@ class UnitOfWorkTest extends ManagerTestCase
      */
     public function setUp()
     {
+        parent::setUp();
         $this->repoFactory = $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\RepositoryFactory')->setConstructorArgs(array('foo'));
-        $this->manager = $this->mockManager();
     }
 
     public function testMinus()
