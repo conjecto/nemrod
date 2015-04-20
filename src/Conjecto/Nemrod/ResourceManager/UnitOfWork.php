@@ -583,6 +583,10 @@ class UnitOfWork
      */
     private function getStatus(BaseResource $resource)
     {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+
+        }
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
         if (isset($this->status[$uri])) {
             return $this->status[$uri];
