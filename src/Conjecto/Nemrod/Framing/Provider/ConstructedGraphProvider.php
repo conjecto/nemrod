@@ -103,6 +103,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 if ($this->addConstructChild($val, $uriChild) == $uriChild && !empty($construct)) {
                     $construct .= '. ';
                 }
+                $this->varCounter = $counter;
                 $construct .= ('?uri'.' '.$prop.' '.$this->addConstructChild($val, $uriChild));
                 $this->varCounter = $counter;
                 $qb->addUnion(array('', '?uri'.' '.$prop.' '.$this->addChild($val, $uriChild)));
