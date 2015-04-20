@@ -115,7 +115,7 @@ class UnitOfWork
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
             $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
-            $this->registeredResources[$uri] = $uri;
+            $this->registeredResources[$uri] = $resource;
             if ($fromStore) {
                 $resource->setReady();
                 $this->setStatus($resource, self::STATUS_MANAGED);
@@ -496,6 +496,7 @@ class UnitOfWork
     public function isManaged(BaseResource $resource)
     {
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
         return (isset($this->registeredResources[$uri]));
     }
 
@@ -551,7 +552,7 @@ class UnitOfWork
         $properties = $resource->properties();
         foreach ($properties as $prop) {
             $values = $resource->getGraph()->all($resource->getUri(), $prop);
-            foreach ($values as $value) {
+            foreach ($values as $value) {//var_dump($managedInstance) ;
                 $status = $this->tripleStatus($managedInstance, $prop, $value);
 
                 //we have no trace of this triple. We can add it to resource AND snapshot
@@ -694,8 +695,11 @@ class UnitOfWork
      *
      * @return string
      */
-    private function tripleStatus(BaseResource $resource, $property, $value)
+    private function tripleStatus($resource, $property, $value)
     {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+        }
         $snapshotValues = $this->initialSnapshots->all($resource, $property);
         $resourceValues = $resource->all($resource, $property);
 

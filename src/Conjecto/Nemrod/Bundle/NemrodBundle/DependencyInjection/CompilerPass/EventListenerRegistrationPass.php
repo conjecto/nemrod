@@ -46,7 +46,6 @@ class EventListenerRegistrationPass implements CompilerPassInterface
             foreach ($dispatchers as $endPoint => $dispatcher) {
                 foreach ($listeners as $listId => $listenerTags) {
                     $listenerDef = $container->getDefinition($listId);
-                    echo $endPoint;
                     foreach ($listenerTags as $tag) {
                         if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&

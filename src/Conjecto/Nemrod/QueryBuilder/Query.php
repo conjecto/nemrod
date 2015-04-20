@@ -269,6 +269,7 @@ class Query
 
             //if resources are not managed yet, we register them. Otherwise
             foreach ($this->result as $k => $res) {
+
                 if (!$this->rm->getUnitOfWork()->isManaged($res)) {
                     $this->rm->getUnitOfWork()->registerResource($res);
                 } else {
