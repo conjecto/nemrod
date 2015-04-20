@@ -115,7 +115,7 @@ class UnitOfWork
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
             $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
-            $this->registeredResources[$uri] = $uri;
+            $this->registeredResources[$uri] = $resource;
             if ($fromStore) {
                 $resource->setReady();
                 $this->setStatus($resource, self::STATUS_MANAGED);
@@ -582,6 +582,10 @@ class UnitOfWork
      */
     private function getStatus(BaseResource $resource)
     {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+
+        }
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
         if (isset($this->status[$uri])) {
             return $this->status[$uri];
