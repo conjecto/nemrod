@@ -17,9 +17,12 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
 
     protected $repoFactory;
 
+    protected $nameSpaceRegistry;
+
     public function setUp()
     {
         $this->repoFactory = $this->getMock('Conjecto\Nemrod\ResourceManager\RepositoryFactory');//->setConstructorArgs(array('foo'))->getMock();
+        $this->nameSpaceRegistry = $this->mockNSRegistry();
         $this->manager = $this->mockManager();
     }
 
@@ -59,12 +62,15 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
             'Foo\Bar\ResourceClass' => array('type' => 'foo:Type', 'uriPattern' => ''),
         );
 
-        return $this
+        $manager = $this
             ->getMockBuilder('Conjecto\Nemrod\Manager')
             ->disableOriginalConstructor()
             //->setConstructorArgs(array($this->repoFactory, 'foo'))
-            ->setMethods(array('getEventDispatcher'))
+            ->setMethods(array('getEventDispatcher', 'getNamespaceRegistry'))
             ->getMock();
+        $manager->expects($this->any())->method('getNamespaceRegistry')->willReturn($this->nameSpaceRegistry);
+
+        return $manager;
     }
 
     /**
@@ -73,5 +79,16 @@ class ManagerTestCase extends \PHPUnit_Framework_TestCase
     protected function mockUnitOfWork()
     {
         return $this->getMockBuilder('Conjecto\Nemrod\ResourceManager\UnitOfWork')->setConstructorArgs(array($this->manager, 'http://foo.fr'))->getMock();
+    }
+
+    protected function mockNSRegistry()
+    {
+        $mockedNSRegistry = $this->getMock('Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry', array('expand', 'shorten'));
+        $mockedNSRegistry->method('expand')->with($this->anything())->will($this->returnCallback(function ($value) {echo 'hop';
+
+            return $value;
+        }));
+
+        return $mockedNSRegistry;
     }
 }

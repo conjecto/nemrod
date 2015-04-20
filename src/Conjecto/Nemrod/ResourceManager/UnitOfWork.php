@@ -11,7 +11,6 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\QueryBuilder\Expr\Base;
 use Conjecto\Nemrod\ResourceManager\Annotation\Resource;
 use Conjecto\Nemrod\ResourceManager\Event\ClearEvent;
 use Conjecto\Nemrod\ResourceManager\Event\Events;
@@ -176,6 +175,7 @@ class UnitOfWork
             return false;
         }
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
         return isset($this->registeredResources[$uri]);
     }
 
@@ -523,7 +523,6 @@ class UnitOfWork
         $coll->rewind();
     }
 
-
     /**
      * @param $resource
      *
@@ -552,7 +551,8 @@ class UnitOfWork
         $properties = $resource->properties();
         foreach ($properties as $prop) {
             $values = $resource->getGraph()->all($resource->getUri(), $prop);
-            foreach ($values as $value) {//var_dump($managedInstance) ;
+            foreach ($values as $value) {
+                //var_dump($managedInstance) ;
                 $status = $this->tripleStatus($managedInstance, $prop, $value);
 
                 //we have no trace of this triple. We can add it to resource AND snapshot
@@ -579,20 +579,18 @@ class UnitOfWork
 
     /**
      * @param BaseResource $resource
-     * @return null
      */
     private function getStatus(BaseResource $resource)
     {
         if (is_string($resource)) {
             $resource = $this->retrieveResource($resource);
-
         }
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
         if (isset($this->status[$uri])) {
             return $this->status[$uri];
         }
 
-        return null;
+        return;
     }
 
     /**
