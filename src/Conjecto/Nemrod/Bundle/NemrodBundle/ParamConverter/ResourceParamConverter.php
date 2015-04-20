@@ -204,11 +204,10 @@ class ResourceParamConverter implements ParamConverterInterface
         if (isset($options['repository_method'])) {
             $method = $options['repository_method'];
         } else {
-            $method = 'findBy';
+            $method = 'findOneBy';
         }
 
-        //@todo findOneBy
-        return $this->rm->getRepository($class)->$method($criteria)->offsetGet(1);
+        return $this->rm->getRepository($class)->$method($criteria);
     }
 
     /**

@@ -12,8 +12,6 @@
 namespace Conjecto\Nemrod\Form\Tests\Extension\Core\Type;
 
 use Symfony\Component\Form\Test\TypeTestCase;
-//use Symfony\Component\Form\Tests\Extension\Core\Type\BaseTypeTest;
-use Symfony\Component\Form\Form;
 
 class ResourceFormTypeTest extends TypeTestCase
 {
@@ -22,9 +20,6 @@ class ResourceFormTypeTest extends TypeTestCase
         return 'form.type.resource_form';
     }
 
-    /**
-     * @todo ADD TEST !
-     */
     public function testFoo()
     {
         $this->assertEquals(true, true);

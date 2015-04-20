@@ -54,7 +54,6 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                         ->setDefinition('nemrod.elastica.search.'.$name.'.'.$typeName, new DefinitionDecorator('nemrod.elastica.search'))
                         ->setArguments(array(new Reference('nemrod.elastica.type.'.$name.'.'.$typeName), $typeName));
 
-                    //@todo place this in a separate func ?
                     //registering config to configManager
                     $settings['type_service_id'] = 'nemrod.elastica.type.'.$name.'.'.$typeName;
                     $confManager = $container->getDefinition('nemrod.elastica.config_manager');

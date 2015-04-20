@@ -49,7 +49,7 @@ class CascadeUpdateHelper
      * @param Manager                       $rm
      * @param array                         $resourcesModified
      */
-    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, $resourceToDocumentTransformer, $rm, $resourcesModified)
+    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, ResourceToDocumentTransformer $resourceToDocumentTransformer, $rm, $resourcesModified)
     {
         $qbByIndex = $this->search($uri, $resourceType, $propertiesUpdated, $rm, $resourcesModified);
         $this->updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified);

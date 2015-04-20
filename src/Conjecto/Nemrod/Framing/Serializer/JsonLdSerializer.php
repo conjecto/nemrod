@@ -120,7 +120,6 @@ class JsonLdSerializer
         }
 
         // merge context from namespace registry
-        // @todo limit merge to usefull namespaces
         $namespaces = $this->nsRegistry->namespaces();
         if (isset($frame['@context'])) {
             $frame['@context'] = array_merge($frame['@context'], $namespaces);

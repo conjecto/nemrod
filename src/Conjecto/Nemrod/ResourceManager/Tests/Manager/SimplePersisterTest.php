@@ -13,9 +13,6 @@ namespace Conjecto\Nemrod\ResourceManager\Tests\Manager;
 
 class SimplePersisterTest extends ManagerTestCase
 {
-    /**
-     * @todo ADD TEST !
-     */
     public function testFoo()
     {
         $this->assertEquals(true, true);

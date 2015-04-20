@@ -260,7 +260,7 @@ class UnitOfWork
     public function persist(BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
-            //@todo perform "ask" on db to check if resource is already there
+
         }
         if (!isset($this->status[$resource->getUri()])) {
             $this->status[$resource->getUri()] = self::STATUS_NEW;

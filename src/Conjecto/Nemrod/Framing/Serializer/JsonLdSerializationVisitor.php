@@ -85,7 +85,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
-        // TODO: Implement visitProperty() method.
+
     }
 
     /**
@@ -99,7 +99,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function endVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-        // TODO: Implement endVisitingObject() method.
+
     }
 
     /**
@@ -109,7 +109,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function setNavigator(GraphNavigator $navigator)
     {
-        // TODO: Implement setNavigator() method.
+
     }
 
     /**
@@ -119,7 +119,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function getNavigator()
     {
-        // TODO: Implement getNavigator() method.
+
     }
 
     /**
@@ -130,7 +130,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitNull($data, array $type, Context $context)
     {
-        // TODO: Implement visitNull() method.
+
     }
 
     /**
@@ -141,7 +141,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitString($data, array $type, Context $context)
     {
-        // TODO: Implement visitString() method.
+
     }
 
     /**
@@ -152,7 +152,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitBoolean($data, array $type, Context $context)
     {
-        // TODO: Implement visitBoolean() method.
+
     }
 
     /**
@@ -163,7 +163,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitDouble($data, array $type, Context $context)
     {
-        // TODO: Implement visitDouble() method.
+
     }
 
     /**
@@ -174,7 +174,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitInteger($data, array $type, Context $context)
     {
-        // TODO: Implement visitInteger() method.
+
     }
 
     /**
@@ -185,6 +185,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitArray($data, array $type, Context $context)
     {
-        // TODO: Implement visitArray() method.
+
     }
 }

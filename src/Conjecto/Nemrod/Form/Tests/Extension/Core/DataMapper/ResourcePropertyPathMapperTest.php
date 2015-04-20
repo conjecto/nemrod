@@ -32,9 +32,6 @@ class ResourcePropertyPathMapperTest extends \PHPUnit_Framework_TestCase
         $this->mapper = new ResourcePropertyPathMapper($this->nsRegistry);
     }
 
-    /**
-     * @todo ADD TEST !
-     */
     public function testFoo()
     {
         $this->assertEquals(true, true);

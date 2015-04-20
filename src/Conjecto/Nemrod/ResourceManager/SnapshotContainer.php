@@ -59,7 +59,7 @@ class SnapshotContainer extends Graph
                         } elseif ($value['type'] === 'literal') {
                             $this->addLiteral($resource2, $property, Literal::create($value['value'], (isset($value['lang'])) ? $value['lang'] : null, (isset($value['datatype'])) ? $value['datatype'] : null));
                         } else {
-                            //@todo check for addType
+
                         }
                     }
                 }

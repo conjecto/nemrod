@@ -69,8 +69,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
 
     /**
      * @param $frame
-     *
-     * @todo use static to cache
      */
     protected function getQueryBuilder($frame, $resource)
     {
