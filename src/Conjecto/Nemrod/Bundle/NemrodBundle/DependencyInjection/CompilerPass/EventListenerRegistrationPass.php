@@ -80,7 +80,7 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                             // if no endpoint is defined for listener, it is registered to all
                             // dispatchers
                             $def = $container->getDefinition($dispatcher);
-                            $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
+                            $def->addMethodCall('addSubscriber', array($listenerDef));
                         }
                     }
                 }
