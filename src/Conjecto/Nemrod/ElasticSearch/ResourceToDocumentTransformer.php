@@ -65,7 +65,7 @@ class ResourceToDocumentTransformer
     {
         $index = $this->typeRegistry->getType($type);
         if (!$index) {
-            return;
+            return null;
         }
 
         $index = $index->getIndex()->getName();
@@ -74,7 +74,7 @@ class ResourceToDocumentTransformer
             $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $frame);
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
-                return;
+                return null;
             }
             $json = json_encode($graph['@graph'][0]);
             $json = str_replace('@id', '_id', $json);
@@ -83,7 +83,7 @@ class ResourceToDocumentTransformer
             return new Document($uri, $json, $type, $index);
         }
 
-        return;
+        return null;
     }
 
     /**
@@ -108,6 +108,6 @@ class ResourceToDocumentTransformer
             return new Resource($uri, $graph);
         }
 
-        return;
+        return null;
     }
 }
