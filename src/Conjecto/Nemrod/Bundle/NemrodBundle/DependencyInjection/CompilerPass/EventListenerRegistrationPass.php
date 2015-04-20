@@ -76,6 +76,11 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                             ($dispatchers[$tag['endpoint']] === $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addsubscriber', array($listenerDef));
+                        } else if (!isset($tag['endpoint'])) {
+                            // if no endpoint is defined for listener, it is registered to all
+                            // dispatchers
+                            $def = $container->getDefinition($dispatcher);
+                            $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
                         }
                     }
                 }
