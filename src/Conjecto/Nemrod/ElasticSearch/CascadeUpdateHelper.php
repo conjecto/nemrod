@@ -79,7 +79,7 @@ class CascadeUpdateHelper
      * @param string                        $index
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer)
+    public function updateDocument($uri, $typeName, $index, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $typeName));
         $document = $resourceToDocumentTransformer->transform($uri, $typeName);

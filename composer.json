@@ -15,7 +15,7 @@
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
-        "easyrdf/easyrdf": "~0.10",
+        "easyrdf/easyrdf": "0.10.0-alpha.1",
 		"ml/json-ld": "~1.0",
         "jms/serializer": "~0.11",
         "ruflin/elastica": "~1.4.3"
