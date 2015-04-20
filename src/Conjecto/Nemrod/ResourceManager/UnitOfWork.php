@@ -268,7 +268,6 @@ class UnitOfWork
     public function persist(BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
-
         }
         if (!$this->getStatus($resource)) {
             $this->setStatus($resource, self::STATUS_NEW);

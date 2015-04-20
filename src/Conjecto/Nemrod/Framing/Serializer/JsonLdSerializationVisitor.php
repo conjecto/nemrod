@@ -85,7 +85,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
-
     }
 
     /**
@@ -99,7 +98,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function endVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -109,7 +107,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function setNavigator(GraphNavigator $navigator)
     {
-
     }
 
     /**
@@ -119,7 +116,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function getNavigator()
     {
-
     }
 
     /**
@@ -130,7 +126,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitNull($data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -141,7 +136,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitString($data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -152,7 +146,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitBoolean($data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -163,7 +156,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitDouble($data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -174,7 +166,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitInteger($data, array $type, Context $context)
     {
-
     }
 
     /**
@@ -185,6 +176,5 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitArray($data, array $type, Context $context)
     {
-
     }
 }
