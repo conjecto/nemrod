@@ -48,15 +48,15 @@ class SnapshotContainer extends Graph
         $graph = $resource->getGraph();
 
         foreach ($graph->toRdfPhp() as $resource2 => $properties) {
-            if ($resource2 != $res->getUri()) {
+            if ($resource2 !== $res->getUri()) {
                 continue;
             }
             if (!$this->unitOfWork->isManagementBlackListed($resource2)) {
                 foreach ($properties as $property => $values) {
                     foreach ($values as $value) {
-                        if ($value['type'] == 'bnode' || $value['type'] == 'uri') {
+                        if ($value['type'] === 'bnode' || $value['type'] === 'uri') {
                             $this->addResource($resource2, $property, $value['value']);
-                        } elseif ($value['type'] == 'literal') {
+                        } elseif ($value['type'] === 'literal') {
                             $this->addLiteral($resource2, $property, Literal::create($value['value'], (isset($value['lang'])) ? $value['lang'] : null, (isset($value['datatype'])) ? $value['datatype'] : null));
                         } else {
                             //@todo check for addType
@@ -70,8 +70,6 @@ class SnapshotContainer extends Graph
     }
 
     /**
-     * @todo check for better way
-     *
      * @param BaseResource $resource
      *
      * @return bool
@@ -85,7 +83,7 @@ class SnapshotContainer extends Graph
             foreach ($index[$resource->getUri()] as $property => $values) {
                 $this->delete($resource, $property);
                 foreach ($values as $value) {
-                    if ($value ['type'] == 'bnode') {
+                    if ($value ['type'] === 'bnode') {
                         if (isset($index[$value['value']])) {
                             unset($index[$value['value']]);
                         }
@@ -106,7 +104,6 @@ class SnapshotContainer extends Graph
     {
         //check if $resource is known by getting type.
         //if uri is not known or result is null, resource is not known
-        //@todo check if $resource is known
         try {
             $typ = $this->get($resource->getUri(), 'rdf:type');
 

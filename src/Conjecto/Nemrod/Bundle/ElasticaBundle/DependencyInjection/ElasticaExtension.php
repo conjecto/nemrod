@@ -45,8 +45,6 @@ class ElasticaExtension extends Extension
     }
 
     /**
-     * @todo create appropriate services
-     *
      * @param array            $config
      * @param ContainerBuilder $container
      */

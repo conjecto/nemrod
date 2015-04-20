@@ -677,7 +677,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify what you want to select');
         }
 
-        if ($this->type == self::DELETE) {
+        if ($this->type === self::DELETE) {
             $this->type = self::DELETE_INSERT;
         } else {
             $this->type = self::INSERT;
@@ -697,7 +697,7 @@ class QueryBuilder
      */
     protected function addDeleteToQuery($delete, $append)
     {
-        if ($this->type == self::INSERT) {
+        if ($this->type === self::INSERT) {
             $this->type = self::DELETE_INSERT;
         } else {
             $this->type = self::DELETE;
@@ -845,7 +845,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify which property you want to sort with');
         }
 
-        if ($this->offset == -1) {
+        if ($this->offset === -1) {
             $this->offset = 0;
         }
 
@@ -970,13 +970,13 @@ class QueryBuilder
     {
         $sparqlQuery = '';
 
-        if (($this->type == self::DELETE || $this->type == self::DELETE_INSERT) && count($this->getSparqlPart('delete')) == 0) {
+        if (($this->type === self::DELETE || $this->type === self::DELETE_INSERT) && count($this->getSparqlPart('delete')) === 0) {
             $sparqlQuery .= 'DELETE ';
         } else {
             $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
-        if ($this->type == self::INSERT || $this->type == self::DELETE_INSERT) {
+        if ($this->type === self::INSERT || $this->type === self::DELETE_INSERT) {
             $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
@@ -1015,8 +1015,8 @@ class QueryBuilder
             $added = ' . '.$added;
         }
 
-        if (count($this->getSparqlPart('where')) == 0 && !empty($added)) {
-            return 'WHERE { '.$added.' }';
+        if (count($this->getSparqlPart('where')) === 0 && !empty($added)) {
+            return sprintf('WHERE { %s }', $added);
         } else {
             return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added.' } '));
         }

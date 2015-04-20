@@ -155,7 +155,7 @@ class ResourceParamConverter implements ParamConverterInterface
         }
 
         foreach ($options['mapping'] as $attribute => $field) {
-            if ($attribute == $key) {
+            if ($attribute === $key) {
                 return $field;
             }
         }

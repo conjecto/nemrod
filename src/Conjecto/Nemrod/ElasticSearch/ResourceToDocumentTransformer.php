@@ -14,7 +14,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
-use EasyRdf\Graph;
 use EasyRdf\Resource as BaseResource;
 use Elastica\Document;
 

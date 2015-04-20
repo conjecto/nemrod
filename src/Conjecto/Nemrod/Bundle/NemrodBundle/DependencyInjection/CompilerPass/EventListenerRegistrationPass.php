@@ -50,7 +50,7 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                     foreach ($listenerTags as $tag) {
                         if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
+                            ($dispatchers[$tag['endpoint']] === $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
                         } else if (!isset($tag['endpoint'])) {
@@ -73,7 +73,7 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                     foreach ($listenerTags as $tag) {
                         if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
+                            ($dispatchers[$tag['endpoint']] === $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addsubscriber', array($listenerDef));
                         }

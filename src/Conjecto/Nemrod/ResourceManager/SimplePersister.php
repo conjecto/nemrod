@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -10,6 +11,7 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
+use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\QueryBuilder;
 use EasyRdf\Collection;
@@ -34,20 +36,15 @@ class SimplePersister implements PersisterInterface
 
     private $bnodeMap = array();
 
-    /**  */
+    /**
+     * @param Manager $rm
+     */
     public function __construct($rm)
     {
         $this->_rm = $rm;
     }
 
-    private function updateQuery($string)
-    {
-        $this->_rm->getClient()->update($string);
-    }
-
     /**
-     * @todo should be renamed
-     *
      * @param $className
      * @param $uri
      *
@@ -57,7 +54,7 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
-        $body = "<".$uri.">".(($className != null) ? " a ".($className).";" : "")." ?p ?q";
+        $body = '<'.$uri.'>'.(($className !== null) ? ' a '.($className).';' : '').' ?p ?q';
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
         $qb->construct($body)->where($body);
@@ -72,7 +69,7 @@ class SimplePersister implements PersisterInterface
             $resourceClass = null;
             foreach ($result->all($uri, 'rdf:type') as $type) {
                 $resourceClass = TypeMapper::get($type->getUri());
-                if ($resourceClass != null) {
+                if ($resourceClass !== null) {
                     break;
                 }
             }
@@ -132,7 +129,6 @@ class SimplePersister implements PersisterInterface
         list($deleteTriples, $whereTriples) = $this->phpRdfToSparqlBody($delete, true);
         list($insertTriples) = $this->phpRdfToSparqlBody($insert);
 
-        //echo htmlspecialchars("DELETE {".$deleteStr."} INSERT {".$insertStr."} WHERE {".$whereStr."}");die();
         $qb = $this->_rm->getQueryBuilder();
 
         foreach ($deleteTriples as $del) {
@@ -151,7 +147,7 @@ class SimplePersister implements PersisterInterface
                 $qb->andWhere($where);
             }
         }
-        if (count($unions) == 1) {
+        if (count($unions) === 1) {
             $unions[] = '';
         }
         if (count($unions)) {
@@ -159,15 +155,13 @@ class SimplePersister implements PersisterInterface
         }
 
         $q = $qb->getQuery();
-        //echo htmlspecialchars( $q->getSparqlQuery());
+
         $result = $q->update();
 
         return $result;
     }
 
     /**
-     * @todo second param is temporary
-     *
      * @param array $criteria
      * @param array $options
      *
@@ -189,14 +183,14 @@ class SimplePersister implements PersisterInterface
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            $criteriaParts[] = $property." ".$val;
+                            $criteriaParts[] = $property.' '.$val;
                         }
                     }
                 }
-                if ($value == "") {
-                    $criteriaParts[] = $property." \"\"";
+                if ($value === '') {
+                    $criteriaParts[] = $property.' ""';
                 } else {
-                    $criteriaParts[] = $property." ".$value;
+                    $criteriaParts[] = $property.' '.$value;
                 }
             }
         }
@@ -219,7 +213,7 @@ class SimplePersister implements PersisterInterface
             $qb->addConstruct($triple);
         }
 
-        if (count($criteriaUnionParts) == 1) {
+        if (count($criteriaUnionParts) === 1) {
             $criteriaUnionParts[] = '';
         }
 
@@ -228,7 +222,7 @@ class SimplePersister implements PersisterInterface
         }
 
         $qb->setOffset(0);
-        if ($queryFinal != '') {
+        if ($queryFinal !== '') {
             $qb->orderBy($queryFinal);
         }
 
@@ -250,14 +244,14 @@ class SimplePersister implements PersisterInterface
 
         //extraction of collection is done by unit of work
         if (!empty($criteria['rdf:type'])) {
-            if ($hydrate == Query::HYDRATE_COLLECTION) {
+            if ($hydrate === Query::HYDRATE_COLLECTION) {
                 if (is_array($criteria['rdf:type'])) {
                     $rdfTtype = $criteria['rdf:type'][0];
                 } else {
                     $rdfTtype = $criteria['rdf:type'];
                 }
                 $output = $this->extractResources($result, $rdfTtype);
-            } elseif ($hydrate == Query::HYDRATE_ARRAY) {
+            } elseif ($hydrate === Query::HYDRATE_ARRAY) {
                 foreach ($result as $re) {
                     $this->declareResource($re);
                 }
@@ -273,29 +267,27 @@ class SimplePersister implements PersisterInterface
         $qb = $this->_rm->getQueryBuilder();
 
         //getting "SELECT" part of the query
-        $select = $qb->select("?uri")->where("?uri a ".$criteria['rdf:type']);
-        foreach ($criteria as $property => $value)
-        {
-            $select->andWhere("?uri ".$property." ".$value);
+        $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
+        foreach ($criteria as $property => $value) {
+            $select->andWhere('?uri '.$property.' '.$value);
         }
         $select = $select->setMaxResults(1)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
         //getting whole "CONSTRUCT" query
-        $query = $qb->setMaxResults(null)->construct("?uri ?p ?o; a ".$criteria['rdf:type'])
-            ->where("?uri ?p ?o; a ".$criteria['rdf:type'])
-            ->andWhere("{".$selectStr."}");
+        $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->andWhere('{'.$selectStr.'}');
 
-        $result = $query->getQuery()->execute($hydrate = Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
+        $result = $query->getQuery()->execute(Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
 
-        if (count($result) == 0) {
-            return null;
+        if (count($result) === 0) {
+            return;
         }
 
         reset($result);
 
         return current($result);
     }
-
 
     /**
      * Declares a resource to unit of work. Either the resource is already managed, and the UOW performs an update, or
@@ -367,7 +359,7 @@ class SimplePersister implements PersisterInterface
         if (isset($array[$uri])) {
             foreach ($array[$uri] as $property => $value) {
                 //all triples are removed. UpLink are also removed.
-                if ($property == 'all') {
+                if ($property === 'all') {
                     $varObj = $this->nextVariable();
                     $varPred = $this->nextVariable();
                     $varUpSubj = $this->nextVariable();
@@ -379,7 +371,7 @@ class SimplePersister implements PersisterInterface
                 } elseif (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            if ($val['type'] == 'literal') {
+                            if ($val['type'] === 'literal') {
                                 $tripleStr = '<'.$uri.'> <'.$property.'> "'.addcslashes($val['value'], '"').'"';
                                 if (!empty($val['lang'])) {
                                     $tripleStr .= '@'.$val['lang'].'';
@@ -389,10 +381,10 @@ class SimplePersister implements PersisterInterface
 
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
-                            } elseif ($val['type'] == 'uri') {
+                            } elseif ($val['type'] === 'uri') {
                                 $criteriaParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
                                 $whereParts[] = '<'.$uri.'> <'.$property.'> <'.$val['value'].'>';
-                            } elseif ($val['type'] == 'bnode') {
+                            } elseif ($val['type'] === 'bnode') {
                                 if ($bNodesAsVariables) {
                                     $varBnode = $this->nextVariable();
                                     $varBnodePred = $this->nextVariable();
@@ -411,7 +403,7 @@ class SimplePersister implements PersisterInterface
                                         $whereParts = array_merge($whereParts, $b);
                                     }
                                 }
-                            } elseif ($val['type'] == 'uri') {
+                            } elseif ($val['type'] === 'uri') {
                                 $criteriaParts[] = '<'.$uri.'> <'.$property.'> '.$val['value'].'';
                             }
                         }
@@ -437,7 +429,6 @@ class SimplePersister implements PersisterInterface
         $this->_rm->getUnitOfWork()->managementBlackList($collUri);
         $coll = new Collection($collUri, $graph);
 
-        //@todo WAY too long
         //building collection
         foreach ($res as $re) {
             $coll->append($re);
@@ -491,7 +482,6 @@ class SimplePersister implements PersisterInterface
     }
 
     /**
-     * //@todo not used anymore
      * temp function : converting a result to a graph.
      *
      * @param Result $result
@@ -500,7 +490,6 @@ class SimplePersister implements PersisterInterface
      */
     private function resultToGraph($result)
     {
-        //@todo
         if ($result instanceof Graph) {
             return $result;
         }
@@ -521,7 +510,6 @@ class SimplePersister implements PersisterInterface
      */
     private function registerResource($resource)
     {
-        //echo 'reg'.$resource->getUri();
         $this->_rm->getUnitOfWork()->registerResource($resource);
     }
 
@@ -569,7 +557,7 @@ class SimplePersister implements PersisterInterface
         } elseif ($result instanceof Result) {
             $cnt = count($result);
 
-            return ($cnt == 0);
+            return ($cnt === 0);
         }
     }
 }

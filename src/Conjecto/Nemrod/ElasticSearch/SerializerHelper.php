@@ -121,7 +121,7 @@ class SerializerHelper
         $allProperties = array();
         foreach ($this->requests as $index => $types) {
             foreach ($types as $type) {
-                if ($type['type'] == $resourceType) {
+                if ($type['type'] === $resourceType) {
                     $allProperties = array_merge($allProperties, $type['properties']);
                 }
             }

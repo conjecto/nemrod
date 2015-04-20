@@ -78,11 +78,8 @@ class Populator
 
             /* @var Resource $add */
             foreach ($result->resources() as $res) {
-                //echo $res->getUri();
-                //echo "DEBUT";
                 $doc = $trans->transform($res->getUri(), $key);
                 if ($doc) {
-                    //var_dump($doc);
                     $this->typeRegistry->getType($key)->addDocument($doc, $key);
                 }
             }

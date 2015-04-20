@@ -12,17 +12,14 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Elastica\Aggregation\AbstractAggregation;
-use Elastica\Aggregation\Filter;
 use Elastica\Facet\Terms;
 use Elastica\Filter\AbstractFilter;
 use Elastica\Filter\Bool;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\BoolOr;
-use Elastica\Filter\Range;
 use Elastica\Filter\Term;
 use Elastica\Query;
 use Elastica\SearchableInterface;
-use Elastica\Type;
 use Elastica\Util;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -213,7 +210,7 @@ class Search
     public function setFilters($filters)
     {
         $this->filters = $filters;
-        if (count($filters) == 1) {
+        if (count($filters) === 1) {
             $filter = current($filters);
         } else {
             $filter = new Bool();
@@ -272,7 +269,7 @@ class Search
     {
         $params = $this->getQuery()->toArray();
         foreach ($params['sort'] as $key => $sort) {
-            if (current(array_keys($sort)) == $field) {
+            if (current(array_keys($sort)) === $field) {
                 unset($params['sort'][$key]);
             }
         }
@@ -369,7 +366,7 @@ class Search
     private function prepareRawQuery($query)
     {
         foreach ($query as $key => $value) {
-            if ($key == 'reverse_nested') {
+            if ($key === 'reverse_nested') {
                 // force object for empty reverse_nested
                 $query[$key] = (object) $query[$key];
             }
@@ -513,7 +510,7 @@ class Search
             $filters[] = $filter;
         }
 
-        if (count($filters) == 1) {
+        if (count($filters) === 1) {
             $filter = reset($filters);
         } else {
             // multiple instances : OR
