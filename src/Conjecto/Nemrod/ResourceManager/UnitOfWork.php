@@ -779,16 +779,18 @@ class UnitOfWork
                 $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
                 //getting snapshots also for blank nodes
-                if (!empty($bigSnapshot))
-                foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
-                    return $bigSnapshot;
-                    foreach ($values as $value) {
-                        $array[] = $value['value'];
+                if (!empty($bigSnapshot)) {
+                    foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                        return $bigSnapshot;
+                        foreach ($values as $value) {
+                            $array[] = $value['value'];
 //                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
 //                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
 //                        }
+                        }
                     }
                 }
+
                 return $array;
             }
         }
