@@ -303,7 +303,7 @@ class UnitOfWork
     /**
      * performing a diff between snaphshots and entities.
      */
-    public function commit()
+    public function commit($array = array())
     {
         $uris = array();
 
@@ -326,6 +326,7 @@ class UnitOfWork
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
             }
         }
+        $this->getSnapshotForResource($this->registeredResources, $array);
 
         $chSt = $this->diff(
             $this->getSnapshotForResource($this->registeredResources),
@@ -579,7 +580,7 @@ class UnitOfWork
     /**
      * @param BaseResource $resource
      */
-    private function getStatus(BaseResource $resource)
+    private function getStatus($resource)
     {
         if (is_string($resource)) {
             $resource = $this->retrieveResource($resource);
@@ -767,7 +768,7 @@ class UnitOfWork
      *
      * @return array
      */
-    private function getSnapshotForResource(\Traversable $resources)
+    private function getSnapshotForResource(\Traversable $resources, $array = array())
     {
         $snapshot = array();
         foreach ($resources as $resource) {
@@ -778,13 +779,17 @@ class UnitOfWork
                 $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
                 //getting snapshots also for blank nodes
+                if (!empty($bigSnapshot))
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                    return $bigSnapshot;
                     foreach ($values as $value) {
-                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
-                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
-                        }
+                        $array[] = $value['value'];
+//                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
+//                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
+//                        }
                     }
                 }
+                return $array;
             }
         }
 
