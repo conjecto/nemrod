@@ -14,9 +14,11 @@ namespace Conjecto\Nemrod\ResourceManager;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\Resource;
 use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
+use EasyRdf\Literal;
 use EasyRdf\Sparql\Result;
 use EasyRdf\TypeMapper;
 
@@ -182,6 +184,7 @@ class SimplePersister implements PersisterInterface
 
         if (!empty($criteria)) {
             foreach ($criteria as $property => $value) {
+
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
@@ -192,6 +195,7 @@ class SimplePersister implements PersisterInterface
                 if ($value === '') {
                     $criteriaParts[] = $property.' ""';
                 } else {
+
                     $criteriaParts[] = $property.' '.$this->LiteralToSparqlTerm($value);
                 }
             }
@@ -251,6 +255,7 @@ class SimplePersister implements PersisterInterface
 
         //getting "SELECT" part of the query
         $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
+
         foreach ($criteria as $property => $value) {
             $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
         }
@@ -553,19 +558,22 @@ class SimplePersister implements PersisterInterface
      * @param $term
      * @return string
      */
-    private function LiteralToSparqlTerm($term) {
-        if ($term instanceof $string) {
-            return "\"".$string."\"";
+    private function LiteralToSparqlTerm($term)
+    {
+        if (is_string($term)) {
+            return "\"".$term."\"";
         } else if ($term instanceof Literal) {
             $dataType = $term->getDataType();
             if ($dataType) {
-                return "\"".$string."\"^^".$dataType;
+                return "\"".$term->getValue()."\"^^".$dataType;
             }
             $lang = $term->getLang();
             if((!$dataType || ($dataType == "xsd:string") ) && $lang) {
-                return "\"".$string."\"@".$lang;
+                return "\"".$term->getValue()."\"@".$lang;
             }
+        } else if ($term instanceof Resource) {
+            return $term->getUri();
         }
-        return;
+
     }
 }

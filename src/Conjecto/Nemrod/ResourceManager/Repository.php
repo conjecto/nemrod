@@ -61,11 +61,11 @@ class Repository
         //first add a type criteria if not found
         if ($this->className) {
             if (empty($criterias['rdf:type'])) {
-                $criterias['rdf:type'] = $this->className;
+                $criterias['rdf:type'] = new Resource($this->className);
             } elseif (is_array($criterias['rdfs:Class'])) {
-                $criterias['rdf:type'][] = $this->className;
+                $criterias['rdf:type'][] = new Resource($this->className);
             } else {
-                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
+                $criterias['rdf:type'] = array($criterias['rdf:type'] => new Resource ($this->className));
             }
         }
 
@@ -82,14 +82,13 @@ class Repository
     {
         if ($this->className) {
             if (empty($criterias['rdf:type'])) {
-                $criterias['rdf:type'] = $this->className;
+                $criterias['rdf:type'] = new Resource($this->className);
             } elseif (is_array($criterias['rdfs:Class'])) {
-                $criterias['rdf:type'][] = $this->className;
+                $criterias['rdf:type'][] = new Resource($this->className);
             } else {
-                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
+                $criterias['rdf:type'] = array($criterias['rdf:type'] => new Resource($this->className));
             }
         }
-
         return $this->_rm->getUnitOfWork()->findOneBy($criterias, $options);
     }
 
