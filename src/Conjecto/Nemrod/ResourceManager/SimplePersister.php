@@ -240,26 +240,7 @@ class SimplePersister implements PersisterInterface
             return;
         }
 
-        $output = null;
-
-        //extraction of collection is done by unit of work
-        if (!empty($criteria['rdf:type'])) {
-            if ($hydrate === Query::HYDRATE_COLLECTION) {
-                if (is_array($criteria['rdf:type'])) {
-                    $rdfTtype = $criteria['rdf:type'][0];
-                } else {
-                    $rdfTtype = $criteria['rdf:type'];
-                }
-                $output = $this->extractResources($result, $rdfTtype);
-            } elseif ($hydrate === Query::HYDRATE_ARRAY) {
-                foreach ($result as $re) {
-                    $this->declareResource($re);
-                }
-                $output = $result;
-            }
-        }
-
-        return $output;
+        return $result;
     }
 
     public function constructOne(array $criteria, array $options)
