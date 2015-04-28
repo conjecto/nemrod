@@ -54,6 +54,8 @@ class SimplePersister implements PersisterInterface
      */
     public function constructUri($className, $uri)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
+
         $body = '<'.$uri.'>'.(($className !== null) ? ' a '.($className).';' : '').' ?p ?q';
         /** @var QueryBuilder $qb */
         $qb = $this->_rm->getQueryBuilder();
@@ -302,7 +304,7 @@ class SimplePersister implements PersisterInterface
                 if (!$this->_rm->getUnitOfWork()->isBNode($uri) // not a bnode
                     || $bNodesAsVariables) {
                     //or a bnode, but we have to treat it as a variable
-
+                    $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
                     list($a, $b) = $this->getTriplesForUri($criteria, $uri, $bNodesAsVariables, true);
                     $criteriaParts = array_merge($criteriaParts, $a);
                     $whereParts = array_merge($whereParts, $b);

@@ -420,7 +420,6 @@ class Query
 
     private function resultToGraph($result)
     {
-        //@todo fix this
         if ($result instanceof Graph) {
             return $result;
         }

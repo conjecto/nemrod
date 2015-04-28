@@ -49,7 +49,7 @@ class CascadeUpdateHelper
      * @param Manager                       $rm
      * @param array                         $resourcesModified
      */
-    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, $resourceToDocumentTransformer, $rm, $resourcesModified)
+    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, ResourceToDocumentTransformer $resourceToDocumentTransformer, $rm, $resourcesModified)
     {
         $qbByIndex = $this->search($uri, $resourceType, $propertiesUpdated, $rm, $resourcesModified);
         $this->updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified);
@@ -79,7 +79,7 @@ class CascadeUpdateHelper
      * @param string                        $index
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer)
+    public function updateDocument($uri, $typeName, $index, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $typeName));
         $document = $resourceToDocumentTransformer->transform($uri, $typeName);

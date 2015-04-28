@@ -20,14 +20,11 @@ use JMS\Serializer\scalar;
 
 /**
  * Class RdfDeserializationVisitor.
- *
- * @TODO
  */
 class RdfDeserializationVisitor extends AbstractVisitor
 {
     protected function decode($str)
     {
-        // TODO: Implement decode() method.
     }
 
     /**

@@ -50,7 +50,7 @@
             <argument type="service" id="nemrod.jsonld.serializer" />
         </service>
         <service id="nemrod.elastica.manager_event_subscriber" class="%nemrod.elastica.manager_event_subscriber.class%">
-            <tag name="nemrod.resource_event_listener" event="nemrod.pre_flush" method="onPreFlush"/>
+            <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />
             <argument type="service" id="nemrod.elastica.type_registry" />
             <argument type="service" id="service_container" />
