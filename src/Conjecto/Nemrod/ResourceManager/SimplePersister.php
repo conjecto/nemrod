@@ -185,14 +185,14 @@ class SimplePersister implements PersisterInterface
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
-                            $criteriaParts[] = $property.' '.$val;
+                            $criteriaParts[] = $property.' '.$this->LiteralToSparqlTerm($val);
                         }
                     }
                 }
                 if ($value === '') {
                     $criteriaParts[] = $property.' ""';
                 } else {
-                    $criteriaParts[] = $property.' '.$value;
+                    $criteriaParts[] = $property.' '.$this->LiteralToSparqlTerm($value);
                 }
             }
         }
@@ -252,7 +252,7 @@ class SimplePersister implements PersisterInterface
         //getting "SELECT" part of the query
         $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
         foreach ($criteria as $property => $value) {
-            $select->andWhere('?uri '.$property.' '.$value);
+            $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
         }
         $select = $select->setMaxResults(1)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
@@ -533,6 +533,10 @@ class SimplePersister implements PersisterInterface
         return $this->bnodeMap[$bNode];
     }
 
+    /**
+     * @param $result
+     * @return bool
+     */
     private function isEmpty($result)
     {
         if ($result instanceof Graph) {
@@ -542,5 +546,26 @@ class SimplePersister implements PersisterInterface
 
             return ($cnt === 0);
         }
+    }
+
+    /**
+     * Construct a SPARQL term form a term (string or Literal)
+     * @param $term
+     * @return string
+     */
+    private function LiteralToSparqlTerm($term) {
+        if ($term instanceof $string) {
+            return "\"".$string."\"";
+        } else if ($term instanceof Literal) {
+            $dataType = $term->getDataType();
+            if ($dataType) {
+                return "\"".$string."\"^^".$dataType;
+            }
+            $lang = $term->getLang();
+            if((!$dataType || ($dataType == "xsd:string") ) && $lang) {
+                return "\"".$string."\"@".$lang;
+            }
+        }
+        return;
     }
 }
