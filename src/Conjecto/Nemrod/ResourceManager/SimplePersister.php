@@ -184,7 +184,9 @@ class SimplePersister implements PersisterInterface
 
         if (!empty($criteria)) {
             foreach ($criteria as $property => $value) {
-
+                if ($property === "uri") {
+                    continue;
+                }
                 if (is_array($value)) {
                     if (!empty($value)) {
                         foreach ($value as $val) {
@@ -214,6 +216,8 @@ class SimplePersister implements PersisterInterface
             $qb->addConstruct('?s '.$triple);
             $qb->andWhere('?s '.$triple);
         }
+
+        $this->bindVariableAsUri($qb, "?s", $criteria);
 
         foreach ($criteriaUnionParts as $triple) {
             $qb->addConstruct($triple);
@@ -257,10 +261,15 @@ class SimplePersister implements PersisterInterface
         $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
 
         foreach ($criteria as $property => $value) {
-            $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
+            if ($property !== 'uri') {
+                $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
+            }
         }
+        $this->bindVariableAsUri($select, "?uri",$criteria);
+
         $select = $select->setMaxResults(1)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
+
         //getting whole "CONSTRUCT" query
         $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
             ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
@@ -572,8 +581,25 @@ class SimplePersister implements PersisterInterface
                 return "\"".$term->getValue()."\"@".$lang;
             }
         } else if ($term instanceof Resource) {
-            return $term->getUri();
+            return "<".$this->_rm->getNamespaceRegistry()->expand($term->getUri()).">";
         }
 
+    }
+
+    /**
+     * @param $query
+     * @param $variable
+     * @param $uri
+     */
+    private function bindVariableAsUri($query, $variable, $criteria)
+    {
+        if (isset ($criteria['uri'])) {
+            if (is_string($criteria['uri'])) {
+                $criteria['uri'] = array($criteria['uri']);
+            }
+            foreach ($criteria['uri'] as $uri) {
+                $query->andWhere("BIND (<".$this->_rm->getNamespaceRegistry()->expand($uri)."> AS $variable).");
+            }
+        }
     }
 }
