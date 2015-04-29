@@ -18,3 +18,8 @@ Nemrod 0.1.1
 * Resource manager: resources uri are managed on their expanded form
 * Resource manager: a lifecycle listener/subscriber can be registered to ALL (endpoints) managers events at once.
 * EasyRdf's Base resource switching abilities are used; Nemrod base resource is default base class in framework
+
+Nemrod 0.1.2
+============
+
+* Resource manager: finf(One)By manages datatypes & langs (through EasyRdf Literals), uris. 
