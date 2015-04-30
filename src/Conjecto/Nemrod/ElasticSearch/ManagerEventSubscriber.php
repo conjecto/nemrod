@@ -162,15 +162,17 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $index = $index->getIndex()->getName();
                 }
 
+                // save the modified resource for the cascade update
+                $resourcesModified[$uri][] = $newType;
+
                 // update the ES document
                 if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    /*
+                    /**
                      * @var Type
                      **/
                     $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $newType));
                     $document = $resourceToDocumentTransformer->transform($uri, $newType);
                     if ($document) {
-                        $resourcesModified[$uri][] = $newType;
                         $esType->addDocument($document);
                     }
                 }
@@ -181,7 +183,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $index = $this->typeRegistry->getType($oldType);
                 if ($index !== null) {
                     $index = $index->getIndex()->getName();
-                    /*
+                    /**
                      * @var Type
                      **/
                     $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $oldType));
