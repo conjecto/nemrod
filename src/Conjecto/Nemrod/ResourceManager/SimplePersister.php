@@ -369,12 +369,7 @@ class SimplePersister implements PersisterInterface
                     if (!empty($value)) {
                         foreach ($value as $val) {
                             if ($val['type'] === 'literal') {
-                                $tripleStr = '<'.$uri.'> <'.$property.'> "'.addcslashes($val['value'], '"').'"';
-                                if (!empty($val['lang'])) {
-                                    $tripleStr .= '@'.$val['lang'].'';
-                                } elseif (!empty($val['datatype'])) {
-                                    $tripleStr .= '^^<'.$val['datatype'].'>';
-                                }
+                                $tripleStr = '<'.$uri.'> <'.$property.'> '.$this->literalToSparqlExpr($val);
 
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
@@ -410,6 +405,27 @@ class SimplePersister implements PersisterInterface
         }
 
         return array($criteriaParts, $whereParts);
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    private function literalToSparqlExpr($value)
+    {
+        $expr = '"'.addcslashes($value['value'], '"').'"';
+        if (!empty($value['datatype'])) {
+            if($this->_rm->getNamespaceRegistry()->shorten($value['datatype']) == "xsd:boolean") {
+                $expr = '"'.( ( $value['value'] && ($value['value'] != "false") )? "true" : "false" ).'"^^<'.$value['datatype'].'>';
+            } else {
+                $expr = '"'.addcslashes($value['value'], '"').'"^^<'.$value['datatype'].'>';
+            }
+
+        } elseif (!empty($value['lang'])) {
+            $expr .= '@'.$value['lang'].'';
+        }
+
+        return $expr;
     }
 
     /**
@@ -574,11 +590,11 @@ class SimplePersister implements PersisterInterface
         } else if ($term instanceof Literal) {
             $dataType = $term->getDataType();
             if ($dataType) {
-                return "\"".$term->getValue()."\"^^".$dataType;
+                return "\"".$term."\"^^".$dataType;
             }
             $lang = $term->getLang();
             if((!$dataType || ($dataType == "xsd:string") ) && $lang) {
-                return "\"".$term->getValue()."\"@".$lang;
+                return "\"".$term."\"@".$lang;
             }
         } else if ($term instanceof Resource) {
             return "<".$this->_rm->getNamespaceRegistry()->expand($term->getUri()).">";
