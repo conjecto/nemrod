@@ -17,6 +17,7 @@ use Elastica\Filter\AbstractFilter;
 use Elastica\Filter\Bool;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\BoolOr;
+use Elastica\Filter\Prefix;
 use Elastica\Filter\Term;
 use Elastica\Query;
 use Elastica\SearchableInterface;
@@ -179,6 +180,21 @@ class Search
         return $filter;
     }
 
+    /**
+     * @param $name
+     * @param $prefix
+     * @param null $field
+     *
+     * @return Prefix
+     */
+    public function addPrefix($name, $prefix, $field = null)
+    {
+        $field = $field ? $field : $name;
+        $prefix = new Prefix($field, $prefix);
+        $this->addFilter($name, $prefix);
+
+        return $prefix;
+    }
     /**
      * @param $name
      * @param $values
