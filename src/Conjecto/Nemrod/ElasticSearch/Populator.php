@@ -80,6 +80,7 @@ class Populator
             foreach ($result->resources() as $res) {
                 $doc = $trans->transform($res->getUri(), $key);
                 if ($doc) {
+                    var_dump($doc);
                     $this->typeRegistry->getType($key)->addDocument($doc, $key);
                 }
             }
