@@ -177,77 +177,30 @@ class SimplePersister implements PersisterInterface
      */
     public function constructSet(array $criteria, array $options, $hydrate = Query::HYDRATE_ARRAY)
     {
-        //end statments for query (order by, etc)
-        $queryFinal = '';
-        $criteriaParts = array();
-        $criteriaUnionParts = array();
+        $qb = $this->_rm->getQueryBuilder();
 
-        if (!empty($criteria)) {
-            foreach ($criteria as $property => $value) {
-                if ($property === "uri") {
-                    continue;
-                }
-                if (is_array($value)) {
-                    if (!empty($value)) {
-                        foreach ($value as $val) {
-                            $criteriaParts[] = $property.' '.$this->LiteralToSparqlTerm($val);
-                        }
-                    }
-                }
-                if ($value === '') {
-                    $criteriaParts[] = $property.' ""';
-                } else {
+        //getting "SELECT" part of the query
+        $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
 
-                    $criteriaParts[] = $property.' '.$this->LiteralToSparqlTerm($value);
-                }
+        foreach ($criteria as $property => $value) {
+            if ($property !== 'uri') {
+                $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
             }
         }
+        $this->bindVariableAsUri($select, "?uri",$criteria);
 
-        if (isset($options['orderBy'])) {
-            $criteriaUnionParts[] = '?s '.$options['orderBy'].' ?orderingvar';
-            $queryFinal .= '?orderingvar';
-        }
+        $select = $select->setMaxResults(isset($options['limit']) ?$options['limit'] : null)->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
 
-        $qb = $this->_rm->getQueryBuilder();
-        $qb->construct('?s ?p ?q');
-        $qb->where('?s ?p ?q');
+        //getting whole "CONSTRUCT" query
+        $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->andWhere('{'.$selectStr.'}');
 
-        foreach ($criteriaParts as $triple) {
-            $qb->addConstruct('?s '.$triple);
-            $qb->andWhere('?s '.$triple);
-        }
+        $result = $query->getQuery()->execute(Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
 
-        $this->bindVariableAsUri($qb, "?s", $criteria);
-
-        foreach ($criteriaUnionParts as $triple) {
-            $qb->addConstruct($triple);
-        }
-
-        if (count($criteriaUnionParts) === 1) {
-            $criteriaUnionParts[] = '';
-        }
-
-        if (count($criteriaUnionParts)) {
-            $qb->addUnion($criteriaUnionParts);
-        }
-
-        $qb->setOffset(0);
-        if ($queryFinal !== '') {
-            $qb->orderBy($queryFinal);
-        }
-
-        if (isset($options['limit']) && is_numeric($options['limit'])) {
-            $qb->setMaxResults($options['limit']);
-        }
-
-        $result = $qb->getQuery()->execute($hydrate, array('rdf:type' => $criteria['rdf:type']));
-
-        if ($result instanceof Result) {
-            $result = $this->resultToGraph($result);
-        }
-
-        if ($this->isEmpty($result)) {
-            return;
+        if (count($result) === 0) {
+            return array();
         }
 
         return $result;
