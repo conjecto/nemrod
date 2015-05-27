@@ -29,19 +29,46 @@ class ConfigManager
     public function setConfig($type, $data)
     {
         $properties = array();
-
-        foreach ($data['frame'] as $key => $property) {
-            if (!strstr($key, '@')) {
-                if (!isset($property['@mapping'])) {
-                    $property['@mapping'] = '~';
-                }
-                $properties[$key] = $property['@mapping'];
-            }
-        }
-
+        $this->parseFrame($data['frame'], $properties);
         unset($data['frame']);
         $data['properties'] = $properties;
         $this->config[$type] = $data;
+    }
+
+    function parseFrame($frame, &$properties) {
+        foreach ($frame as $key => $property) {
+            if (substr($key, 0, 1) !== '@') {
+                if (!isset($property['@mapping'])) {
+                    if (isset($property['@type'])) {
+                        $properties[$key] = array('type' => 'object');
+                    }
+                    else {
+                        if (is_array($property)) {
+                            foreach ($property as $prop => $val) {
+                                if (substr($prop, 0, 1) == '@') {
+                                    unset($property[$prop]);
+                                }
+                            }
+                            if (empty($property)) {
+                                $property = "";
+                            }
+                        }
+                        if (is_array($property)) {
+                            $properties[$key] = array("type" => "array");
+                        }
+                        else {
+                            $properties[$key] = array("type" => "string");
+                        }
+                    }
+                }
+                else {
+                    $properties[$key] = $property['@mapping'];
+                }
+            }
+            if (substr($key, 0, 1) !== '@' && is_array($property)) {
+                $this->parseFrame($property, $properties[$key]);
+            }
+        }
     }
 
     /**
