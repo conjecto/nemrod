@@ -23,6 +23,12 @@ class ConfigManager
     private $config;
 
     /**
+     * Skip adding default information to certain fields.
+     * @var array
+     */
+    private $skipTypes = array('completion');
+
+    /**
      * Set a mapping config for a type
      * @param $type
      * @param $data
@@ -31,6 +37,7 @@ class ConfigManager
     {
         $properties = array();
         $this->parseFrame($data['frame'], $properties);
+        $this->fixProperties($properties);
         unset($data['frame']);
         $data['properties'] = $properties;
         $this->config[$type] = $data;
@@ -74,38 +81,37 @@ class ConfigManager
      * @param $frame
      * @param $properties
      */
-    protected function parseFrame($frame, &$properties) {
+    protected function parseFrame($frame, &$mapping) {
         foreach ($frame as $key => $property) {
             if (substr($key, 0, 1) !== '@') {
-                if (!isset($property['@mapping'])) {
-                    if (isset($property['@type'])) {
-                        $properties[$key] = array('type' => 'object');
-                    }
-                    else {
-                        if (is_array($property)) {
-                            foreach ($property as $prop => $val) {
-                                if (substr($prop, 0, 1) == '@') {
-                                    unset($property[$prop]);
-                                }
-                            }
-                            if (empty($property)) {
-                                $property = "";
-                            }
-                        }
-                        if (is_array($property)) {
-                            $properties[$key] = array("type" => "array");
-                        }
-                        else {
-                            $properties[$key] = array("type" => "string");
-                        }
-                    }
-                }
-                else {
-                    $properties[$key] = $property['@mapping'];
+                $mapping[$key] = isset($property['@mapping']) ? $property['@mapping'] : array();
+                if (is_array($property)) {
+                    $this->parseFrame($property, $mapping[$key]['properties']);
                 }
             }
-            if (substr($key, 0, 1) !== '@' && is_array($property)) {
-                $this->parseFrame($property, $properties[$key]);
+        }
+    }
+
+    /**
+     * Fixes any properties and applies basic defaults for any field that does not have
+     * required options.
+     *
+     * @param $properties
+     */
+    protected function fixProperties(&$properties)
+    {
+        foreach ($properties as $name => &$property) {
+            if (!isset($property['type'])) {
+                $property['type'] = 'string';
+            }
+            if (isset($property['properties'])) {
+                $this->fixProperties($property['properties']);
+            }
+            if (in_array($property['type'], $this->skipTypes)) {
+                continue;
+            }
+            if (!isset($property['store'])) {
+                $property['store'] = true;
             }
         }
     }
