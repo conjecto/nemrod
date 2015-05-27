@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -14,6 +15,7 @@ use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\PropertyAccess\PropertyPath;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
@@ -74,7 +76,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
                 // If the field is of type DateTime and the data is the same skip the update to
                 // keep the original object hash
-                if ($form->getData() instanceof \DateTime && $form->getData() == $this->getValue($data, $propertyPath, $config)) {
+                if ($form->getData() instanceof \DateTime && $form->getData() === $this->getValue($data, $propertyPath, $config)) {
                     continue;
                 }
 
@@ -100,7 +102,6 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     {
         if (!is_a($objectOrArray, 'EasyRdf\Resource')) {
             return $objectOrArray;
-            throw new UnexpectedTypeException($objectOrArray, 'EasyRdf\Resource');
         }
 
         if (is_string($propertyPath)) {
@@ -113,7 +114,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
-        } elseif ($formConfig->getType()->getName() == 'collection') {
+        } elseif ($formConfig->getType()->getName() === 'collection') {
             $resources = $objectOrArray->all($property);
         } else {
             $resources = $objectOrArray->get($property);
@@ -144,7 +145,6 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             throw new UnexpectedTypeException($propertyPath, 'string or Symfony\Component\PropertyAccess\PropertyPathInterface');
         }
 
-        //$objectOrArray = new \EasyRdf_Resource();
         $property = (string) $propertyPath;
 
         $formConfig->getType()->getName();
@@ -172,11 +172,10 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             }
 
             foreach ($itemToRemove as $item) {
-                //call_user_func(array($object, $methods[1]), $item);
                 $objectOrArray->delete($property, $item);
             }
             foreach ($itemsToAdd as $item) {
-                if ($item != null) {
+                if ($item !== null) {
                     $objectOrArray->add($property, $literalClass ? new $literalClass($item) : $item);
                 }
             }
@@ -184,7 +183,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
             return;
         }
 
-        if ($value != null) {
+        if ($value !== null) {
             return $objectOrArray->set($property, $literalClass ? new $literalClass($value) : $value);
         } else {
             return $objectOrArray->delete($property);
@@ -239,19 +238,19 @@ class ResourcePropertyPathMapper implements DataMapperInterface
     {
         switch ($type) {
             case 'date':
-                return "EasyRdf\\Literal\\Date";
+                return 'EasyRdf\\Literal\\Date';
             case 'number':
             case 'money':
             case 'percent':
-                return "EasyRdf\\Literal\\Decimal";
+                return 'EasyRdf\\Literal\\Decimal';
             case 'integer':
-                return "EasyRdf\\Literal\\Integer";
+                return 'EasyRdf\\Literal\\Integer';
             case 'text':
             case 'textarea':
             case 'email':
             case 'password':
             case 'url':
-                return "EasyRdf\\Literal";
+                return 'EasyRdf\\Literal';
         }
 
         return;

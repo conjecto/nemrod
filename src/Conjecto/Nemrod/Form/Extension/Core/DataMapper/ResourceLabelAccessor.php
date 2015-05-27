@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -83,7 +84,7 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
     {
         $value = $objectOrArray->get((string) $propertyPath);
 
-        if ($value == null) {
+        if ($value === null) {
             $value = $objectOrArray->label();
         }
 
@@ -91,7 +92,7 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
             return $value->getValue();
         }
 
-        if ($value == null) {
+        if ($value === null) {
             $value = $objectOrArray->getUri();
         }
 

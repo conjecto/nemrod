@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -15,7 +16,6 @@ use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\AbstractHydrator;
 use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\ArrayHydrator;
 use Conjecto\Nemrod\QueryBuilder\Internal\Hydratation\CollectionHydrator;
 use Conjecto\Nemrod\Manager;
-use EasyRdf\Collection;
 use EasyRdf\Sparql\Result;
 use EasyRdf\Graph;
 
@@ -40,7 +40,7 @@ class Query
     /**
      * The current state of this query.
      *
-     * @var integer
+     * @var int
      */
     protected $state = self::STATE_DIRTY;
 
@@ -73,14 +73,14 @@ class Query
     /**
      * The first result to return (the "offset").
      *
-     * @var integer
+     * @var int
      */
     protected $offset = null;
 
     /**
      * The maximum number of results to return (the "limit").
      *
-     * @var integer
+     * @var int
      */
     protected $maxResults = null;
 
@@ -244,37 +244,19 @@ class Query
      */
     public function execute($hydratation = null, $options = array())
     {
-        if ($this->state == self::STATE_DIRTY) {
+        if ($this->state === self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
 
-        //echo $this->completeSparqlQuery;
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
-        if ($this->type == QueryBuilder::CONSTRUCT) {
+        if ($this->type === QueryBuilder::CONSTRUCT) {
             $this->result = $this->resultToGraph($this->result);
         }
 
-        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
             $this->result = $hydrator->hydrateResources($options);
-        }
-
-        if ($hydratation == self::HYDRATE_COLLECTION) {
-            $this->rm->getUnitOfWork()->blackListCollection($this->result);
-            for ($cnt = 1; $cnt <= count($this->result); $cnt++) {
-                $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
-            }
-        } elseif ($hydratation == self::HYDRATE_ARRAY) {
-
-            //if resources are not managed yet, we register them. Otherwise
-            foreach ($this->result as $k => $res) {
-                if (!$this->rm->getUnitOfWork()->isManaged($res)) {
-                    $this->rm->getUnitOfWork()->registerResource($res);
-                } else {
-                    $this->result[$k] = $this->rm->getUnitOfWork()->replaceResourceInstance($res);
-                }
-            }
         }
 
         return $this->result;
@@ -287,7 +269,7 @@ class Query
      */
     public function update($hydratation = null/*self::HYDRATE_ARRAY*/, $options = array())
     {
-        if ($this->state == self::STATE_DIRTY) {
+        if ($this->state === self::STATE_DIRTY) {
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
@@ -296,7 +278,7 @@ class Query
 
         $this->result = $this->resultToGraph($this->result);
 
-        if (($hydrator = $this->newHydrator($hydratation)) != null) {
+        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
             $this->result = $hydrator->hydrateResources($options);
         }
 
@@ -306,7 +288,7 @@ class Query
     /**
      * @param $hydratation
      *
-     * @return AbstractHydrator
+     * @return AbstractHydrator|null
      */
     protected function newHydrator($hydratation)
     {
@@ -328,7 +310,7 @@ class Query
      *
      * @return string
      */
-    protected function getCompleteSparqlQuery()
+    public function getCompleteSparqlQuery()
     {
         $sparqlQuery = $this->getSparqlQuery();
 
@@ -338,11 +320,11 @@ class Query
 
         if ($this->type < QueryBuilder::INSERT) {
             if ($this->getOffset() >= 0) {
-                $sparqlQuery .= 'OFFSET '.strval($this->getOffset()).' ';
+                $sparqlQuery .= sprintf('OFFSET %s ', strval($this->getOffset()));
             }
 
             if ($this->getMaxResults() > 0) {
-                $sparqlQuery .= 'LIMIT '.strval($this->getMaxResults());
+                $sparqlQuery .= sprintf('LIMIT %s', strval($this->getMaxResults()));
             }
         }
 
@@ -420,7 +402,6 @@ class Query
 
     private function resultToGraph($result)
     {
-        //@todo fix this
         if ($result instanceof Graph) {
             return $result;
         }

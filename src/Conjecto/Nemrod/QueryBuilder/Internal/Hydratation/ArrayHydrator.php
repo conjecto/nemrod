@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -24,12 +25,9 @@ class ArrayHydrator extends AbstractHydrator
 
         $array = array();
 
-        //building array
+        //building array & registering resources
         foreach ($resources as $resource) {
             $array[$resource->getUri()] = $resource;
-        }
-
-        foreach ($resources as $resource) {
             $this->rm->getUnitOfWork()->registerResource($resource);
         }
 

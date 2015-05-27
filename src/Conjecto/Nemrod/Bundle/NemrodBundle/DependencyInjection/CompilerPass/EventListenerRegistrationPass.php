@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -40,6 +41,7 @@ class EventListenerRegistrationPass implements CompilerPassInterface
 
         //finding and registering listeners
         $listeners = $container->findTaggedServiceIds('nemrod.resource_event_listener');
+
         if (!empty($listeners)) {
             foreach ($dispatchers as $endPoint => $dispatcher) {
                 foreach ($listeners as $listId => $listenerTags) {
@@ -47,8 +49,13 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                     foreach ($listenerTags as $tag) {
                         if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
+                            ($dispatchers[$tag['endpoint']] === $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
+                            $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
+                        } elseif (!isset($tag['endpoint'])) {
+                            // if no endpoint is defined for listener, it is registered to all
+                            // dispatchers
+                            $def = $container->getDefinition($dispatcher);
                             $def->addMethodCall('addListener', array($tag['event'], array($listenerDef, $tag['method'])));
                         }
                     }
@@ -65,9 +72,14 @@ class EventListenerRegistrationPass implements CompilerPassInterface
                     foreach ($listenerTags as $tag) {
                         if (isset($tag['endpoint']) &&
                             isset($dispatchers[$tag['endpoint']]) &&
-                            ($dispatchers[$tag['endpoint']] == $dispatcher)) {
+                            ($dispatchers[$tag['endpoint']] === $dispatcher)) {
                             $def = $container->getDefinition($dispatchers[$tag['endpoint']]);
                             $def->addMethodCall('addsubscriber', array($listenerDef));
+                        } elseif (!isset($tag['endpoint'])) {
+                            // if no endpoint is defined for listener, it is registered to all
+                            // dispatchers
+                            $def = $container->getDefinition($dispatcher);
+                            $def->addMethodCall('addSubscriber', array($listenerDef));
                         }
                     }
                 }

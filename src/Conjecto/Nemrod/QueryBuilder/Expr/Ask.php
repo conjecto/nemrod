@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -9,8 +10,6 @@
  */
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
-
-use Conjecto\Nemrod\QueryBuilder\Expr\Base;
 
 class Ask extends Base
 {

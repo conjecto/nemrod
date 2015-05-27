@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -23,7 +24,6 @@ class RdfNamespaceRegistry
      */
     public function namespaces()
     {
-        //@todo cf. fisrt
         return RdfNamespace::namespaces();
     }
 

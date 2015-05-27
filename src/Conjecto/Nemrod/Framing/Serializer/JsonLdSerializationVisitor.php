@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -63,7 +64,7 @@ class JsonLdSerializationVisitor extends AbstractVisitor
     public function startVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
         if (!($data instanceof Resource) || ($data instanceof Graph)) {
-            throw new InvalidArgumentException("JsonLD can only serialize Resource ou Graph object.");
+            throw new InvalidArgumentException('JsonLD can only serialize Resource ou Graph object.');
         }
         $this->resource = $data;
         $this->frame = $context->attributes->get('frame')->getOrElse(null);
@@ -84,7 +85,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitProperty(PropertyMetadata $metadata, $data, Context $context)
     {
-        // TODO: Implement visitProperty() method.
     }
 
     /**
@@ -98,7 +98,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function endVisitingObject(ClassMetadata $metadata, $data, array $type, Context $context)
     {
-        // TODO: Implement endVisitingObject() method.
     }
 
     /**
@@ -108,7 +107,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function setNavigator(GraphNavigator $navigator)
     {
-        // TODO: Implement setNavigator() method.
     }
 
     /**
@@ -118,7 +116,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function getNavigator()
     {
-        // TODO: Implement getNavigator() method.
     }
 
     /**
@@ -129,7 +126,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitNull($data, array $type, Context $context)
     {
-        // TODO: Implement visitNull() method.
     }
 
     /**
@@ -140,7 +136,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitString($data, array $type, Context $context)
     {
-        // TODO: Implement visitString() method.
     }
 
     /**
@@ -151,7 +146,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitBoolean($data, array $type, Context $context)
     {
-        // TODO: Implement visitBoolean() method.
     }
 
     /**
@@ -162,7 +156,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitDouble($data, array $type, Context $context)
     {
-        // TODO: Implement visitDouble() method.
     }
 
     /**
@@ -173,7 +166,6 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitInteger($data, array $type, Context $context)
     {
-        // TODO: Implement visitInteger() method.
     }
 
     /**
@@ -184,6 +176,5 @@ class JsonLdSerializationVisitor extends AbstractVisitor
      */
     public function visitArray($data, array $type, Context $context)
     {
-        // TODO: Implement visitArray() method.
     }
 }

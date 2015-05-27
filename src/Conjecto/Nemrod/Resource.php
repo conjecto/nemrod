@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -35,7 +36,7 @@ class Resource extends BaseResource
     /**
      *
      */
-    const PROPERTY_PATH_SEPARATOR = "/";
+    const PROPERTY_PATH_SEPARATOR = '/';
 
     /**
      * @var Manager
@@ -47,7 +48,7 @@ class Resource extends BaseResource
      */
     public function __construct($uri = null, $graph = null)
     {
-        $uri = ($uri == null) ? 'e:-1' : $uri;
+        $uri = ($uri === null) ? 'e:-1' : $uri;
 
         return parent::__construct($uri, $graph);
     }
@@ -70,7 +71,7 @@ class Resource extends BaseResource
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
-                if ($res instanceof Resource && (!empty($this->_rm))) {
+                if ($res instanceof self && (!empty($this->_rm))) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
                 }
             }
@@ -84,7 +85,7 @@ class Resource extends BaseResource
                     $re = $this->_rm->find(null, $result->getUri());
                 }
                 if (!empty($re)) {
-                    if ($rest == '') {
+                    if ($rest === '') {
                         return $re;
                     }
 
@@ -120,7 +121,7 @@ class Resource extends BaseResource
             }
 
             return;
-        } elseif ($result instanceof Resource  && (!empty($this->_rm))) { //we get a resource
+        } elseif ($result instanceof self  && (!empty($this->_rm))) { //we get a resource
 
             try {
                 //"lazy load" part : we get the complete resource
@@ -131,7 +132,7 @@ class Resource extends BaseResource
                 }
 
                 if (!empty($re)) {
-                    if ($rest == '') {
+                    if ($rest === '') {
                         return $re;
                     }
                     //if rest of path is not empty, we get along it
@@ -154,9 +155,8 @@ class Resource extends BaseResource
     {
         $this->snapshot($property);
 
-        //echo $this->getUri()."-".$property.">".$value;
         //resource: check if managed (for further save
-        if ($value instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
         $out = parent::set($property, $value);
@@ -171,7 +171,7 @@ class Resource extends BaseResource
     {
         $this->snapshot();
         //resource: check if managed (for further save)
-        if ($property instanceof Resource && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+        if ($property instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($property);
         }
         $out = parent::add($property, $value);
@@ -214,12 +214,12 @@ class Resource extends BaseResource
     private function split($path)
     {
         $first = $path;
-        $rest = "";
+        $rest = '';
         $firstSep = strpos($path, $this::PROPERTY_PATH_SEPARATOR);
 
         if ($firstSep) {
             $first = substr($path, 0, $firstSep);
-            $rest = substr($path, $firstSep+1);
+            $rest = substr($path, $firstSep + 1);
         }
 
         return array($first, $rest);
@@ -238,7 +238,7 @@ class Resource extends BaseResource
         if (!empty($this->_rm) && !$this->isDirty) {
             $this->_rm->getUnitOfWork()->snapshot($this);
             $this->isDirty = true;
-            $this->_rm->getUnitOfWork()->setDirty($this->getUri());
+            $this->_rm->getUnitOfWork()->setDirty($this);
         }
     }
 

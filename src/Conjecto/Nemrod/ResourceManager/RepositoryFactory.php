@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -18,16 +19,12 @@ class RepositoryFactory
     /** @var  array $repositories */
     private $repositories;
 
-    /** @var  string $connectionName */
-    private $connectionName;
-
     /**
      *
      */
-    public function __construct($connectionName)
+    public function __construct()
     {
         $this->repositories = array();
-        $this->connectionName = $connectionName;
     }
 
     /**

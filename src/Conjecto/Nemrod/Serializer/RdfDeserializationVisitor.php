@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -19,14 +20,11 @@ use JMS\Serializer\scalar;
 
 /**
  * Class RdfDeserializationVisitor.
- *
- * @TODO
  */
 class RdfDeserializationVisitor extends AbstractVisitor
 {
     protected function decode($str)
     {
-        // TODO: Implement decode() method.
     }
 
     /**

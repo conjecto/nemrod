@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -27,6 +28,14 @@ interface PersisterInterface
      * @return mixed
      */
     public function constructSet(array $criteria, array $options);
+
+    /**
+     * @param array $criteria
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function constructOne(array $criteria, array $options);
 
     public function constructBNode($owningUri, $property);
 }

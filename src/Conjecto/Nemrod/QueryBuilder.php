@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -445,7 +446,7 @@ class QueryBuilder
     /**
      * Sets the maximum number of results to retrieve (the "limit").
      *
-     * @param integer $maxResults The maximum number of results to retrieve.
+     * @param int $maxResults The maximum number of results to retrieve.
      *
      * @return QueryBuilder This QueryBuilder instance.
      */
@@ -459,7 +460,7 @@ class QueryBuilder
     /**
      * Set distinct value.
      *
-     * @param boolean $distinct
+     * @param bool $distinct
      */
     public function setDistinct($distinct)
     {
@@ -471,7 +472,7 @@ class QueryBuilder
     /**
      * Sets the offset number of results to retrieve (the "offset").
      *
-     * @param integer $offset
+     * @param int $offset
      *
      * @return QueryBuilder This QueryBuilder instance.
      */
@@ -506,7 +507,7 @@ class QueryBuilder
     public function getQuery()
     {
         if (!$this->rm) {
-            throw new \InvalidArgumentException("You must provide a Manager to execute query.");
+            throw new \InvalidArgumentException('You must provide a Manager to execute query.');
         }
 
         return $this->rm->createQuery($this->getSparqlQuery())
@@ -676,7 +677,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify what you want to select');
         }
 
-        if ($this->type == self::DELETE) {
+        if ($this->type === self::DELETE) {
             $this->type = self::DELETE_INSERT;
         } else {
             $this->type = self::INSERT;
@@ -696,7 +697,7 @@ class QueryBuilder
      */
     protected function addDeleteToQuery($delete, $append)
     {
-        if ($this->type == self::INSERT) {
+        if ($this->type === self::INSERT) {
             $this->type = self::DELETE_INSERT;
         } else {
             $this->type = self::DELETE;
@@ -844,7 +845,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify which property you want to sort with');
         }
 
-        if ($this->offset == -1) {
+        if ($this->offset === -1) {
             $this->offset = 0;
         }
 
@@ -967,15 +968,15 @@ class QueryBuilder
      */
     protected function getSparqlQueryForDeleteInsert()
     {
-        $sparqlQuery = "";
+        $sparqlQuery = '';
 
-        if (($this->type == self::DELETE || $this->type == self::DELETE_INSERT) && count($this->getSparqlPart('delete')) == 0) {
-            $sparqlQuery .= "DELETE ";
+        if (($this->type === self::DELETE || $this->type === self::DELETE_INSERT) && count($this->getSparqlPart('delete')) === 0) {
+            $sparqlQuery .= 'DELETE ';
         } else {
             $sparqlQuery = $this->getReducedSparqlQueryPart('delete', array('pre' => 'DELETE { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
-        if ($this->type == self::INSERT || $this->type == self::DELETE_INSERT) {
+        if ($this->type === self::INSERT || $this->type === self::DELETE_INSERT) {
             $sparqlQuery .= $this->getReducedSparqlQueryPart('insert', array('pre' => 'INSERT { ', 'separator' => ' . ', 'post' => ' } '));
         }
 
@@ -998,7 +999,7 @@ class QueryBuilder
         $array['value'] = $this->getReducedSparqlQueryPart('value', array('pre' => 'VALUES ', 'separator' => '. ', 'post' => ' '));
 
         $concat = false;
-        $added = "";
+        $added = '';
         foreach ($array as $string) {
             if (!empty($string)) {
                 if ($concat) {
@@ -1014,8 +1015,8 @@ class QueryBuilder
             $added = ' . '.$added;
         }
 
-        if (count($this->getSparqlPart('where')) == 0 && !empty($added)) {
-            return 'WHERE { '.$added.' }';
+        if (count($this->getSparqlPart('where')) === 0 && !empty($added)) {
+            return sprintf('WHERE { %s }', $added);
         } else {
             return $this->getReducedSparqlQueryPart('where', array('pre' => 'WHERE { ', 'separator' => ' . ', 'post' => $added.' } '));
         }

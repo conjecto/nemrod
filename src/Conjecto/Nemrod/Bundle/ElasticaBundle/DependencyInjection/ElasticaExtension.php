@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -44,8 +45,6 @@ class ElasticaExtension extends Extension
     }
 
     /**
-     * @todo create appropriate services
-     *
      * @param array            $config
      * @param ContainerBuilder $container
      */

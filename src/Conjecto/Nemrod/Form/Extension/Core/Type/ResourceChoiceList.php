@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -72,7 +73,7 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $this->rm = $rm;
         $this->class = $class;
-        $this->queryBuilder = $queryBuilder == null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
+        $this->queryBuilder = $queryBuilder === null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -230,8 +231,8 @@ class ResourceChoiceList extends ObjectChoiceList
      *
      * @param mixed $entity The choice to create an index for
      *
-     * @return integer|string A unique index containing only ASCII letters,
-     *                        digits and underscores.
+     * @return int|string A unique index containing only ASCII letters,
+     *                    digits and underscores.
      */
     protected function createIndex($resource)
     {
@@ -247,7 +248,7 @@ class ResourceChoiceList extends ObjectChoiceList
      *
      * @param mixed $entity The choice to create a value for
      *
-     * @return integer|string A unique value without character limitations.
+     * @return int|string A unique value without character limitations.
      */
     protected function createValue($resource)
     {
@@ -260,7 +261,7 @@ class ResourceChoiceList extends ObjectChoiceList
     protected function fixIndex($index)
     {
         $index = parent::fixIndex($index);
-        $index = rtrim(base64_encode($index), "=");
+        $index = rtrim(base64_encode($index), '=');
 
         return $index;
     }
@@ -275,11 +276,6 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         try {
             $resources = (new NemrodQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
-
-//            for ($i = 1 ; $i <= count($resources) ; $i++) {
-//                echo 'replace';
-//                $resources[$i] = $this->rm->getUnitOfWork()->registerResource($resources[$i]);
-//            }
 
             // The second parameter $labels is ignored by ObjectChoiceList
             if ($resources) {

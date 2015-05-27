@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -91,5 +92,10 @@ class TypeMapperRegistry
      */
     public function onConsoleCommand()
     {
+    }
+
+    public function getPhpClasses()
+    {
+        return array_keys($this->rdfClasses);
     }
 }

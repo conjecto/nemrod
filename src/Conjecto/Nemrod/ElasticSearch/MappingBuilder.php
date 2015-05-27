@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -12,7 +13,6 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use Elastica\Exception\ResponseException;
 use Elastica\Type;
-use Elastica\Type\Mapping;
 
 /**
  * Class MappingBuilder builds a mapping for a given type.
@@ -46,7 +46,7 @@ class MappingBuilder
     {
         $mappingData = $this->configManager->getConfig($type, 'properties');
         if (!$mappingData) {
-            throw new \Exception("no mapping for type");
+            throw new \Exception('no mapping for type');
         }
 
         /** @var Type $typeObj */

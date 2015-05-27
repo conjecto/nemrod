@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -11,6 +12,7 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\ResourceManager\RepositoryFactory;
 use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Sparql\Client;
@@ -54,7 +56,7 @@ class Manager
     /**
      * @param RepositoryFactory $repositoryFactory
      */
-    public function __construct($repositoryFactory, $sparqlClientUrl)
+    public function __construct(RepositoryFactory $repositoryFactory, $sparqlClientUrl)
     {
         $this->repositoryFactory = $repositoryFactory;
         $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
@@ -102,7 +104,7 @@ class Manager
     {
         $type = TypeMapper::get($className);
         if (!$type) {
-            TypeMapper::set($className, "Conjecto\\Nemrod\\Resource");
+            TypeMapper::set($className, 'Conjecto\\Nemrod\\Resource');
         }
 
         return $this->repositoryFactory->getRepository($className, $this);
@@ -137,7 +139,7 @@ class Manager
      */
     public function getQueryBuilder()
     {
-        if ($this->qb == null) {
+        if ($this->qb === null) {
             $this->qb = $this->createQueryBuilder();
         }
         $this->qb->reset();
@@ -222,7 +224,7 @@ class Manager
     {
         $query = new Query($this);
 
-        if (! empty($sparqlQuery)) {
+        if (!empty($sparqlQuery)) {
             $query->setSparqlQuery($sparqlQuery);
         }
 
@@ -263,7 +265,7 @@ class Manager
     /**
      * @param $resource
      *
-     * @return boolean
+     * @return bool
      */
     public function isResource($resource)
     {

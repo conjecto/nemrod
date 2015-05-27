@@ -6,8 +6,11 @@ This service needs the resource to serialize and a JsonLd frame.
 
 You can specify a frame with different ways.
 
-You can use a file frame file like "@User/user.jsonld" :
+You can use a file frame file like "@User/user.jsonld". 
+With the specified value path '@User/user.jsonld', the file can be found at UserBundle/Resources/frames/user.jsonld.
 
+    use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
+    
     $jsonLd = $this->jsonLdSerializer->serialize($resource, "@User/user.jsonld");
 
 You can also specify a frame for a resource, a controller or an action.

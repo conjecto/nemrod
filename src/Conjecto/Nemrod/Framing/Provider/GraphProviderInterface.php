@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -19,10 +20,10 @@ use EasyRdf\Resource;
 interface GraphProviderInterface
 {
     /**
-     * @param Resource $resource
+     * @param Resource|Graph $resourceOrGraph
      * @param array    $frame
      *
      * @return Graph
      */
-    public function getGraph(Resource $resource, $frame = null);
+    public function getGraph($resourceOrGraph, $frame = null);
 }

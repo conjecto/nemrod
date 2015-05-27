@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -18,8 +19,9 @@ use Conjecto\Nemrod\ResourceManager\Event\ResourceLifeCycleEvent;
 use Conjecto\Nemrod\ResourceManager\Mapping\ClassMetadata;
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadata;
 use Conjecto\Nemrod\Resource as BaseResource;
+use Conjecto\Nemrod\Manager;
 use Doctrine\Common\Collections\ArrayCollection;
-use EasyRdf\Container;
+use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Literal;
 use EasyRdf\Graph;
@@ -37,10 +39,10 @@ class UnitOfWork
     /**
      * List of status for.
      */
-    const STATUS_TRIPLE_UNKNOWN = "unknown";
-    const STATUS_TRIPLE_ADDED = "added";
-    const STATUS_TRIPLE_REMOVED = "removed";
-    const STATUS_TRIPLE_UNCHANGED = "unchanged";
+    const STATUS_TRIPLE_UNKNOWN = 'unknown';
+    const STATUS_TRIPLE_ADDED = 'added';
+    const STATUS_TRIPLE_REMOVED = 'removed';
+    const STATUS_TRIPLE_UNCHANGED = 'unchanged';
 
     /**
      * registered resources.
@@ -87,13 +89,13 @@ class UnitOfWork
      * @param $manager
      * @param $clientUrl
      */
-    public function __construct($manager, $clientUrl)
+    public function __construct(Manager $manager, $clientUrl)
     {
         $this->_rm = $manager;
         $this->evd = $manager->getEventDispatcher();
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = new arrayCollection();
-        $this->initialSnapshots = new SnapshotContainer($this);//;Container('snapshots', new Graph('snapshots'));
+        $this->initialSnapshots = new SnapshotContainer($this);
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
         $this->uriCorrespondances = new arrayCollection();
@@ -103,25 +105,23 @@ class UnitOfWork
      * Register a resource to the list of.
      *
      * @param BaseResource $resource
-     * @param boolean      $fromStore
+     * @param bool         $fromStore
      *
      * @return \Conjecto\Nemrod\Resource|mixed|null
      */
-    public function registerResource($resource, $fromStore = true)
+    public function registerResource(BaseResource $resource, $fromStore = true)
     {
         if (!$this->isRegistered($resource)) {
             $resource->setRm($this->_rm);
-
-            $this->registeredResources[$resource->getUri()] = $resource;
+            $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+            $this->registeredResources[$uri] = $resource;
             if ($fromStore) {
-                //$this->initialSnapshots->takeSnapshot($resource);
                 $resource->setReady();
-                $this->status[$resource->getUri()] = self::STATUS_MANAGED;
+                $this->setStatus($resource, self::STATUS_MANAGED);
             }
 
             return $resource;
         } else {
-            //echo "registered<br />";
             $tmp = $this->retrieveResource($resource->getUri());
 
             return $tmp;
@@ -131,10 +131,11 @@ class UnitOfWork
     /**
      *
      */
-    public function setBNodes($uri, $property, $graph)
+    public function setBNodes($uri, $property, Graph $graph)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
         if (empty($this->registeredResources[$uri])) {
-            throw new Exception("no parent resource");
+            throw new Exception('no parent resource');
         }
         /** @var \Conjecto\Nemrod\Resource $owningResource */
         $owningResource = $this->registeredResources[$uri];
@@ -162,20 +163,23 @@ class UnitOfWork
     }
 
     /**
-     * @todo remove
-     * Tells if a resource is managed by current UnitOfWork
+     * Tells if a resource is managed by current UnitOfWork.
      *
      * @param $resource
      *
      * @return bool
      */
-    public function isRegistered($resource)
+    public function isRegistered(BaseResource $resource)
     {
-        return (method_exists($resource, 'getUri') && isset($this->registeredResources[$resource->getUri()]));
+        if (!method_exists($resource, 'getUri')) {
+            return false;
+        }
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        return isset($this->registeredResources[$uri]);
     }
 
     /**
-     * //@todo remove first parameter
      * Register a resource to the list of.
      *
      * @param $className
@@ -187,6 +191,8 @@ class UnitOfWork
      */
     public function retrieveResource($uri)
     {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
+
         if (!isset($this->registeredResources[$uri])) {
             return;
         }
@@ -237,15 +243,23 @@ class UnitOfWork
         return $this->persister->constructSet($criteria, $options);
     }
 
+    /**
+     * @param array $criteria
+     * @param array $options
+     *
+     * @return Collection|\EasyRdf\Collection|void
+     */
+    public function findOneBy(array $criteria, array $options)
+    {
+        return $this->persister->constructOne($criteria, $options);
+    }
+
     public function dumpRegistered()
     {
         echo $this->initialSnapshots->dump();
-        //echo $this->initialSnapshots->getGraph()->dump();
     }
 
     /**
-     * //@todo remove first parameter.
-     *
      * @param $className
      * @param BaseResource $resource
      *
@@ -254,23 +268,20 @@ class UnitOfWork
     public function persist(BaseResource $resource)
     {
         if (!empty($this->registeredResources[$resource->getUri()])) {
-            //@todo perform "ask" on db to check if resource is already there
-            //throw new Exception("Resource already exist");
         }
-        if (!isset($this->status[$resource->getUri()])) {
-            $this->status[$resource->getUri()] = self::STATUS_NEW;
+        if (!$this->getStatus($resource)) {
+            $this->setStatus($resource, self::STATUS_NEW);
         }
 
-        //@todo relevant do do this here ?
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        $this->registerResource($resource, $fromStore = false);
+        $this->registerResource($resource, false);
 
         //getting entities to be cascade persisted
         $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
         /** @var PropertyMetadata $pm */
         foreach ($metadata->propertyMetadata as $pm) {
-            if (is_array($pm->cascade) && in_array("persist", $pm->cascade)) {
+            if (is_array($pm->cascade) && in_array('persist', $pm->cascade)) {
                 $cascadeResources = $resource->allResources($pm->value);
 
                 foreach ($cascadeResources as $res2) {
@@ -292,16 +303,15 @@ class UnitOfWork
     /**
      * performing a diff between snaphshots and entities.
      */
-    public function commit()
+    public function commit($array = array())
     {
-        //$correspondances = array();
         $uris = array();
 
         //collecting
         $concernedResources = array();
         foreach ($this->registeredResources as $resource) {
-            //if (!isset($this->status[$resource->getUri()]) || ($this->status[$resource->getUri()] != self::STATUS_REMOVED)) {
-            if ($this->status[$resource->getUri()] == self::STATUS_NEW || $this->status[$resource->getUri()] == self::STATUS_DIRTY) {
+            $status = $this->getStatus($resource);
+            if ($status === self::STATUS_NEW || $status === self::STATUS_DIRTY) {
                 $concernedResources[$resource->getUri()] = $resource;
                 $uris[] = $resource->getUri();
             }
@@ -316,6 +326,7 @@ class UnitOfWork
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
             }
         }
+        $this->getSnapshotForResource($this->registeredResources, $array);
 
         $chSt = $this->diff(
             $this->getSnapshotForResource($this->registeredResources),
@@ -356,12 +367,11 @@ class UnitOfWork
                 $eventChangeSet[$uri]['insert'] = array();
             }
 
-            if (is_array($changes) && current(array_keys($changes)) == 'all') {
+            if (is_array($changes) && current(array_keys($changes)) === 'all') {
                 $eventChangeSet[$uri]['delete'] = 'all';
             } else {
                 $eventChangeSet[$uri]['delete'] = $this->shortenPropertiesUris($changes);
             }
-
         }
 
         foreach ($chSet[1] as $uri => $changes) {
@@ -400,16 +410,15 @@ class UnitOfWork
     /**
      * @param BaseResource $resource
      */
-    public function remove($resource)
+    public function remove(BaseResource $resource)
     {
         $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        //@todo look for uplinks for that resource + manage
         $this->snapshot($resource);
         $this->removeUplinks($resource);
 
-        if (isset($this->registeredResources[$resource->getUri()])) {
-            $this->status[$resource->getUri()] = $this::STATUS_REMOVED;
+        if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
+            $this->setStatus($resource, $this::STATUS_REMOVED);
         }
         $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
     }
@@ -456,16 +465,132 @@ class UnitOfWork
     /**
      * @param $uri
      *
-     * @return boolean
+     * @return bool
      */
     public function isManagementBlackListed($uri)
     {
         return ($this->blackListedResources->contains($uri));
     }
 
-    public function setDirty($uri)
+    /**
+     * @param BaseResource $resource
+     */
+    public function setDirty(BaseResource $resource)
     {
-        $this->status[$uri] = self::STATUS_DIRTY;
+        $this->setStatus($resource, self::STATUS_DIRTY);
+    }
+
+    /**
+     * provides a blank node uri for collections.
+     *
+     * @return string
+     */
+    public function nextBNode()
+    {
+        return '_:bn'.(++$this->bnodeCount);
+    }
+
+    /**
+     *
+     */
+    public function isManaged(BaseResource $resource)
+    {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        return (isset($this->registeredResources[$uri]));
+    }
+
+    /**
+     * @param Collection $coll
+     */
+    public function blackListCollection(Collection $coll)
+    {
+        //going to first element.
+        $coll->rewind();
+        $ptr = $coll;
+        $head = $ptr->get('rdf:first');
+        $next = $ptr->get('rdf:rest');
+
+        $this->managementBlackList($coll->getUri());
+        //putting all structure collection on a blacklist
+        while ($head) {
+            $this->managementBlackList($next->getUri());
+            $head = $next->get('rdf:first');
+            $next = $next->get('rdf:rest');
+        }
+
+        //and resetting pointer of collection
+        $coll->rewind();
+    }
+
+    /**
+     * @param $resource
+     *
+     * @return bool
+     */
+    public function isResource($resource)
+    {
+        return ($resource instanceof BaseResource);
+    }
+
+    /**
+     * @param $resource
+     *
+     * @return BaseResource
+     */
+    public function replaceResourceInstance(BaseResource $resource)
+    {
+        /** @var BaseResource $managedInstance */
+        $managedInstance = $this->retrieveResource($resource->getUri());
+
+        if (!$managedInstance) {
+            return $resource;
+        }
+
+        //getting all triples of new resource
+        $properties = $resource->properties();
+        foreach ($properties as $prop) {
+            $values = $resource->getGraph()->all($resource->getUri(), $prop);
+            foreach ($values as $value) {
+                //var_dump($managedInstance) ;
+                $status = $this->tripleStatus($managedInstance, $prop, $value);
+
+                //we have no trace of this triple. We can add it to resource AND snapshot
+                if (($status === self::STATUS_TRIPLE_UNKNOWN)) {
+                    $managedInstance->add($prop, $value);
+                    $this->initialSnapshots->add($resource->getUri(), $prop, $value);
+                }
+            }
+        }
+
+        return $managedInstance;
+    }
+
+    /**
+     * @param BaseResource $resource
+     * @param $status
+     */
+    private function setStatus(BaseResource $resource, $status)
+    {
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+
+        $this->status[$uri] = $status;
+    }
+
+    /**
+     * @param BaseResource $resource
+     */
+    private function getStatus($resource)
+    {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+        }
+        $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
+        if (isset($this->status[$uri])) {
+            return $this->status[$uri];
+        }
+
+        return;
     }
 
     /**
@@ -536,7 +661,7 @@ class UnitOfWork
                             if ($this->isManagementBlackListed($value['value'])) {
                                 continue;
                             }
-                            if (isset($this->status[$resource]) && $this->status[$resource] == self::STATUS_REMOVED) {
+                            if ($this->getStatus($resource) === self::STATUS_REMOVED) {
                                 $tmpMinus[$index]['all'] = array();
                             } elseif (!isset($rdfArray2[$resource]) ||
                                 empty($rdfArray2[$resource]) ||
@@ -574,20 +699,23 @@ class UnitOfWork
      */
     private function tripleStatus($resource, $property, $value)
     {
+        if (is_string($resource)) {
+            $resource = $this->retrieveResource($resource);
+        }
         $snapshotValues = $this->initialSnapshots->all($resource, $property);
         $resourceValues = $resource->all($resource, $property);
 
         $valueInSnapShot = false;
         foreach ($snapshotValues as $val) {
             $snapValue =  ($val instanceof Literal) ? $val->getValue() : $val['value'];
-            if (($value instanceof Literal) || $snapValue == $value['value']) {
+            if (($value instanceof Literal) || $snapValue === $value['value']) {
                 $valueInSnapShot = true;
             }
         }
 
         $valueInResource = false;
         foreach ($resourceValues as $val) {
-            if ($val['value'] == $value['value']) {
+            if ($val['value'] === $value['value']) {
                 $valueInResource = true;
             }
         }
@@ -608,65 +736,23 @@ class UnitOfWork
     }
 
     /**
-     * @param $resource
-     *
-     * @return bool
-     */
-    public function isResource($resource)
-    {
-        return ($resource instanceof BaseResource);
-    }
-
-    /**
-     * @param $resource
-     *
-     * @return BaseResource
-     */
-    public function replaceResourceInstance($resource)
-    {
-        /** @var BaseResource $managedInstance */
-        $managedInstance = $this->retrieveResource($resource->getUri());
-
-        if (!$managedInstance) {
-            return $resource;
-        }
-
-        //getting all triples of new resource
-        $properties = $resource->properties();
-        foreach ($properties as $prop) {
-            $values = $resource->getGraph()->all($resource->getUri(), $prop);
-            foreach ($values as $value) {
-                $status = $this->tripleStatus($managedInstance, $prop, $value);
-
-                //we have no trace of this triple. We can add it to resource AND snapshot
-                if (($status == self::STATUS_TRIPLE_UNKNOWN)) {
-                    $managedInstance->add($prop, $value);
-                    $this->initialSnapshots->add($resource->getUri(), $prop, $value);
-                }
-            }
-        }
-
-        return $managedInstance;
-    }
-
-    /**
      * @param $object
      * @param $objectsList
      *
-     * @return boolean
+     * @return bool
      */
     private function containsObject($object, $objectsList)
     {
         foreach ($objectsList as $obj) {
-            if ($obj['type'] == $object['type']) {
-                if ($obj['type'] == 'uri') {
+            if ($obj['type'] === $object['type']) {
+                if ($obj['type'] === 'uri') {
                     $objValue = ($this->_rm->getNamespaceRegistry()->shorten($obj['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($obj['value']) : $obj['value'];
                     $objectValue = ($this->_rm->getNamespaceRegistry()->shorten($object['value'])) ? $this->_rm->getNamespaceRegistry()->shorten($object['value']) : $object['value'];
 
-                    if ($objValue == $objectValue) {
+                    if ($objValue === $objectValue) {
                         return true;
                     }
-                } elseif ($obj['value'] == $object['value']) {
+                } elseif ($obj['value'] === $object['value']) {
                     return true;
                 }
             }
@@ -682,7 +768,7 @@ class UnitOfWork
      *
      * @return array
      */
-    private function getSnapshotForResource($resources)
+    private function getSnapshotForResource(\Traversable $resources, $array = array())
     {
         $snapshot = array();
         foreach ($resources as $resource) {
@@ -693,13 +779,17 @@ class UnitOfWork
                 $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
                 //getting snapshots also for blank nodes
+                if (!empty($bigSnapshot))
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                    return $bigSnapshot;
                     foreach ($values as $value) {
-                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] == 'bnode' && isset($bigSnapshot[$value['value']])) {
-                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
-                        }
+                        $array[] = $value['value'];
+//                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
+//                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
+//                        }
                     }
                 }
+                return $array;
             }
         }
 
@@ -723,20 +813,9 @@ class UnitOfWork
      *
      * @param $resource
      */
-    public function snapshot($resource)
+    public function snapshot(BaseResource $resource)
     {
         $this->initialSnapshots->takeSnapshot($resource);
-    }
-
-    /**
-     * Deletes resource from managed and snapshot.
-     *
-     * @param $resource
-     */
-    private function deleteSnapshotForResource($resource)
-    {
-        //iterating through graph
-        $this->initialSnapshots->removeSnapshot($resource);
     }
 
     /**
@@ -744,12 +823,12 @@ class UnitOfWork
      *
      * @param $resource
      */
-    private function removeUplinks($resource)
+    private function removeUplinks(BaseResource $resource)
     {
         /** @var Graph $result */
         $result = $this->_rm->createQueryBuilder()
-            ->construct("?s a ?t; ?p <".$resource->getUri().">")
-            ->where("?s a ?t; ?p <".$resource->getUri().">")
+            ->construct('?s a ?t; ?p <'.$resource->getUri().'>')
+            ->where('?s a ?t; ?p <'.$resource->getUri().'>')
             ->getQuery()
         ->execute();
 
@@ -758,7 +837,7 @@ class UnitOfWork
         foreach ($resources as $re) {
             $this->registerResource($re);
             foreach ($result->properties($re->getUri()) as $prop) {
-                if ($prop != "rdf:type") {
+                if ($prop !== 'rdf:type') {
                     $re->delete($prop);
                 }
             }
@@ -766,15 +845,13 @@ class UnitOfWork
     }
 
     /**
-     * @todo move?
-     *
      * @param $uri
      *
-     * @return boolean
+     * @return bool
      */
     public function isBNode($uri)
     {
-        if (substr($uri, 0, 2) == '_:') {
+        if (substr($uri, 0, 2) === '_:') {
             return true;
         } else {
             return false;
@@ -788,7 +865,7 @@ class UnitOfWork
      */
     private function generateURI($options = array())
     {
-        $prefix = (isset($options['prefix']) && $options['prefix'] != '') ? $options['prefix'] : "og_bd:";
+        $prefix = (isset($options['prefix']) && $options['prefix'] !== '') ? $options['prefix'] : 'og_bd:';
 
         return uniqid($prefix);
     }
@@ -806,46 +883,5 @@ class UnitOfWork
         $this->uriCorrespondances = new ArrayCollection();
 
         $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
-    }
-
-    /**
-     * provides a blank node uri for collections.
-     *
-     * @return string
-     */
-    public function nextBNode()
-    {
-        return "_:bn".(++$this->bnodeCount);
-    }
-
-    /**
-     *
-     */
-    public function isManaged(BaseResource $resource)
-    {
-        return (isset($this->registeredResources[$resource->getUri()]));
-    }
-
-    /**
-     * @param Collection $coll
-     */
-    public function blackListCollection($coll)
-    {
-        //going to first element.
-        $coll->rewind();
-        $ptr = $coll;
-        $head = $ptr->get('rdf:first');
-        $next = $ptr->get('rdf:rest');
-
-        $this->managementBlackList($coll->getUri());
-        //putting all structure collection on a blacklist
-        while ($head) {
-            $this->managementBlackList($next->getUri());
-            $head = $next->get('rdf:first');
-            $next = $next->get('rdf:rest');
-        }
-
-        //and resetting pointer of collection
-        $coll->rewind();
     }
 }

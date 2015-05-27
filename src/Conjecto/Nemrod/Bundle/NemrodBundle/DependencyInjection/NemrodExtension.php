@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -63,9 +64,6 @@ class NemrodExtension extends Extension
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
-
-        //register elastica indexes and mappings (done in function registerElasticaIndexes for now)
-        //$this->registerElasticaConfigsToManager($config, $container);
     }
 
     /**
@@ -95,7 +93,7 @@ class NemrodExtension extends Extension
                   isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'nemrod.sparql.connection.'.$name);
-            if ($name == $config["default_endpoint"]) {
+            if ($name === $config['default_endpoint']) {
                 $container->setAlias('sparql', 'nemrod.sparql.connection.'.$name);
             }
         }
@@ -112,15 +110,14 @@ class NemrodExtension extends Extension
         foreach ($config['endpoints'] as $name => $endpoint) {
 
             //repository factory
-            $container->setDefinition('nemrod.repository_factory.'.$name, new DefinitionDecorator('nemrod.repository_factory'))
-                ->setArguments(array($name));
+            $container->setDefinition('nemrod.repository_factory.'.$name, new DefinitionDecorator('nemrod.repository_factory'));
 
             //persister
             $container->setDefinition('nemrod.persister.'.$name, new DefinitionDecorator('nemrod.persister'))
                 ->setArguments(array($endpoint['query_uri']));
 
             $evd = $container->setDefinition('nemrod.resource_lifecycle_event_dispatcher.'.$name, new DefinitionDecorator('nemrod.resource_lifecycle_event_dispatcher'));
-            $evd->addTag('nemrod.event_dispatcher', array("endpoint" => $name));
+            $evd->addTag('nemrod.event_dispatcher', array('endpoint' => $name));
 
             $rm = $container->setDefinition('nemrod.resource_manager.'.$name, new DefinitionDecorator('nemrod.resource_manager'));
             $rm->setArguments(array(new Reference('nemrod.repository_factory.'.$name), $endpoint['query_uri']))
@@ -135,7 +132,7 @@ class NemrodExtension extends Extension
             $rm->addMethodCall('setLogger', array(new Reference('logger')));
 
             //setting main alias
-            if ($name == $config["default_endpoint"]) {
+            if ($name === $config['default_endpoint']) {
                 $container->setAlias('rm', 'nemrod.resource_manager.'.$name);
             }
         }
@@ -152,7 +149,6 @@ class NemrodExtension extends Extension
 
         // foreach bundle, get the rdf resource path
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
-            //@todo check mapping type (annotation is the only one used for now)
             // building resource dir path
             $refl = new \ReflectionClass($class);
             $path = pathinfo($refl->getFileName());

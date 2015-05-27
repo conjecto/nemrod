@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -23,7 +24,7 @@ class ClassMetadata extends MergeableClassMetadata
      */
     public $types = array();
 
-    public $uriPattern = "";
+    public $uriPattern = '';
 
     /**
      * @return array

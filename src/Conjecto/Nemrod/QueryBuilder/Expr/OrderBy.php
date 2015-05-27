@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -9,8 +10,6 @@
  */
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
-
-use Conjecto\Nemrod\QueryBuilder\Expr\Base;
 
 class OrderBy extends Base
 {
@@ -46,7 +45,7 @@ class OrderBy extends Base
      */
     public function add($sort, $order = null)
     {
-        if (strtoupper($order) != 'DESC') {
+        if (strtoupper($order) !== 'DESC') {
             $this->parts[] = $sort;
         } else {
             $this->parts[] = 'DESC('.$sort.')';

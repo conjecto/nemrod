@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -10,7 +11,6 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
-use Conjecto\Nemrod\QueryBuilder;
 use Conjecto\Nemrod\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -59,16 +59,7 @@ class Repository
     public function findBy(array $criterias, array $options = array())
     {
         //first add a type criteria if not found
-        if ($this->className) {
-            if (empty($criterias['rdf:type'])) {
-                $criterias['rdf:type'] = $this->className;
-            } elseif (is_array($criterias['rdfs:Class'])) {
-                $criterias['rdf:type'][] = $this->className;
-            } else {
-                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
-            }
-        }
-
+        $this->addClassCriterion($criterias);
         return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
     }
 
@@ -80,16 +71,8 @@ class Repository
      */
     public function findOneBy(array $criterias, array $options = array())
     {
-        $options['limit'] = 1;
-
-        $result = $this->findBy($criterias, $options);
-
-        if (count($result) == 0) {
-            return null;
-        }
-
-        reset($result);
-        return current($result);
+        $this->addClassCriterion($criterias);
+        return $this->_rm->getUnitOfWork()->findOneBy($criterias, $options);
     }
 
     /**
@@ -138,10 +121,27 @@ class Repository
         $qb = $this->_rm->createQueryBuilder();
         if ($this->className) {
             $qb->construct(
-                "?s a ".$this->className.". ?s ?p ?o"
-            )->where("?s a ".$this->className.". ?s ?p ?o");
+                '?s a '.$this->className.'. ?s ?p ?o'
+            )->where('?s a '.$this->className.'. ?s ?p ?o');
         }
 
         return $qb;
+    }
+
+    /**
+     * Adds current repo class criterion to finBy criteria array
+     * @param $criterias
+     */
+    private function addClassCriterion(&$criterias)
+    {
+        if ($this->className) {
+            if (empty($criterias['rdf:type'])) {
+                $criterias['rdf:type'] = new Resource($this->className);
+            } elseif (is_array($criterias['rdfs:Class'])) {
+                $criterias['rdf:type'][] = new Resource($this->className);
+            } else {
+                $criterias['rdf:type'] = array($criterias['rdf:type'] => new Resource ($this->className));
+            }
+        }
     }
 }

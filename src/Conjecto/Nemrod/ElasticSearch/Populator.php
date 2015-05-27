@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -32,7 +33,7 @@ class Populator
     protected $typeMapperRegistry;
 
     /** @var  @var JsonLdSerializer */
-    protected $jsonLdSerializer
+    protected $jsonLdSerializer;
 
     /**
      * @param $resourceManager
@@ -70,18 +71,15 @@ class Populator
                 $this->resetter->reset($key);
             }
             echo $key;
-            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct("?s a ".$key)->where("?s a ".$key)->getQuery()
+            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct('?s a '.$key)->where('?s a '.$key)->getQuery()
                 ->execute();
 
             $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
             /* @var Resource $add */
             foreach ($result->resources() as $res) {
-                //echo $res->getUri();
-                //echo "DEBUT";
                 $doc = $trans->transform($res->getUri(), $key);
                 if ($doc) {
-                    //var_dump($doc);
                     $this->typeRegistry->getType($key)->addDocument($doc, $key);
                 }
             }

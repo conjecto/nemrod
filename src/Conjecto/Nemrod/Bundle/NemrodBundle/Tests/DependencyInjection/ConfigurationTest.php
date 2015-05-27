@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Nemrod package.
  *
@@ -29,8 +30,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     {
         $tree = $this->configuration->getConfigTreeBuilder()->buildTree();
         $children = $tree->getChildren();
-
-        //var_dump($children);
 
         $this->assertArrayHasKey('namespaces', $children);
         $this->assertInstanceOf('Symfony\Component\Config\Definition\PrototypedArrayNode', $children['namespaces']);
