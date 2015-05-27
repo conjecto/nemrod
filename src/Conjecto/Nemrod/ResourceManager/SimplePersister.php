@@ -187,7 +187,22 @@ class SimplePersister implements PersisterInterface
                 $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
             }
         }
+
+        //binding uri if present
         $this->bindVariableAsUri($select, "?uri",$criteria);
+
+        if (isset($options['offset'])) {
+            $select->setOffset($options['offset']);
+        }
+
+        if (isset($options['orderBy'])) {
+            if ($options['orderBy'] == 'uri'){
+
+            } else {
+                $select->andWhere('?uri '.$options['orderBy']. ' ?orderingVar' );
+                $select->addOrderBy('?orderingVar');
+            }
+        }
 
         $select = $select->setMaxResults(isset($options['limit']) ?$options['limit'] : null)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
@@ -195,7 +210,8 @@ class SimplePersister implements PersisterInterface
         //getting whole "CONSTRUCT" query
         $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
             ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
-            ->andWhere('{'.$selectStr.'}');
+            ->andWhere('{'.$selectStr.'}')
+            ->setOffset(0);
 
         $result = $query->getQuery()->execute(Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
 

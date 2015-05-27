@@ -12,6 +12,8 @@
 namespace Conjecto\Nemrod\Bundle\ElasticaBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\ProgressHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -37,6 +39,10 @@ class PopulatorCommand extends ContainerAwareCommand
         }
         $type = $input->getArgument('type');
 
-        $this->getContainer()->get('nemrod.elastica.populator')->populate($type, $reset);
+        $options['slice'] = 10;
+
+        $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
+
+        $this->getContainer()->get('nemrod.elastica.populator')->populate($type, $reset, $options, $output);
     }
 }

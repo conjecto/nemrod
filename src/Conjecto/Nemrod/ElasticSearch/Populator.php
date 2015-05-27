@@ -14,6 +14,8 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Elastica\Type;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class Populator
 {
@@ -53,11 +55,13 @@ class Populator
     }
 
     /**
-     * Populates elastica index for a specific type.
-     *
-     * @param $type
+     * @param null $type
+     * @param bool $reset
+     * @param array $options
+     * @param ConsoleOutput $output
+     * @param bool $showProgress
      */
-    public function populate($type = null, $reset = true)
+    public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
         if ($type) {
             $types = array($type => $this->typeRegistry->getType($type));
@@ -65,25 +69,53 @@ class Populator
             $types = $this->typeRegistry->getTypes();
         }
 
+        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
+        $options['limit'] = $options['slice'];
+        $options['orderBy'] = 'uri';
         /** @var Type $typ */
         foreach ($types as $key => $typ) {
+            $output->writeln("populating " . $key);
             if ($reset) {
                 $this->resetter->reset($key);
             }
-            echo $key;
-            $result = $this->resourceManager->getRepository($key)->getQueryBuilder()->reset()->construct('?s a '.$key)->where('?s a '.$key)->getQuery()
+
+            $size = $this->resourceManager->getRepository($key)
+                ->getQueryBuilder()->reset()->select('(COUNT(DISTINCT ?instance) AS ?count)')->where('?instance a ' . $key)->getQuery()
                 ->execute();
-
-            $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
-
-            /* @var Resource $add */
-            foreach ($result->resources() as $res) {
-                $doc = $trans->transform($res->getUri(), $key);
-                if ($doc) {
-
-                    $this->typeRegistry->getType($key)->addDocument($doc, $key);
-                }
+            $size = current($size)->count->getValue();
+            $output->writeln($size . " entries");
+            if ($showProgress) {
+                $progress  = new ProgressBar($output, ceil($size/$options['slice']));
+                $progress->start();
+                $progress->setFormat('debug');
             }
+            $done = 0;
+            while ($done < $size) {
+                $options['offset'] = $done;
+                $result = $this->resourceManager->getRepository($key)->findBy(array(), $options);
+
+                /* @var Resource $add */
+                foreach ($result as $res) {
+                    $doc = $trans->transform($res->getUri(), $key);
+                    if ($doc) {
+                        $this->typeRegistry->getType($key)->addDocument($doc, $key);
+                    }
+                }
+                //advance
+                $done += $options['slice'];
+
+                //showing where we're at.
+                if ($showProgress) {
+                    if ($output->isDecorated() ) {
+                        $progress->advance();
+                    } else {
+                        $output->writeln("did ".$done." over (".count($result).") memory: ". memory_get_usage(true) );
+                    }
+                }
+                //flushing manager for mem usage
+                $this->resourceManager->flush();
+            }
+            $progress->finish();
         }
     }
 }
