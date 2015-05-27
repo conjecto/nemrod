@@ -25,8 +25,9 @@ class PopulatorCommand extends ContainerAwareCommand
     {
         $this
             ->setName('nemrod:elastica:populate')
-            ->setDescription('(Remise à zéro et) population des index elastica')
-            ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
+            ->setDescription('(Reset and) populate elastica indexes')
+            ->addArgument('type', InputArgument::OPTIONAL, 'target type')
+            ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 50)
             ->addOption('reset', null, InputOption::VALUE_NONE, 'reset index')
         ;
     }
@@ -39,7 +40,8 @@ class PopulatorCommand extends ContainerAwareCommand
         }
         $type = $input->getArgument('type');
 
-        $options['slice'] = 10;
+        $options['slice'] = $input->getOption('batch');
+
 
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
 

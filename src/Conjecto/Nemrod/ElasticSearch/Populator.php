@@ -14,6 +14,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Elastica\Type;
+use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -109,7 +110,7 @@ class Populator
                     if ($output->isDecorated() ) {
                         $progress->advance();
                     } else {
-                        $output->writeln("did ".$done." over (".count($result).") memory: ". memory_get_usage(true) );
+                        $output->writeln("did ".$done." over (".$size.") memory: ". Helper::formatMemory(memory_get_usage(true)) );
                     }
                 }
                 //flushing manager for mem usage
