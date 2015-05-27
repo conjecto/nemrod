@@ -93,15 +93,27 @@ class Populator
             $done = 0;
             while ($done < $size) {
                 $options['offset'] = $done;
-                $result = $this->resourceManager->getRepository($key)->findBy(array(), $options);
+                //$result = $this->resourceManager->getRepository($key)->findBy(array(), $options);
+                $result = $this->resourceManager->getRepository($key)
+                    ->getQueryBuilder()
+                    ->reset()
+                    ->select('?uri')->where('?uri a ' . $key)
+                    ->orderBy('?uri')
+                    ->setMaxResults($options['slice'])
+                    ->getQuery()
+                    ->execute();
 
+                $docs = array();
                 /* @var Resource $add */
                 foreach ($result as $res) {
-                    $doc = $trans->transform($res->getUri(), $key);
+                    //echo $res->uri->getUri();
+                    $doc = $trans->transform($res->uri->getUri(), $key);
+                    var_dump($doc);
                     if ($doc) {
-                        $this->typeRegistry->getType($key)->addDocument($doc, $key);
+                        $docs[] = $doc;
                     }
                 }
+                $this->typeRegistry->getType($key)->addDocuments($docs);
                 //advance
                 $done += $options['slice'];
 
