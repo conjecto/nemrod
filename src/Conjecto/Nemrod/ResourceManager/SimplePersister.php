@@ -197,7 +197,7 @@ class SimplePersister implements PersisterInterface
 
         if (isset($options['orderBy'])) {
             if ($options['orderBy'] == 'uri'){
-
+                $select->addOrderBy('?uri');
             } else {
                 $select->andWhere('?uri '.$options['orderBy']. ' ?orderingVar' );
                 $select->addOrderBy('?orderingVar');
