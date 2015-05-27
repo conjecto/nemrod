@@ -99,6 +99,7 @@ class Populator
                     ->reset()
                     ->select('?uri')->where('?uri a ' . $key)
                     ->orderBy('?uri')
+                    ->setOffset($done)
                     ->setMaxResults($options['slice'])
                     ->getQuery()
                     ->execute();
