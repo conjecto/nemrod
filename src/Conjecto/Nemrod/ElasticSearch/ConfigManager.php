@@ -17,13 +17,13 @@ namespace Conjecto\Nemrod\ElasticSearch;
 class ConfigManager
 {
     /**
-     * all types configs.
-     *
+     * all types configs
      * @var array
      */
     private $config;
 
     /**
+     * Set a mapping config for a type
      * @param $type
      * @param $data
      */
@@ -36,7 +36,45 @@ class ConfigManager
         $this->config[$type] = $data;
     }
 
-    function parseFrame($frame, &$properties) {
+    /**
+     * returns the [section (if provided) of a] config for a given type
+     *
+     * @param $type
+     * @param null $section
+     *
+     * @return $array|null
+     */
+    public function getConfig($type, $section = null)
+    {
+        if (!$section) {
+            if (!isset($this->config[$type])) {
+                return null;
+            }
+
+            return $this->config[$type];
+        }
+        if (!isset($this->config[$type][$section])) {
+            return null;
+        }
+
+        return $this->config[$type][$section];
+    }
+
+    /**
+     * Get mapped types
+     * @return array
+     */
+    public function getTypes()
+    {
+        return array_keys($this->config);
+    }
+
+    /**
+     * Get properties mapping
+     * @param $frame
+     * @param $properties
+     */
+    protected function parseFrame($frame, &$properties) {
         foreach ($frame as $key => $property) {
             if (substr($key, 0, 1) !== '@') {
                 if (!isset($property['@mapping'])) {
@@ -70,37 +108,5 @@ class ConfigManager
                 $this->parseFrame($property, $properties[$key]);
             }
         }
-    }
-
-    /**
-     * returns the [section (if provided) of a] config for a given type,.
-     *
-     * @param $type
-     * @param null $section
-     *
-     * @return $array|null
-     */
-    public function getConfig($type, $section = null)
-    {
-        if (!$section) {
-            if (!isset($this->config[$type])) {
-                return;
-            }
-
-            return $this->config[$type];
-        }
-        if (!isset($this->config[$type][$section])) {
-            return;
-        }
-
-        return $this->config[$type][$section];
-    }
-
-    /**
-     * @return array
-     */
-    public function getTypes()
-    {
-        return array_keys($this->config);
     }
 }
