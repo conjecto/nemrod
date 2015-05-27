@@ -108,7 +108,7 @@ class Populator
                 foreach ($result as $res) {
                     //echo $res->uri->getUri();
                     $doc = $trans->transform($res->uri->getUri(), $key);
-                    var_dump($doc);
+
                     if ($doc) {
                         $docs[] = $doc;
                     }
