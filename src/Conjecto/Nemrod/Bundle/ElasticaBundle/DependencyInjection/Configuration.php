@@ -43,45 +43,39 @@ class Configuration implements ConfigurationInterface
     private function addElasticaSearchConfigurationSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
-
             ->children()
             //clients
-            ->arrayNode('clients')//node 'clients' is
-            ->prototype('array')//an array containing all clients definitions
-            ->children() //children for each array entries
-            //->arrayNode('servers')//node 'servers' is
-            //->prototype('array') //an array containing definitions of all possible servers
-            #->children() //children for each array entries are
-            ->scalarNode('host')  // a 'host' (scalar) node
+                ->arrayNode('clients')//node 'clients' is
+                ->prototype('array')//an array containing all clients definitions
+                    ->children()//children for each array entries
+                        ->scalarNode('host')// a 'host' (scalar) node
+                        ->end()
+                        ->scalarNode('port')// a 'port' (scalar) node
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
-            ->scalarNode('port')// a 'port' (scalar) node
-            ->end()
-            ->end()
-            //->end()
-            //->end()
-            //->end()
-            ->end()
-            ->end()
-
             //indexes
             ->arrayNode('indexes')
-            ->prototype('array')
-            ->children()
-            ->scalarNode('client')
-            ->end()
-            ->arrayNode('types')
-            ->prototype('array')
-            ->children()
-            ->scalarNode('type')
-            ->end()
-            ->scalarNode('frame')
-            ->end()
-            ->append($this->getPropertiesNode())
-            ->end()
-            ->end()
-            ->end()->end()
-            ->end()
-            ->end()
+                ->defaultValue(array())
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('client')
+                            ->end()
+                            ->arrayNode('types')
+                            ->prototype('array')
+                                ->children()
+                                ->scalarNode('type')
+                                ->end()
+                                ->scalarNode('frame')
+                                ->end()
+                                    ->append($this->getPropertiesNode())
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
     }
 
