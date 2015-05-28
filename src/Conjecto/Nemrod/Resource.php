@@ -122,7 +122,6 @@ class Resource extends BaseResource
 
             return;
         } elseif ($result instanceof self  && (!empty($this->_rm))) { //we get a resource
-
             try {
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
@@ -248,5 +247,26 @@ class Resource extends BaseResource
     public function setReady()
     {
         $this->isReady = true;
+    }
+
+    /**
+     * Overloading ArrayAccess implementation methods
+     * @todo better existence check strategy
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return true;
+    }
+
+    /**
+     * Overloading ArrayAccess implementation methods
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
     }
 }
