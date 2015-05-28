@@ -24,7 +24,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
     {
         $config = $container->getExtensionConfig('elastica')[0];
         $jsonLdFrameLoader = $container->get('nemrod.jsonld.frame.loader.filesystem');
-        var_dump($config);
+
         foreach ($config['indexes'] as $name => $types) {
             $clientRef = new Reference('nemrod.elastica.client.'.$types['client']);
             $container

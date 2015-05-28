@@ -46,6 +46,7 @@ class Configuration implements ConfigurationInterface
             ->children()
             //clients
                 ->arrayNode('clients')//node 'clients' is
+                ->isRequired()
                 ->prototype('array')//an array containing all clients definitions
                     ->children()//children for each array entries
                         ->scalarNode('host')// a 'host' (scalar) node
@@ -57,7 +58,10 @@ class Configuration implements ConfigurationInterface
             ->end()
             //indexes
             ->arrayNode('indexes')
-                ->defaultValue(array())
+                ->validate()
+                    ->ifNull()
+                    ->thenEmptyArray()
+                ->end()
                     ->prototype('array')
                         ->children()
                             ->scalarNode('client')
