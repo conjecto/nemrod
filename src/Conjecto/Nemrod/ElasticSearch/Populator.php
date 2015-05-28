@@ -76,6 +76,7 @@ class Populator
         /** @var Type $typ */
         foreach ($types as $key => $typ) {
             $output->writeln("populating " . $key);
+
             if ($reset) {
                 $this->resetter->reset($key);
             }

@@ -28,20 +28,17 @@ class PopulatorCommand extends ContainerAwareCommand
             ->setDescription('(Reset and) populate elastica indexes')
             ->addArgument('type', InputArgument::OPTIONAL, 'target type')
             ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 50)
-            ->addOption('reset', null, InputOption::VALUE_NONE, 'reset index')
+            ->addOption('no-reset', null, InputOption::VALUE_NONE, 'populate without index reset')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $reset = false;
-        if ($input->getOption('reset')) {
-            $reset = true;
-        }
+        $reset = !$input->getOption('no-reset');
+
         $type = $input->getArgument('type');
 
         $options['slice'] = $input->getOption('batch');
-
 
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
 

@@ -41,16 +41,18 @@ class Resetter
     /**
      *
      */
-    public function reset($type = null)
+    public function reset($type = null, $output = null)
     {
         if (!$type) {
             $types = $this->configManager->getTypes();
-
-            /** @var Type $type */
-            foreach ($types as $type) {
-                $this->mappingBuilder->buildMapping($type);
-            }
         } else {
+            $types = array($type);
+        }
+        /** @var Type $type */
+        foreach ($types as $type) {
+            if ($output) {
+                $output->writeln("resetting ".$type);
+            }
             $this->mappingBuilder->buildMapping($type);
         }
     }

@@ -31,6 +31,6 @@ class ResetterCommand extends ContainerAwareCommand
     {
         $type = $input->getArgument('type');
 
-        $this->getContainer()->get('nemrod.elastica.resetter')->reset($type);
+        $this->getContainer()->get('nemrod.elastica.resetter')->reset($type, $output);
     }
 }
