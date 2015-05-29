@@ -152,7 +152,7 @@ class NemrodExtension extends Extension
             // building resource dir path
             $refl = new \ReflectionClass($class);
             $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'].'\\RdfResource\\';
+            $resourcePath = $path['dirname'] . DIRECTORY_SEPARATOR . 'RdfResource' . DIRECTORY_SEPARATOR;
             //adding dir path to driver known pathes
             if (is_dir($resourcePath)) {
                 $paths[$refl->getNamespaceName()] = $resourcePath;
