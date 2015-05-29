@@ -102,7 +102,11 @@ class ConfigManager
     {
         foreach ($properties as $name => &$property) {
             if (!isset($property['type'])) {
-                $property['type'] = 'string';
+                if(isset($property['properties'])) {
+                    $property['type'] = 'object';
+                } else {
+                    $property['type'] = 'string';
+                }
             }
             if (isset($property['properties'])) {
                 $this->fixProperties($property['properties']);
