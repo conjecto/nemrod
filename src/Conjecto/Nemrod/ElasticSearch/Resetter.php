@@ -43,6 +43,7 @@ class Resetter
      */
     public function reset($type = null, $output = null)
     {
+
         if (!$type) {
             $types = $this->configManager->getTypes();
         } else {
@@ -53,6 +54,10 @@ class Resetter
             if ($output) {
                 $output->writeln("resetting ".$type);
             }
+            //creating index if not exists
+            $this->mappingBuilder->createIndexIfNotExists($type);
+
+            //building type mapping
             $this->mappingBuilder->buildMapping($type);
         }
     }

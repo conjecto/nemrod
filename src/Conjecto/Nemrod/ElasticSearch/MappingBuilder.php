@@ -61,4 +61,17 @@ class MappingBuilder
 
         return $typeObj->getMapping();
     }
+
+    /**
+     * @param $type
+     */
+    public function createIndexIfNotExists($type)
+    {
+        $typeObj = $this->typeRegistry->getType($type);
+
+        if (!$typeObj->getIndex()->exists()) {
+            $typeObj->getIndex()->create();
+        }
+    }
+
 }
