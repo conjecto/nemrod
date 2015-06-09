@@ -194,7 +194,15 @@ class UnitOfWork
         $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
 
         if (!isset($this->registeredResources[$uri])) {
-            return;
+
+            //trying to find the resource through its bnode
+            if (!$this->isBNode($uri)) {
+                $uri = $this->uriCorrespondances->indexOf($uri);
+            }
+
+            if (!$uri || !isset($this->registeredResources[$uri])) {
+                return;
+            }
         }
 
         return $this->registeredResources[$uri];
@@ -863,7 +871,7 @@ class UnitOfWork
      *
      * @return string
      */
-    private function generateURI($options = array())
+    public function generateURI($options = array())
     {
         $prefix = (isset($options['prefix']) && $options['prefix'] !== '') ? $options['prefix'] : 'og_bd:';
 
