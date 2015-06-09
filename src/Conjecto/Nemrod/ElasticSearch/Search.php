@@ -399,6 +399,11 @@ class Search
      */
     public function handleRequest(Request $request)
     {
+        $query = $request->get('query');
+        if ($query) {
+            $this->handleRequestBody($request);
+        }
+
         // keywords
         $keywords = $request->get('keywords');
         if ($keywords) {
@@ -577,6 +582,7 @@ class Search
     {
         // handle query
         $query = $this->getQuery();
+
         $resultSet = $this->searchable->search($query);
         $fields = $this->getFields();
 
