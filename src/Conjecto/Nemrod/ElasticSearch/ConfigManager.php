@@ -22,6 +22,8 @@ class ConfigManager
      */
     private $config;
 
+    private $indexConfig;
+
     /**
      * Skip adding default information to certain fields.
      * @var array
@@ -42,6 +44,25 @@ class ConfigManager
         $data['properties'] = $properties;
         $this->config[$type] = $data;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getIndexConfig($index)
+    {
+        if (!isset($this->indexConfig[$index])) return;
+        return $this->indexConfig[$index];
+    }
+
+    /**
+     * @param mixed $indexConfig
+     */
+    public function setIndexConfig($index, $config)
+    {
+        $this->indexConfig[$index] = $config;
+    }
+
+
 
     /**
      * returns the [section (if provided) of a] config for a given type
@@ -85,6 +106,7 @@ class ConfigManager
         foreach ($frame as $key => $property) {
             if (substr($key, 0, 1) !== '@') {
                 $mapping[$key] = isset($property['@mapping']) ? $property['@mapping'] : array();
+
                 if (is_array($property)) {
                     $this->parseFrame($property, $mapping[$key]['properties']);
                 }

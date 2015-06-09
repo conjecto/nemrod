@@ -66,6 +66,7 @@ class Configuration implements ConfigurationInterface
                         ->children()
                             ->scalarNode('client')
                             ->end()
+                            ->variableNode('settings')->defaultValue(array())->end()
                             ->arrayNode('types')
                             ->prototype('array')
                                 ->children()
