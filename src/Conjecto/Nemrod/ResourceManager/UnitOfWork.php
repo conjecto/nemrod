@@ -449,7 +449,7 @@ class UnitOfWork
 
         /** @var BaseResource $resource */
         $resource = new $className($this->nextBNode(), new Graph());
-        $resource->setType($type);
+        $resource->addType($type);
         $resource->setRm($this->_rm);
 
         //storing resource in temp resources array
