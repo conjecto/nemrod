@@ -115,6 +115,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      */
     protected function fillWhere($frame, $qb)
     {
+        $constructUnionWhere = array('');
         foreach ($frame as $prop => $val) {
             if ($prop === '@type') {
                 $qb->andWhere("?uri a " . $val);
@@ -123,8 +124,11 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             // union for optional trick
             if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                 $uriChild = '?c' . (++$this->varCounter);
-                $qb->addUnion(array('', "?uri $prop " . $this->addChild($val, $uriChild)));
+                $constructUnionWhere[] =  "?uri $prop " . $this->addChild($val, $uriChild);
             }
+        }
+        if(count($constructUnionWhere) > 1){
+            $qb->addUnion($constructUnionWhere);
         }
     }
 
@@ -189,66 +193,20 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             return $uriChild;
         } else {
             $stringedChild = $uriChild.'.';
-
+            $firstProperty = ' {}'; // first open solution to simulate optional
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild.' '.$uriChild.' a '.$val;
+                    $stringedChild = $stringedChild.' '.$uriChild.' a '.$val.' .';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
-                    $stringedChild = $stringedChild.' {} UNION {'.$uriChild.' '.$prop.' '.$this->addChild($val, $uriChildOfChild).'} ';
+                    $stringedChild = $stringedChild.$firstProperty.' UNION {' . $uriChild . ' ' . $prop . ' ' . $this->addChild($val, $uriChildOfChild) . '}';
+                    $firstProperty = '';
                 }
             }
 
             return $stringedChild;
-        }
-    }
-
-    /**
-     * @param $uri
-     * @param $type
-     * @param $frame
-     *
-     * @return null|string
-     */
-    protected function createUnionPart($uri, $type, $frame)
-    {
-        // each found must show the path  "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type "
-        // if not found return null, { path1 } UNION ( path2 }  ... if some found
-        // must parse all the frame and contruct by pop and push the request part, when found one add to rez and continue
-
-        $this->onePossiblePlace = [];
-        $buildingUnion = '?s a '.$frame['@type'];
-
-        foreach ($frame as $prop => $val) {
-            // union for optional trick
-            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
-                $this->checkDeeper($uri, $type, $val, $buildingUnion.'; '.$prop);
-            }
-        }
-
-        return (count($this->onePossiblePlace)) ? '{ '.implode(' } UNION { ', $this->onePossiblePlace).' }' : null;
-    }
-
-    /**
-     * @param $uri
-     * @param $type
-     * @param $frame
-     * @param $buildingUnion
-     */
-    protected function checkDeeper($uri, $type, $frame, $buildingUnion)
-    {
-        foreach ($frame as $prop => $val) {
-            if ($prop === '@type') {
-                if ($val == $type) {
-                    $this->onePossiblePlace[] = $buildingUnion.' '.$uri.' .';
-                }
-            }
-            // union for optional trick
-            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
-                $this->checkDeeper($uri, $type, $val, $buildingUnion.'/'.$prop);
-            }
         }
     }
 }
