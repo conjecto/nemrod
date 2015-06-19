@@ -22,6 +22,9 @@ class ConfigManager
      */
     private $config;
 
+    /**
+     * @var array
+     */
     private $indexConfig;
 
     /**
@@ -95,6 +98,15 @@ class ConfigManager
     public function getTypes()
     {
         return array_keys($this->config);
+    }
+
+    /**
+     * returns all known indexes
+     * @return mixed
+     */
+    public function getIndexes()
+    {
+        return $this->indexConfig;
     }
 
     /**

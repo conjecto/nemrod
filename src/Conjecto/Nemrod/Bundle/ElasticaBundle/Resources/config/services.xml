@@ -36,6 +36,7 @@
         <service id="nemrod.elastica.resetter" class="%nemrod.elastica_resetter.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.mapping_builder"/>
+            <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
         <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%" />
         <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
