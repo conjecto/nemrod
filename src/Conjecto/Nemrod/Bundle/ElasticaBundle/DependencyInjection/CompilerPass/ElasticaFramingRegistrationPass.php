@@ -27,15 +27,6 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
         $confManager = $container->getDefinition('nemrod.elastica.config_manager');
 
         foreach ($config['indexes'] as $name => $types) {
-            $clientRef = new Reference('nemrod.elastica.client.'.$types['client']);
-            $container
-                ->setDefinition('nemrod.elastica.index.'.$name, new DefinitionDecorator('nemrod.elastica.index'))
-                ->setArguments(array($clientRef, $name))
-                ->addTag('nemrod.elastica.name', array('name' => $name));
-
-            if (isset($types['settings']['index'])) {
-                $confManager->addMethodCall('setIndexConfig', array($name, $types['settings']));
-            }
 
             foreach ($types['types'] as $typeName => $settings) {
                 $frame = $jsonLdFrameLoader->load($settings['frame']);

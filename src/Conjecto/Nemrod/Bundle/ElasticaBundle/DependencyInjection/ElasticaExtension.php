@@ -50,6 +50,25 @@ class ElasticaExtension extends Extension
      */
     public function registerElasticaIndexes(array $config, ContainerBuilder $container)
     {
+
+        $confManager = $container->getDefinition('nemrod.elastica.config_manager');
+
+        foreach ($config['indexes'] as $name => $types) {
+            $clientRef = new Reference('nemrod.elastica.client.' . $types['client']);
+            $container
+                ->setDefinition('nemrod.elastica.index.' . $name, new DefinitionDecorator('nemrod.elastica.index'))
+                ->setArguments(array($clientRef, $name))
+                ->addTag('nemrod.elastica.name', array('name' => $name));
+
+            if (isset($types['settings']['index'])) {
+                $confManager->addMethodCall('setIndexConfig', array($name, $types['settings']));
+            }
+
+            $indexRegistry = $container->getDefinition('nemrod.elastica.index_registry');
+            $indexRegistry->addMethodCall('registerIndex', array($name, new Reference('nemrod.elastica.index.' . $name)));
+
+        }
+
         foreach ($config['clients'] as $name => $client) {
             $container
                 ->setDefinition('nemrod.elastica.client.'.$name, new DefinitionDecorator('nemrod.elastica.client'))

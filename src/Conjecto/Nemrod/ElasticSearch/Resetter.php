@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
+use Elastica\Index;
 use Elastica\Type;
 
 /**
@@ -28,14 +29,17 @@ class Resetter
      */
     private $mappingBuilder;
 
+    private $typeRegistry;
+
     /**
      * @param $configManager
      * @param $mappingBuilder
      */
-    public function __construct($configManager, $mappingBuilder)
+    public function __construct($configManager, $mappingBuilder, $typeRegistry)
     {
         $this->configManager = $configManager;
         $this->mappingBuilder = $mappingBuilder;
+        $this->typeRegistry = $typeRegistry;
     }
 
     /**
@@ -60,5 +64,29 @@ class Resetter
             //building type mapping
             $this->mappingBuilder->buildMapping($type);
         }
+    }
+
+    /**
+     * @param $index
+     * @param null $output
+     */
+    public function resetIndex($index, $output = null)
+    {
+        /** @var Index $index */
+        $indexObj = $this->typeRegistry->getIndex($index);
+
+
+        $indexObj->close();
+
+        if (!$indexObj->exists()) {
+            $indexObj->create();
+        } else {
+            $indexObj->close();
+        }
+
+        $config = $this->configManager->getIndexConfig($index);
+        $indexObj->setSettings($config);
+
+        $indexObj->open();
     }
 }

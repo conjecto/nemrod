@@ -14,6 +14,7 @@ namespace Conjecto\Nemrod\Bundle\ElasticaBundle\Command;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ResetterCommand extends ContainerAwareCommand
@@ -22,15 +23,33 @@ class ResetterCommand extends ContainerAwareCommand
     {
         $this
             ->setName('nemrod:elastica:reset')
-            ->setDescription('Remise à zéro des index elastica')
-            ->addArgument('type', InputArgument::OPTIONAL, 'type cible')
+            ->setDescription('Resetting elastica types/indexes')
+            ->addOption('index', null, InputOption::VALUE_OPTIONAL, 'The index to reset')
+            ->addOption('type', null, InputOption::VALUE_OPTIONAL, 'The type to reset')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Force index deletion if same name as alias');
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $type = $input->getArgument('type');
+        $index = $input->getOption('index');
+        $type = $input->getOption('type');
+        $force = (bool) $input->getOption('force');
 
-        $this->getContainer()->get('nemrod.elastica.resetter')->reset($type, $output);
+        if (null !== $type) {
+            $output->writeln(sprintf('<info>Resetting</info> <comment>%s/%s</comment>', $index, $type));
+            $this->getContainer()->get('nemrod.elastica.resetter')->reset($type, $output);
+        } else {
+            $indexes = null === $index
+                ? array_keys($this->getContainer()->get('nemrod.elastica.config_manager')->getIndexes())
+                : array($index)
+            ;
+            foreach ($indexes as $index) {
+                $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
+                $this->getContainer()->get('nemrod.elastica.resetter')->resetIndex($index, false, $force);
+            }
+        }
+
+
     }
 }
