@@ -12,6 +12,24 @@
             "email": "contact@conjecto.com"
         }
     ],
+    "repositories" : [
+      {
+        "type": "package",
+        "package": {
+          "name": "conjecto/json-ld",
+          "version": "1.1",
+          "source": {
+            "type" : "git",
+            "url" : "git@github.com:conjecto/JsonLD.git",
+            "reference" : "1.1"
+          },
+          "dist": {
+            "url": "https://github.com/conjecto/JsonLD/archive/master.zip",
+            "type": "zip"
+          }
+        }
+      }
+    ],
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
@@ -34,23 +52,5 @@
             "Conjecto\\Nemrod\\": "src/Conjecto/Nemrod/"
         }
     },
-    "repositories" : [
-        {
-            "type": "package",
-            "package": {
-                "name": "conjecto/json-ld",
-                "version": "1.1",
-                "source": {
-                    "type" : "git",
-                    "url" : "git@github.com:conjecto/JsonLD.git",
-                    "reference" : "1.1"
-                },
-                "dist": {
-                    "url": "https://github.com/conjecto/JsonLD/archive/master.zip",
-                    "type": "zip"
-                }
-            }
-        }
-    ],
     "minimum-stability": "stable"
 }
