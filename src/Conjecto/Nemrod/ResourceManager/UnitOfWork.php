@@ -185,7 +185,6 @@ class UnitOfWork
      * @param $className
      * @param $uri
      *
-     * @internal param Resource $resource
      *
      * @return mixed|null
      */
@@ -275,10 +274,14 @@ class UnitOfWork
      */
     public function persist(BaseResource $resource)
     {
-        if (!empty($this->registeredResources[$resource->getUri()])) {
-        }
         if (!$this->getStatus($resource)) {
             $this->setStatus($resource, self::STATUS_NEW);
+
+            if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
+                /** @var ClassMetadata $metadata */
+                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
+                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+            }
         }
 
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
@@ -306,6 +309,8 @@ class UnitOfWork
             }
         }
         $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
+        return $this->uriCorrespondances[$resource->getUri()];
     }
 
     /**
@@ -328,7 +333,7 @@ class UnitOfWork
         /** @var BaseResource $resource */
         foreach ($concernedResources as $resource) {
             //generating an uri if resource is a blank node
-            if ($resource->isBNode()) {
+            if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
                 /** @var ClassMetadata $metadata */
                 $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
