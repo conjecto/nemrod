@@ -381,6 +381,7 @@ class Search
      */
     private function prepareRawQuery($query)
     {
+
         foreach ($query as $key => $value) {
             if ($key === 'reverse_nested') {
                 // force object for empty reverse_nested
@@ -571,6 +572,15 @@ class Search
         }
 
         $this->addAggregation($aggregation);
+    }
+
+    /**
+     * @param $field
+     * @param $value
+     */
+    public function setMatch($field, $value)
+    {
+        $this->query->setRawQuery(array ("query" => array("match" => array($field => $value))));
     }
 
     /**

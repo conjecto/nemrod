@@ -199,10 +199,11 @@ class Manager
 
     /**
      * @param Resource $resource
+     * @return the new uri of the resource.
      */
     public function persist(Resource $resource)
     {
-        $this->getUnitOfWork()->persist($resource);
+        return $this->getUnitOfWork()->persist($resource);
     }
 
     /**
