@@ -84,6 +84,12 @@ class Populator
             $size = $this->resourceManager->getRepository($key)
                 ->getQueryBuilder()->reset()->select('(COUNT(DISTINCT ?instance) AS ?count)')->where('?instance a ' . $key)->getQuery()
                 ->execute();
+				
+			// no object in triplestore
+            if (!current($size)) {
+                continue;
+            }
+				
             $size = current($size)->count->getValue();
             $output->writeln($size . " entries");
             if ($showProgress) {

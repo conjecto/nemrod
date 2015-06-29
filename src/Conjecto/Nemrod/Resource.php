@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod;
 
+use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadataAccessor;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -34,6 +35,11 @@ class Resource extends BaseResource
     protected $isDirty = false;
 
     /**
+     * @var PropertyMetadataAccessor
+     */
+    protected $propertyMetadataAccessor;
+
+    /**
      *
      */
     const PROPERTY_PATH_SEPARATOR = '/';
@@ -49,6 +55,7 @@ class Resource extends BaseResource
     public function __construct($uri = null, $graph = null)
     {
         $uri = ($uri === null) ? 'e:-1' : $uri;
+        $this->propertyMetadataAccessor = new PropertyMetadataAccessor();
 
         return parent::__construct($uri, $graph);
     }
@@ -112,8 +119,15 @@ class Resource extends BaseResource
     {
         list($first, $rest) = $this->split($property);
 
-        //first trrying to get first step value
+        //first trying to get first step value
         $result = parent::get($first, $type, $lang);
+        // if getProperty method is defined in RdfResource
+        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
+            $this->$key = $result;
+            if ($this->propertyMetadataAccessor->isReadable($this, $key)) {
+                $result = $this->propertyMetadataAccessor->getValue($this, $key);
+            }
+        }
 
         if (is_array($result)) {
             if (count($result)) {
@@ -157,6 +171,14 @@ class Resource extends BaseResource
         //resource: check if managed (for further save
         if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
+        }
+
+        // if setProperty method is defined in RdfResource
+        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
+            if ($this->propertyMetadataAccessor->isWritable($this, $key)) {
+                $this->propertyMetadataAccessor->setValue($this, $key, $value);
+                $value = $this->$key;
+            }
         }
         $out = parent::set($property, $value);
 

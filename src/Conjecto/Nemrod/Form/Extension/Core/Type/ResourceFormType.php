@@ -27,15 +27,15 @@ class ResourceFormType extends FormType
     /**
      * @var RdfNamespaceRegistry
      */
-    protected $nsRegistry;
+    protected $rm;
 
     /**
-     * @param RdfNamespaceRegistry      $nsRegistry
+     * @param Manager      $rm
      * @param PropertyAccessorInterface $propertyAccessor
      */
-    public function __construct(Manager $nsRegistry, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct(Manager $rm, PropertyAccessorInterface $propertyAccessor = null)
     {
-        $this->nsRegistry = $nsRegistry;
+        $this->rm = $rm;
         parent::__construct($propertyAccessor);
     }
 
