@@ -866,7 +866,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify which property you want to group by');
         }
 
-        $groupBy = new GroupBy([$groupBy]);
+        $groupBy = new QueryBuilder\Expr\GroupBy([$groupBy]);
 
         return $this->add('groupBy', $groupBy, $append);
     }
