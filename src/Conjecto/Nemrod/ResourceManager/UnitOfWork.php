@@ -281,6 +281,9 @@ class UnitOfWork
                 /** @var ClassMetadata $metadata */
                 $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+            } else if (isset($this->uriCorrespondances[$resource->getUri()])) {
+                //if uri is already set, we return it and stop everything
+                return $this->uriCorrespondances[$resource->getUri()];
             }
         }
 
