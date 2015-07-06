@@ -69,6 +69,11 @@ class MappingBuilder
     {
         $typeObj = $this->typeRegistry->getType($type);
 
+        $index = $typeObj->getIndex();
+        if (!$index) {
+            throw new \Exception('type is not known to Nemrod!');
+        }
+
         if (!$typeObj->getIndex()->exists()) {
             $typeObj->getIndex()->create();
         }
