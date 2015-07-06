@@ -121,7 +121,13 @@ class Populator
                         $docs[] = $doc;
                     }
                 }
-                $this->typeRegistry->getType($key)->addDocuments($docs);
+                if (count ($docs)) {
+                    $this->typeRegistry->getType($key)->addDocuments($docs);
+                } else {
+                    $output->writeln("");
+                    $output->writeln("nothing to index");
+                }
+
                 //advance
                 $done += $options['slice'];
 
