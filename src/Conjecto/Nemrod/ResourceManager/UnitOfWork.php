@@ -275,6 +275,7 @@ class UnitOfWork
     public function persist(BaseResource $resource)
     {
         $status = $this->getStatus($resource);
+        //nothing to do for an already managed resource. just returning uri
         if ($status == self::STATUS_MANAGED) {
             return $resource->getUri();
         }
@@ -286,7 +287,7 @@ class UnitOfWork
                 $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
             } else if (isset($this->uriCorrespondances[$resource->getUri()])) {
-                //if uri is already set, we return it and stop everything
+                //if uri is already set, we stop everything and return it.
                 return $this->uriCorrespondances[$resource->getUri()];
             }
         }
