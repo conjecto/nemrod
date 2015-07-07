@@ -274,7 +274,11 @@ class UnitOfWork
      */
     public function persist(BaseResource $resource)
     {
-        if (!$this->getStatus($resource)) {
+        $status = $this->getStatus($resource);
+        if ($status == self::STATUS_MANAGED) {
+            return $resource->getUri();
+        }
+        else if (!$status) {
             $this->setStatus($resource, self::STATUS_NEW);
 
             if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
