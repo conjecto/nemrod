@@ -132,18 +132,19 @@ class ConfigManager
      *
      * @param $properties
      */
-    protected function fixProperties(&$properties)
+    protected function fixProperties(&$properties, $top = true)
     {
         foreach ($properties as $name => &$property) {
             if (!isset($property['type'])) {
                 if(isset($property['properties'])) {
                     $property['type'] = 'object';
+                    $property['properties']['_id'] = array("store" => true, "type" => "string", "index" => "not_analyzed");
                 } else {
                     $property['type'] = 'string';
                 }
             }
             if (isset($property['properties'])) {
-                $this->fixProperties($property['properties']);
+                $this->fixProperties($property['properties'], false);
             }
             if (in_array($property['type'], $this->skipTypes)) {
                 continue;
@@ -151,6 +152,9 @@ class ConfigManager
             if (!isset($property['store'])) {
                 $property['store'] = true;
             }
+
         }
+
+
     }
 }
