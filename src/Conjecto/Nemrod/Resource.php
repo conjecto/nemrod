@@ -78,6 +78,7 @@ class Resource extends BaseResource
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
+
                 if ($res instanceof self && (!empty($this->_rm))) {
                     $llResult[] = $this->_rm->find(null, $res->getUri());
                 }
@@ -140,6 +141,7 @@ class Resource extends BaseResource
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                    $re->setRm($this->_rm);
                 } else {
                     $re = $this->_rm->find(null, $result->getUri());
                 }
