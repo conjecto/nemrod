@@ -902,6 +902,7 @@ class UnitOfWork
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
         $this->uriCorrespondances = new ArrayCollection();
+        $this->status = new ArrayCollection();
 
         $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
     }
