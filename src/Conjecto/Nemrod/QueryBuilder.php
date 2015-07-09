@@ -707,7 +707,7 @@ class QueryBuilder
             return $this;
         }
 
-        if (strstr($delete, '[') || strstr($delete, ']') || strstr($delete, '_:')) {
+        if (substr($delete, 0, 2) == '_:') {
             throw new InvalidArgumentException('You can not use a blank node in deletion');
         }
 
