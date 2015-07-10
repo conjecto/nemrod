@@ -73,7 +73,12 @@ class ResourceChoiceList extends ObjectChoiceList
     {
         $this->rm = $rm;
         $this->class = $class;
-        $this->queryBuilder = $queryBuilder === null ? $this->rm->getRepository($class)->getQueryBuilder() : $queryBuilder;
+        if ($queryBuilder === null) {
+            $this->queryBuilder = $this->rm->getRepository($class)->getQueryBuilder();
+        }
+        else if ($queryBuilder !== false) {
+            $this->queryBuilder = $queryBuilder;
+        }
         parent::__construct($choices, $labelPath, $preferredChoices, $groupPath, $valuePath, $propertyAccessor);
     }
 
@@ -275,11 +280,13 @@ class ResourceChoiceList extends ObjectChoiceList
     private function load()
     {
         try {
-            $resources = (new NemrodQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
+            if ($this->queryBuilder) {
+                $resources = (new NemrodQueryBuilderLoader($this->queryBuilder, $this->rm, $this->class))->getResources(Query::HYDRATE_COLLECTION, ['rdf:type' => $this->class]);
 
-            // The second parameter $labels is ignored by ObjectChoiceList
-            if ($resources) {
-                parent::initialize($resources, array(), $this->preferredResources);
+                // The second parameter $labels is ignored by ObjectChoiceList
+                if ($resources) {
+                    parent::initialize($resources, array(), $this->preferredResources);
+                }
             }
         } catch (StringCastException $e) {
             throw new StringCastException(str_replace('argument $labelPath', 'option "property"', $e->getMessage()), null, $e);
