@@ -444,6 +444,9 @@ class UnitOfWork
             }
             $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
         }
+        else {
+            $this->setStatus($resource, $this::STATUS_REMOVED);
+        }
     }
 
     /**
