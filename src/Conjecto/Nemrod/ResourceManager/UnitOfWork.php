@@ -433,15 +433,17 @@ class UnitOfWork
      */
     public function remove(BaseResource $resource)
     {
-        $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+        if (!$resource->isBNode()) {
+            $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        $this->snapshot($resource);
-        $this->removeUplinks($resource);
+            $this->snapshot($resource);
+            $this->removeUplinks($resource);
 
-        if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
-            $this->setStatus($resource, $this::STATUS_REMOVED);
+            if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
+                $this->setStatus($resource, $this::STATUS_REMOVED);
+            }
+            $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
         }
-        $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
     }
 
     /**
