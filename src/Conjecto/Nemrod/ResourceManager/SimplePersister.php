@@ -383,6 +383,9 @@ class SimplePersister implements PersisterInterface
     private function literalToSparqlExpr($value)
     {
         $expr = '"'.addcslashes($value['value'], '"').'"';
+
+        $expr = preg_replace('/\\n/', "<br/>", $expr);
+
         if (!empty($value['datatype'])) {
             if($this->_rm->getNamespaceRegistry()->shorten($value['datatype']) == "xsd:boolean") {
                 $expr = '"'.( ( $value['value'] && ($value['value'] != "false") )? "true" : "false" ).'"^^<'.$value['datatype'].'>';
