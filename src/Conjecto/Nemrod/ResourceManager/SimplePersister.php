@@ -384,7 +384,7 @@ class SimplePersister implements PersisterInterface
     {
         $expr = '"'.addcslashes($value['value'], '"').'"';
 
-        $expr = preg_replace('/\\n/', "<br/>", $expr);
+        $expr = preg_replace('/\\n/', "\\n", $expr);
 
         if (!empty($value['datatype'])) {
             if($this->_rm->getNamespaceRegistry()->shorten($value['datatype']) == "xsd:boolean") {
