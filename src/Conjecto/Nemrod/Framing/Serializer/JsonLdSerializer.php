@@ -70,7 +70,7 @@ class JsonLdSerializer
      *
      * @return array
      */
-    public function serialize($resource, $frame = null, $options = array())
+    public function serialize($resource, $frame = null, $parentClass = null, $options = array())
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
@@ -79,11 +79,13 @@ class JsonLdSerializer
         if (!$frame) {
             $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
             $frame = $metadata->getFrame();
+            $parentClass = $metadata->getParentClass();
             $options = array_merge($metadata->getOptions(), $options);
         }
 
+        $parentFramePathes = $this->getParentFramesPath($parentClass);
         // load the frame
-        $frame = $this->loadFrame($frame);
+        $frame = $this->mergeAndLoadFrames($parentFramePathes, $frame);
 
         // if compacting without context, extract it from the frame
         if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
@@ -103,6 +105,15 @@ class JsonLdSerializer
         return $graph->serialise('jsonld', $options);
     }
 
+    protected function getParentFramesPath($parentClass)
+    {
+        if (!$parentClass) {
+            return array();
+        }
+
+        return array('vcard:Individual' => 'path');
+    }
+
     /**
      * Load the frame.
      *
@@ -110,24 +121,37 @@ class JsonLdSerializer
      *
      * @return mixed|null
      */
-    protected function loadFrame($frame = null)
+    protected function mergeAndLoadFrames($parentFramePathes = array(), $frame = null)
     {
-        // load the frame
-        if ($frame) {
-            $frame = $this->loader->load($frame);
-        } else {
-            $frame = array();
+        $framePathes = $parentFramePathes;
+        $framePathes[] = $frame;
+
+        // merge resource frame with parent frames
+        $finalFrame = array();
+        foreach ($framePathes as $frameName) {
+            // load the frame
+            if ($frameName) {
+                $frame = $this->loader->load($frameName);
+            } else {
+                $frame = array();
+            }
+            $finalFrame = array_merge_recursive($finalFrame, $frame);
+        }
+
+        // keep the original type
+        $types = $finalFrame['@type'];
+        if (is_array($types)) {
+            $finalFrame['@type'] = $types[count($types) - 1];
         }
 
         // merge context from namespace registry
         $namespaces = $this->nsRegistry->namespaces();
-        if (isset($frame['@context'])) {
-            $frame['@context'] = array_merge($frame['@context'], $namespaces);
+        if (isset($finalFrame['@context'])) {
+            $finalFrame['@context'] = array_merge($finalFrame['@context'], $namespaces);
         } else {
-            $frame['@context'] = $namespaces;
+            $finalFrame['@context'] = $namespaces;
         }
-
-        return $frame;
+        return $finalFrame;
     }
 
     /**

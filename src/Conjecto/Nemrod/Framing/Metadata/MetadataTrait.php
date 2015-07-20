@@ -21,6 +21,13 @@ trait MetadataTrait
     public $frame;
 
     /**
+     * JsonLD: subClassOf
+     *
+     * @var string
+     */
+    public $parentClass;
+
+    /**
      * JsonLD : options.
      *
      * @var
@@ -41,6 +48,22 @@ trait MetadataTrait
     public function setFrame($frame)
     {
         $this->frame = $frame;
+    }
+
+    /**
+     * @return string
+     */
+    public function getParentClass()
+    {
+        return $this->parentClass;
+    }
+
+    /**
+     * @param string $parentClass
+     */
+    public function setParentClass($parentClass)
+    {
+        $this->parentClass = $parentClass;
     }
 
     /**
