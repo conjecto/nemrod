@@ -36,20 +36,6 @@ class ResetterCommand extends ContainerAwareCommand
         $type = $input->getOption('type');
         $force = (bool) $input->getOption('force');
 
-        if (null !== $type) {
-            $output->writeln(sprintf('<info>Resetting</info> <comment>%s/%s</comment>', $index, $type));
-            $this->getContainer()->get('nemrod.elastica.resetter')->reset($type, $output);
-        } else {
-            $indexes = null === $index
-                ? array_keys($this->getContainer()->get('nemrod.elastica.config_manager')->getIndexes())
-                : array($index)
-            ;
-            foreach ($indexes as $index) {
-                $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
-                $this->getContainer()->get('nemrod.elastica.resetter')->resetIndex($index, false, $force);
-            }
-        }
-
-
+        $this->getContainer()->get('nemrod.elastica.resetter')->reset($index, $type, $output, $force);
     }
 }

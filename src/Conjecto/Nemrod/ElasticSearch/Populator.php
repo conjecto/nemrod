@@ -70,6 +70,10 @@ class Populator
             $types = $this->typeRegistry->getTypes();
         }
 
+        if(!$type) {
+            $this->resetter->reset();
+        }
+
         $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
         $options['limit'] = $options['slice'];
         $options['orderBy'] = 'uri';
@@ -77,8 +81,8 @@ class Populator
         foreach ($types as $key => $typ) {
             $output->writeln("populating " . $key);
 
-            if ($reset) {
-                $this->resetter->reset($key);
+            if ($reset & $type) {
+                $this->resetter->reset(null, $key, $output);
             }
 
             $size = $this->resourceManager->getRepository($key)
