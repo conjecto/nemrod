@@ -14,20 +14,8 @@
     ],
     "repositories" : [
       {
-        "type": "package",
-        "package": {
-          "name": "ml/json-ld",
-          "version": "1.1",
-          "source": {
-            "type" : "git",
-            "url" : "git@github.com:conjecto/JsonLD.git",
-            "reference" : "1.1"
-          },
-          "dist": {
-            "url": "https://github.com/conjecto/JsonLD/archive/master.zip",
-            "type": "zip"
-          }
-        }
+        "type": "vcs",
+        "url": "git@github.com:conjecto/JsonLD.git"
       }
     ],
     "require": {
