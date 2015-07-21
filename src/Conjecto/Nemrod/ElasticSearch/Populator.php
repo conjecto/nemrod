@@ -56,7 +56,7 @@ class Populator
     }
 
     /**
-     * @param null $type
+     * @param Type $type
      * @param bool $reset
      * @param array $options
      * @param ConsoleOutput $output
@@ -65,8 +65,15 @@ class Populator
     public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
         if ($type) {
-            $types = array($type => $this->typeRegistry->getType($type));
+            $typeObj = $this->typeRegistry->getType($type);
+            $types = array($type => $typeObj);
+
+            //creating index if not exists
+            if (!$typeObj->getIndex()->exists()){
+                $this->resetter->resetIndex($typeObj->getIndex()->getName());
+            }
         } else {
+            $this->resetter->reset();
             $types = $this->typeRegistry->getTypes();
         }
 
@@ -77,8 +84,8 @@ class Populator
         foreach ($types as $key => $typ) {
             $output->writeln("populating " . $key);
 
-            if ($reset) {
-                $this->resetter->reset($key);
+            if ($reset & $type) {
+                $this->resetter->reset(null, $key, $output);
             }
 
             $size = $this->resourceManager->getRepository($key)
