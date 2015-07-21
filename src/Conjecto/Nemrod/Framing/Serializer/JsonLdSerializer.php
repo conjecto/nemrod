@@ -200,8 +200,8 @@ class JsonLdSerializer
 
         if (is_string($subFrame)) {
             $includedFrame = $this->loader->load($subFrame);
-            $frame = array_merge_recursive($frame, $includedFrame);
             unset($frame["@include"]);
+            $frame = array_merge_recursive($frame, $includedFrame);
         }
         else if (is_array($subFrame) && isset($subFrame['frame']))
         {
@@ -212,9 +212,9 @@ class JsonLdSerializer
             }
 
             // get and merge the included frame
+            unset($frame["@include"]);
             $includedFrame = $this->loader->load($subFrame['frame']);
             $frame = array_merge_recursive($includedFrame, $frame);
-
             // clear the frame
             unset($frame["@include"]);
             if ($initialFrameType) {
@@ -238,8 +238,6 @@ class JsonLdSerializer
             }
         }
 
-        // clear the frame
-        unset($frame["@include"]);
         if ($initialFrameType) {
             $frame["@type"] = $initialFrameType;
         }
