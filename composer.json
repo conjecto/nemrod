@@ -22,7 +22,7 @@
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
         "easyrdf/easyrdf": "dev-master",
-		"ml/json-ld": "~1.0",
+		"ml/json-ld": "dev-master",
         "jms/serializer": "~0.11",
         "ruflin/elastica": "~1.4.3"
     },
