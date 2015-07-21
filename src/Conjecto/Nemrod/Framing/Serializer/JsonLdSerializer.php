@@ -15,6 +15,7 @@ use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
 use Conjecto\Nemrod\Framing\Provider\GraphProviderInterface;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Resource;
+use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
@@ -65,27 +66,29 @@ class JsonLdSerializer
     }
 
     /**
+     * Serialize resource to JsonLD frame
      * @param $resource
-     * @param $frame
-     *
+     * @param null $frame
+     * @param array $options
      * @return array
      */
-    public function serialize($resource, $frame = null, $parentClass = null, $options = array())
+    public function serialize($resource, $frame = null, $options = array())
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
+        $parentClassMetadatas = array();
 
         // if no frame provided try to find the default one in the resource metadata
         if (!$frame) {
             $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
-            $frame = $metadata->getFrame();
             $parentClass = $metadata->getParentClass();
-            $options = array_merge($metadata->getOptions(), $options);
+            $parentClassMetadatas[]['frame'] = $metadata->getFrame();
+            $parentClassMetadatas[]['options'] = $metadata->getOptions();
+            $parentClassMetadatas = $this->getParentMetadatas($parentClass, $parentClassMetadatas);
         }
 
-        $parentFramePathes = $this->getParentFramesPath($parentClass);
-        // load the frame
-        $frame = $this->mergeAndLoadFrames($parentFramePathes, $frame);
+        $frame = $this->getMergedAndLoadedFrames($parentClassMetadatas, $frame);
+        $options = $this->getMergedOptions($parentClassMetadatas, $options);
 
         // if compacting without context, extract it from the frame
         if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
@@ -105,43 +108,32 @@ class JsonLdSerializer
         return $graph->serialise('jsonld', $options);
     }
 
-    protected function getParentFramesPath($parentClass)
-    {
-        if (!$parentClass) {
-            return array();
-        }
-
-        return array('vcard:Individual' => 'path');
-    }
-
     /**
-     * Load the frame.
-     *
-     * @param null $frame
-     *
-     * @return mixed|null
+     * Load the final frame composed by parent classes frames and current class frame.
+     * @param array $parentClassMetadatas
+     * @param array|null $frame
+     * @return array|null
      */
-    protected function mergeAndLoadFrames($parentFramePathes = array(), $frame = null)
+    protected function getMergedAndLoadedFrames($parentClassMetadatas = array(), $frame = null)
     {
-        $framePathes = $parentFramePathes;
-        $framePathes[] = $frame;
+        $classMetadatas = $parentClassMetadatas;
+        $classMetadatas[]['frame'] = $frame;
 
         // merge resource frame with parent frames
         $finalFrame = array();
-        foreach ($framePathes as $frameName) {
-            // load the frame
-            if ($frameName) {
-                $frame = $this->loader->load($frameName);
-            } else {
-                $frame = array();
+        foreach ($classMetadatas as $classMetadata) {
+            if ($classMetadata && isset($classMetadata['frame'])) {
+                // find frame with frame path
+                $frame = $this->loader->load($classMetadata['frame']);
+                // merge current frame with other frames
+                $finalFrame = array_merge_recursive($finalFrame, $frame);
             }
-            $finalFrame = array_merge_recursive($finalFrame, $frame);
         }
 
         // keep the original type
         $types = $finalFrame['@type'];
         if (is_array($types)) {
-            $finalFrame['@type'] = $types[count($types) - 1];
+            $finalFrame['@type'] = $types[0];
         }
 
         // merge context from namespace registry
@@ -152,6 +144,49 @@ class JsonLdSerializer
             $finalFrame['@context'] = $namespaces;
         }
         return $finalFrame;
+    }
+
+    /**
+     * Merge all parent classes options with current options.
+     * @param array $parentClassMetadatas
+     * @param array|null $options
+     * @return array|null
+     */
+    protected function getMergedOptions($parentClassMetadatas = array(), $options = null)
+    {
+        $classMetadatas = $parentClassMetadatas;
+        $classMetadatas[]['options'] = $options;
+
+        // merge resource frame with parent frames
+        $finalOptions = array();
+        foreach ($classMetadatas as $classMetadata) {
+            // merge options
+            if (isset($classMetadata['options'])) {
+                $finalOptions = array_merge_recursive($finalOptions, $classMetadata['options']);
+            }
+        }
+
+        return $finalOptions;
+    }
+
+    /**
+     * Search parent classes and fill frame and options for each parent class
+     * @param $parentClass
+     * @param array $parentClasses
+     * @return array
+     */
+    protected function getParentMetadatas($parentClass, $parentClasses = array())
+    {
+        if (!$parentClass) {
+            return $parentClasses;
+        }
+
+        $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
+        $parentClass = $metadata->getParentClass();
+        $parentClasses[]['frame'] = $metadata->getFrame();
+        $parentClasses[]['options'] = $metadata->getOptions();
+        $parentClasses = $this->getParentMetadatas($parentClass, $parentClasses);
+        return $parentClasses;
     }
 
     /**
