@@ -153,46 +153,62 @@ class JsonLdSerializer
         $includedFrame = array();
         foreach ($frame as $key => $subFrame) {
             if ($key === "@include") {
-                $finalFrame = array();
-                if (is_string($subFrame)) {
-                    $includedFrame = $this->loader->load($subFrame);
-                    $frame = array_merge_recursive($includedFrame, $frame);
-                    unset($frame["@include"]);
-                }
-                else if (is_array($subFrame) && isset($subFrame['frame'])) {
-                    $initialFrameType = null;
-                    $parentObjectFrames = null;
-                    if (isset($frame['@type'])) {
-                        $initialFrameType = $frame['@type'];
-                    }
-                    if (isset($subFrame['parentObjectFrames'])) {
-                        $parentObjectFrames = $subFrame['parentObjectFrames'];
-                    }
-                    $includedFrame = $this->loader->load($subFrame['frame']);
-                    $frame = array_merge_recursive($includedFrame, $frame);
-                    unset($frame["@include"]);
-                    if ($initialFrameType) {
-                        $frame["@type"] = $initialFrameType;
-                    }
-                    if ($parentObjectFrames) {
-                        $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
-                        foreach ($parentClassMetadatas as $classMetadata) {
-                            if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
-                                $frame = array_merge_recursive($frame, $this->loader->load($classMetadata['frame']));
-                            }
-                        }
-                        $types = $frame['@type'];
-                        if (is_array($types)) {
-                            $frame['@type'] = $types[0];
-                        }
-                    }
-                }
-                return $this->mergeWithIncludedFrames($frame);
+                return $this->includeSubFrame($frame, $subFrame);
             }
             $includedFrame[$key] = $this->mergeWithIncludedFrames($subFrame, $key);
         }
 
         return $includedFrame;
+    }
+
+    protected function includeSubFrame($frame, $subFrame)
+    {
+        if (is_string($subFrame)) {
+            $includedFrame = $this->loader->load($subFrame);
+            $frame = array_merge_recursive($includedFrame, $frame);
+            unset($frame["@include"]);
+        }
+        else if (is_array($subFrame) && isset($subFrame['frame']))
+        {
+            // get frame type and parentObjectFrames option before manipulating the frame
+            $initialFrameType = null;
+            $parentObjectFrames = null;
+            if (isset($frame['@type'])) {
+                $initialFrameType = $frame['@type'];
+            }
+            if (isset($subFrame['parentObjectFrames'])) {
+                $parentObjectFrames = $subFrame['parentObjectFrames'];
+            }
+
+            // get and merge the included frame
+            $includedFrame = $this->loader->load($subFrame['frame']);
+            $frame = array_merge_recursive($includedFrame, $frame);
+
+            // clear the frame
+            unset($frame["@include"]);
+            if ($initialFrameType) {
+                $frame["@type"] = $initialFrameType;
+            }
+
+            // include subFrame parent frames if parentObjectFrames is setted to true
+            if ($parentObjectFrames) {
+                $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
+                foreach ($parentClassMetadatas as $classMetadata) {
+                    if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                        $frame = array_merge_recursive($frame, $this->loader->load($classMetadata['frame']));
+                    }
+                }
+
+                // reset the initial type
+                $types = $frame['@type'];
+                if (is_array($types)) {
+                    $frame['@type'] = $types[0];
+                }
+            }
+        }
+
+        // recall recursive frame include if included frames have other included frames
+        return $this->mergeWithIncludedFrames($frame);
     }
 
     /**
