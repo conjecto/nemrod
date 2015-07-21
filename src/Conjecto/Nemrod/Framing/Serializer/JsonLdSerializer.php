@@ -87,7 +87,7 @@ class JsonLdSerializer
             $parentClassMetadatas = $this->getParentMetadatas($parentClass, $parentClassMetadatas);
         }
 
-        $frame = $this->getMergedAndLoadedFrames($parentClassMetadatas, $frame);
+        $frame = $this->getMergedFrames($parentClassMetadatas, $frame);
         $options = $this->getMergedOptions($parentClassMetadatas, $options);
 
         // if compacting without context, extract it from the frame
@@ -114,17 +114,19 @@ class JsonLdSerializer
      * @param array|null $frame
      * @return array|null
      */
-    protected function getMergedAndLoadedFrames($parentClassMetadatas = array(), $frame = null)
+    protected function getMergedFrames($parentClassMetadatas = array(), $frame = null)
     {
         $classMetadatas = $parentClassMetadatas;
-        $classMetadatas[]['frame'] = $frame;
+        if ($frame) {
+            $classMetadatas[]['frame'] = $frame;
+        }
 
         // merge resource frame with parent frames
         $finalFrame = array();
         foreach ($classMetadatas as $classMetadata) {
-            if ($classMetadata && isset($classMetadata['frame'])) {
-                // find frame with frame path
-                $frame = $this->loader->load($classMetadata['frame']);
+            if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                // find frame with frame path and merge included frames
+                $frame = $this->mergeWithIncludedFrames($this->loader->load($classMetadata['frame']));
                 // merge current frame with other frames
                 $finalFrame = array_merge_recursive($finalFrame, $frame);
             }
@@ -146,6 +148,38 @@ class JsonLdSerializer
         return $finalFrame;
     }
 
+    protected function mergeWithIncludedFrames($frame, $parentKey = null)
+    {
+        if (!is_array($frame)) {
+            return $frame;
+        }
+
+        $includedFrame = array();
+        foreach ($frame as $key => $subFrame) {
+            if ($key === "@include") {
+                $finalFrame = array();
+                if (is_string($subFrame)) {
+                    $includedFrame = $this->loader->load($subFrame);
+                    $frame = array_merge_recursive($includedFrame, $frame);
+                    unset($frame["@include"]);
+                }
+                else if (is_array($subFrame) && isset($subFrame['frame'])) {
+                    if (isset($frame['@type'])) {
+                        $initialFrameType = $frame['@type'];
+                    }
+                    $includedFrame = $this->loader->load($subFrame['frame']);
+                    $frame = array_merge_recursive($includedFrame, $frame);
+                    unset($frame["@include"]);
+                    $frame["@type"] = $initialFrameType;
+                }
+                return $this->mergeWithIncludedFrames($frame);
+            }
+            $includedFrame[$key] = $this->mergeWithIncludedFrames($subFrame, $key);
+        }
+
+        return $includedFrame;
+    }
+
     /**
      * Merge all parent classes options with current options.
      * @param array $parentClassMetadatas
@@ -161,7 +195,7 @@ class JsonLdSerializer
         $finalOptions = array();
         foreach ($classMetadatas as $classMetadata) {
             // merge options
-            if (isset($classMetadata['options'])) {
+            if (isset($classMetadata['options']) && !empty($classMetadata['options'])) {
                 $finalOptions = array_merge_recursive($finalOptions, $classMetadata['options']);
             }
         }
