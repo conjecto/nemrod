@@ -80,11 +80,7 @@ class JsonLdSerializer
 
         // if no frame provided try to find the default one in the resource metadata
         if (!$frame) {
-            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
-            $parentClass = $metadata->getParentClass();
-            $parentClassMetadatas[]['frame'] = $metadata->getFrame();
-            $parentClassMetadatas[]['options'] = $metadata->getOptions();
-            $parentClassMetadatas = $this->getParentMetadatas($parentClass, $parentClassMetadatas);
+            $parentClassMetadatas = $this->getParentMetadatas($resource, $parentClassMetadatas);
         }
 
         $frame = $this->getMergedFrames($parentClassMetadatas, $frame);
@@ -164,13 +160,32 @@ class JsonLdSerializer
                     unset($frame["@include"]);
                 }
                 else if (is_array($subFrame) && isset($subFrame['frame'])) {
+                    $initialFrameType = null;
+                    $parentObjectFrames = null;
                     if (isset($frame['@type'])) {
                         $initialFrameType = $frame['@type'];
+                    }
+                    if (isset($subFrame['parentObjectFrames'])) {
+                        $parentObjectFrames = $subFrame['parentObjectFrames'];
                     }
                     $includedFrame = $this->loader->load($subFrame['frame']);
                     $frame = array_merge_recursive($includedFrame, $frame);
                     unset($frame["@include"]);
-                    $frame["@type"] = $initialFrameType;
+                    if ($initialFrameType) {
+                        $frame["@type"] = $initialFrameType;
+                    }
+                    if ($parentObjectFrames) {
+                        $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
+                        foreach ($parentClassMetadatas as $classMetadata) {
+                            if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                                $frame = array_merge_recursive($frame, $this->loader->load($classMetadata['frame']));
+                            }
+                        }
+                        $types = $frame['@type'];
+                        if (is_array($types)) {
+                            $frame['@type'] = $types[0];
+                        }
+                    }
                 }
                 return $this->mergeWithIncludedFrames($frame);
             }
@@ -209,16 +224,24 @@ class JsonLdSerializer
      * @param array $parentClasses
      * @return array
      */
-    protected function getParentMetadatas($parentClass, $parentClasses = array())
+    protected function getParentMetadatas($parentClass, $parentClasses = array(), $skipRoot = false)
     {
         if (!$parentClass) {
             return $parentClasses;
         }
 
-        $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
+        if (is_string($parentClass)) {
+            $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
+        }
+        else if ($parentClass instanceof \Conjecto\Nemrod\Resource) {
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($parentClass));
+        }
+
         $parentClass = $metadata->getParentClass();
-        $parentClasses[]['frame'] = $metadata->getFrame();
-        $parentClasses[]['options'] = $metadata->getOptions();
+        if (!$skipRoot) {
+            $parentClasses[]['frame'] = $metadata->getFrame();
+            $parentClasses[]['options'] = $metadata->getOptions();
+        }
         $parentClasses = $this->getParentMetadatas($parentClass, $parentClasses);
         return $parentClasses;
     }
