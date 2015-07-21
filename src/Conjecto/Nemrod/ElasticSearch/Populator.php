@@ -56,7 +56,7 @@ class Populator
     }
 
     /**
-     * @param null $type
+     * @param Type $type
      * @param bool $reset
      * @param array $options
      * @param ConsoleOutput $output
@@ -65,13 +65,16 @@ class Populator
     public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
         if ($type) {
-            $types = array($type => $this->typeRegistry->getType($type));
-        } else {
-            $types = $this->typeRegistry->getTypes();
-        }
+            $typeObj = $this->typeRegistry->getType($type);
+            $types = array($type => $typeObj);
 
-        if(!$type) {
+            //creating index if not exists
+            if (!$typeObj->getIndex()->exists()){
+                $this->resetter->resetIndex($typeObj->getIndex()->getName());
+            }
+        } else {
             $this->resetter->reset();
+            $types = $this->typeRegistry->getTypes();
         }
 
         $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
