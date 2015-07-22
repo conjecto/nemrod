@@ -31,21 +31,15 @@ Requirements
 
 Installation
 ------------
-Nemrod can be installed using composer. You first need to set the minimum stability level to "dev" in your composer.json:
+Nemrod can be installed using composer :
 
-    {
-        ...
-        "minimum-stability": "dev"
-        ...
-    }
-
-you can then install the framework using the command:
-
-    composer require conjecto/nemrod
+    composer require conjecto/nemrod:~0.1.0@dev easyrdf/easyrdf:@dev conjecto/json-ld:@dev
 
 you can also add dependency directly in your composer.json file:
 
     "conjecto/nemrod": "~0.1.0@dev"
+    "easyrdf/easyrdf": "@dev"
+    "conjecto/json-ld": "@dev"
 
 Then you need to add one (or two) bundle(s) to the AppKernel.php:
 

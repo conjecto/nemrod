@@ -15,6 +15,7 @@ use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
 use Conjecto\Nemrod\Framing\Provider\GraphProviderInterface;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
 use EasyRdf\Resource;
+use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
@@ -65,25 +66,25 @@ class JsonLdSerializer
     }
 
     /**
+     * Serialize resource to JsonLD frame
      * @param $resource
-     * @param $frame
-     *
+     * @param null $frame
+     * @param array $options
      * @return array
      */
     public function serialize($resource, $frame = null, $options = array())
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
+        $parentClassMetadatas = array();
 
         // if no frame provided try to find the default one in the resource metadata
         if (!$frame) {
-            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
-            $frame = $metadata->getFrame();
-            $options = array_merge($metadata->getOptions(), $options);
+            $parentClassMetadatas = $this->getParentMetadatas($resource, $parentClassMetadatas);
         }
 
-        // load the frame
-        $frame = $this->loadFrame($frame);
+        $frame = $this->getMergedFrames($parentClassMetadatas, $frame);
+        $options = $this->getMergedOptions($parentClassMetadatas, $options);
 
         // if compacting without context, extract it from the frame
         if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
@@ -104,30 +105,178 @@ class JsonLdSerializer
     }
 
     /**
-     * Load the frame.
-     *
-     * @param null $frame
-     *
-     * @return mixed|null
+     * Load the final frame composed by parent classes frames and current class frame.
+     * @param array $parentClassMetadatas
+     * @param array|null $frame
+     * @return array|null
      */
-    protected function loadFrame($frame = null)
+    protected function getMergedFrames($parentClassMetadatas = array(), $frame = null)
     {
-        // load the frame
+        $classMetadatas = $parentClassMetadatas;
         if ($frame) {
-            $frame = $this->loader->load($frame);
-        } else {
-            $frame = array();
+            $classMetadatas[]['frame'] = $frame;
+        }
+
+        // merge resource frame with parent frames
+        $finalFrame = array();
+        foreach ($classMetadatas as $classMetadata) {
+            if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                // find frame with frame path and merge included frames
+                $frame = $this->mergeWithIncludedFrames($this->loader->load($classMetadata['frame']));
+                // merge current frame with other frames
+                $finalFrame = array_merge_recursive($finalFrame, $frame);
+            }
+        }
+
+        // keep the original type
+        if (isset($finalFrame['@type'])) {
+            $types = $finalFrame['@type'];
+            if (is_array($types)) {
+                $finalFrame['@type'] = $types[0];
+            }
         }
 
         // merge context from namespace registry
         $namespaces = $this->nsRegistry->namespaces();
-        if (isset($frame['@context'])) {
-            $frame['@context'] = array_merge($frame['@context'], $namespaces);
+        if (isset($finalFrame['@context'])) {
+            $finalFrame['@context'] = array_merge($finalFrame['@context'], $namespaces);
         } else {
-            $frame['@context'] = $namespaces;
+            $finalFrame['@context'] = $namespaces;
+        }
+        return $finalFrame;
+    }
+
+    /**
+     * Merge all parent classes options with current options.
+     * @param array $parentClassMetadatas
+     * @param array|null $options
+     * @return array|null
+     */
+    protected function getMergedOptions($parentClassMetadatas = array(), $options = null)
+    {
+        $classMetadatas = $parentClassMetadatas;
+        $classMetadatas[]['options'] = $options;
+
+        // merge resource frame with parent frames
+        $finalOptions = array();
+        foreach ($classMetadatas as $classMetadata) {
+            // merge options
+            if (isset($classMetadata['options']) && !empty($classMetadata['options'])) {
+                $finalOptions = array_merge_recursive($finalOptions, $classMetadata['options']);
+            }
         }
 
-        return $frame;
+        return $finalOptions;
+    }
+
+    /**
+     * Include subFrames defined we @ include property
+     * @param $frame
+     * @param null $parentKey
+     * @return array
+     */
+    protected function mergeWithIncludedFrames($frame, $parentKey = null)
+    {
+        if (!is_array($frame)) {
+            return $frame;
+        }
+
+        $includedFrame = array();
+        foreach ($frame as $key => $subFrame) {
+            if ($key === "@include") {
+                return $this->includeSubFrame($frame, $subFrame);
+            }
+            $includedFrame[$key] = $this->mergeWithIncludedFrames($subFrame, $key);
+        }
+
+        return $includedFrame;
+    }
+
+    protected function includeSubFrame($frame, $subFrame)
+    {
+        // get frame type before manipulating the frame
+        $initialFrameType = null;
+        if (isset($frame['@type'])) {
+            $initialFrameType = $frame['@type'];
+        }
+
+        if (is_string($subFrame)) {
+            $includedFrame = $this->loader->load($subFrame);
+            unset($frame["@include"]);
+            $frame = array_merge_recursive($frame, $includedFrame);
+        }
+        else if (is_array($subFrame) && isset($subFrame['frame']))
+        {
+            // get parentObjectFrames option before manipulating the frame
+            $parentObjectFrames = null;
+            if (isset($subFrame['parentObjectFrames'])) {
+                $parentObjectFrames = $subFrame['parentObjectFrames'];
+            }
+
+            // get and merge the included frame
+            unset($frame["@include"]);
+            $includedFrame = $this->loader->load($subFrame['frame']);
+            $frame = array_merge_recursive($includedFrame, $frame);
+            // clear the frame
+            unset($frame["@include"]);
+            if ($initialFrameType) {
+                $frame["@type"] = $initialFrameType;
+            }
+
+            // include subFrame parent frames if parentObjectFrames is setted to true
+            if ($parentObjectFrames && isset($frame["@type"])) {
+                $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
+                foreach ($parentClassMetadatas as $classMetadata) {
+                    if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                        $frame = array_merge_recursive($frame, $this->loader->load($classMetadata['frame']));
+                    }
+                }
+
+                // reset the initial type
+                if (isset($frame['@type'])) {
+                    $types = $frame['@type'];
+                    if (is_array($types)) {
+                        $frame['@type'] = $types[0];
+                    }
+                }
+            }
+        }
+
+        if ($initialFrameType) {
+            $frame["@type"] = $initialFrameType;
+        }
+
+        // recall recursive frame include if included frames have other included frames
+        return $this->mergeWithIncludedFrames($frame);
+    }
+
+    /**
+     * Search parent classes and fill frame and options for each parent class
+     * @param $parentClass
+     * @param array $parentClasses
+     * @return array
+     */
+    protected function getParentMetadatas($parentClass, $parentClasses = array(), $skipRoot = false)
+    {
+        if (!$parentClass) {
+            return $parentClasses;
+        }
+
+        if (is_string($parentClass)) {
+            $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
+        }
+        else if ($parentClass instanceof \Conjecto\Nemrod\Resource) {
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($parentClass));
+        }
+
+        $parentClass = $metadata->getParentClass();
+        // if we don't want to get the root frame
+        if (!$skipRoot) {
+            $parentClasses[]['frame'] = $metadata->getFrame();
+            $parentClasses[]['options'] = $metadata->getOptions();
+        }
+        $parentClasses = $this->getParentMetadatas($parentClass, $parentClasses);
+        return $parentClasses;
     }
 
     /**
