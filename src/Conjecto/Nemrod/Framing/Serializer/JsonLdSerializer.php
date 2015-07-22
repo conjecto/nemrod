@@ -129,9 +129,11 @@ class JsonLdSerializer
         }
 
         // keep the original type
-        $types = $finalFrame['@type'];
-        if (is_array($types)) {
-            $finalFrame['@type'] = $types[0];
+        if (isset($finalFrame['@type'])) {
+            $types = $finalFrame['@type'];
+            if (is_array($types)) {
+                $finalFrame['@type'] = $types[0];
+            }
         }
 
         // merge context from namespace registry
@@ -222,7 +224,7 @@ class JsonLdSerializer
             }
 
             // include subFrame parent frames if parentObjectFrames is setted to true
-            if ($parentObjectFrames) {
+            if ($parentObjectFrames && isset($frame["@type"])) {
                 $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
                 foreach ($parentClassMetadatas as $classMetadata) {
                     if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
@@ -231,9 +233,11 @@ class JsonLdSerializer
                 }
 
                 // reset the initial type
-                $types = $frame['@type'];
-                if (is_array($types)) {
-                    $frame['@type'] = $types[0];
+                if (isset($frame['@type'])) {
+                    $types = $frame['@type'];
+                    if (is_array($types)) {
+                        $frame['@type'] = $types[0];
+                    }
                 }
             }
         }
