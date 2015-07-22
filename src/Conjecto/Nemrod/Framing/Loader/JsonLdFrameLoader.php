@@ -11,7 +11,9 @@
 
 namespace Conjecto\Nemrod\Framing\Loader;
 
+use EasyRdf\TypeMapper;
 use Symfony\Component\Templating\TemplateReferenceInterface;
+use Metadata\MetadataFactory;
 
 /**
  * FilesystemLoader extends the default Twig filesystem loader
@@ -20,9 +22,22 @@ use Symfony\Component\Templating\TemplateReferenceInterface;
 class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 {
     /**
+     * @var MetadataFactory
+     */
+    protected $metadataFactory;
+
+    /**
+     * @param MetadataFactory $metadataFactory
+     */
+    public function setMetadataFactory($metadataFactory)
+    {
+        $this->metadataFactory = $metadataFactory;
+    }
+
+    /**
      * Return the decoded frame.
      */
-    public function load($name, $assoc = true)
+    public function getFrame($name, $assoc = true)
     {
         $decoded = json_decode($this->getSource($name), $assoc);
         if ($decoded === null) {
@@ -30,6 +45,141 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         }
 
         return $decoded;
+    }
+
+    public function load($name, $parentClass = null, $includeSubFrames = true, $assoc = true)
+    {
+        if ($includeSubFrames) {
+            $classMetadatas = $this->getParentMetadatas($parentClass);
+            $classMetadatas[]['frame'] = $name;
+
+            $finalFrame = array();
+            foreach ($classMetadatas as $classMetadata) {
+                if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                    // find frame with frame path and merge included frames
+                    $frame = $this->mergeWithIncludedFrames($this->getFrame($classMetadata['frame']), $assoc);
+                    // merge current frame with other frames
+                    $finalFrame = array_merge_recursive($finalFrame, $frame);
+                }
+            }
+
+            // keep the original type
+            if (isset($finalFrame['@type'])) {
+                $types = $finalFrame['@type'];
+                if (is_array($types)) {
+                    $finalFrame['@type'] = $types[count($types) - 1];
+                }
+            }
+
+            return $finalFrame;
+        }
+        else {
+            return $this->getFrame($name, $assoc);
+        }
+    }
+
+    /**
+     * Search parent classes and fill frame and options for each parent class
+     * @param $parentClass
+     * @param array $parentClasses
+     * @return array
+     */
+    public function getParentMetadatas($parentClass, $parentClasses = array(), $skipRoot = false)
+    {
+        if (!$parentClass) {
+            return $parentClasses;
+        }
+
+        $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
+        $parentClass = $metadata->getParentClass();
+        // if we don't want to get the root frame
+        if (!$skipRoot) {
+            $parentClasses[]['frame'] = $metadata->getFrame();
+            $parentClasses[]['options'] = $metadata->getOptions();
+        }
+        $parentClasses = $this->getParentMetadatas($parentClass, $parentClasses);
+        return $parentClasses;
+    }
+
+    /**
+     * Include subFrames defined we @ include property
+     * @param $frame
+     * @param null $parentKey
+     * @return array
+     */
+    protected function mergeWithIncludedFrames($frame, $parentKey = null)
+    {
+        if (!is_array($frame)) {
+            return $frame;
+        }
+
+        $includedFrame = array();
+        foreach ($frame as $key => $subFrame) {
+            if ($key === "@include") {
+                return $this->includeSubFrame($frame, $subFrame);
+            }
+            $includedFrame[$key] = $this->mergeWithIncludedFrames($subFrame, $key);
+        }
+
+        return $includedFrame;
+    }
+
+    protected function includeSubFrame($frame, $subFrame)
+    {
+        // get frame type before manipulating the frame
+        $initialFrameType = null;
+        if (isset($frame['@type'])) {
+            $initialFrameType = $frame['@type'];
+        }
+
+        if (is_string($subFrame)) {
+            $includedFrame = $this->getFrame($subFrame);
+            unset($frame["@include"]);
+            $frame = array_merge_recursive($frame, $includedFrame);
+        }
+        else if (is_array($subFrame) && isset($subFrame['frame']))
+        {
+            // get parentObjectFrames option before manipulating the frame
+            $parentObjectFrames = null;
+            if (isset($subFrame['parentObjectFrames'])) {
+                $parentObjectFrames = $subFrame['parentObjectFrames'];
+            }
+
+            // get and merge the included frame
+            unset($frame["@include"]);
+            $includedFrame = $this->getFrame($subFrame['frame']);
+            $frame = array_merge_recursive($includedFrame, $frame);
+            // clear the frame
+            unset($frame["@include"]);
+            if ($initialFrameType) {
+                $frame["@type"] = $initialFrameType;
+            }
+
+            // include subFrame parent frames if parentObjectFrames is setted to true
+            if ($parentObjectFrames && isset($frame["@type"])) {
+                $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
+                foreach ($parentClassMetadatas as $classMetadata) {
+                    if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+                        $frame = array_merge_recursive($frame, $this->getFrame($classMetadata['frame']));
+                    }
+                }
+
+                // reset the initial type
+                if (isset($frame['@type'])) {
+                    $types = $frame['@type'];
+                    if (is_array($types)) {
+                        $frame['@type'] = $types[0];
+                    }
+                }
+            }
+        }
+
+        if ($initialFrameType) {
+            $frame["@type"] = $initialFrameType;
+        }
+
+        // recall recursive frame include if included frames have other included frames
+        return $this->mergeWithIncludedFrames($frame);
     }
 
     /**
