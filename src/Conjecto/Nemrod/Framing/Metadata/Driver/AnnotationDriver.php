@@ -42,23 +42,35 @@ class AnnotationDriver implements DriverInterface
     public function loadMetadataForClass(\ReflectionClass $class)
     {
         $classMetadata = new ClassMetadata($class->getName());
-        $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd');
-        if (null !== $annotation) {
+        $jsonLdPath = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd');
+        if (null !== $jsonLdPath) {
             // frame
-            $classMetadata->setFrame($annotation->frame);
+            $classMetadata->setFrame($jsonLdPath->frame);
             // options
-            $classMetadata->setOptions($annotation->options);
+            $classMetadata->setOptions($jsonLdPath->options);
+        }
+        $subClassOfProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf');
+        if (null !== $subClassOfProperty) {
+            // ParentClass
+            $classMetadata->setParentClass($subClassOfProperty->parentClass);
         }
 
         foreach ($class->getMethods() as $reflectionMethod) {
             $methodMetadata = new MethodMetadata($class->getName(), $reflectionMethod->getName());
-            $annotation = $this->reader->getMethodAnnotation(
+            $jsonLdPath = $this->reader->getMethodAnnotation(
               $reflectionMethod,
               'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd'
             );
-            if (null !== $annotation) {
-                $methodMetadata->setFrame($annotation->frame);
-                $methodMetadata->setOptions($annotation->options);
+            if (null !== $jsonLdPath) {
+                $methodMetadata->setFrame($jsonLdPath->frame);
+                $methodMetadata->setOptions($jsonLdPath->options);
+            }
+            $subClassOfProperty = $this->reader->getMethodAnnotation(
+              $reflectionMethod,
+              'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf'
+            );
+            if (null !== $subClassOfProperty) {
+                $methodMetadata->setParentClass($subClassOfProperty->parentClass);
             }
             $classMetadata->addMethodMetadata($methodMetadata);
         }
