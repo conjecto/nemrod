@@ -73,6 +73,7 @@ class PopulatorCommand extends ContainerAwareCommand
 
             $pb = new ProcessBuilder($args);
             $process = $pb->getProcess();
+            $process->setTimeout(3600);
             // run & transfer output to current output
             $process->run(function ($type, $buffer) use ($output) {
                 $output->writeln($buffer);
