@@ -54,23 +54,35 @@ class AnnotationDriver implements DriverInterface
             // ParentClass
             $classMetadata->setParentClass($subClassOfProperty->parentClass);
         }
+        $typeProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\ResourceManager\\Annotation\\Resource');
+        if (null !== $typeProperty) {
+            // rdf:type
+            $classMetadata->setTypes($typeProperty->types);
+        }
 
         foreach ($class->getMethods() as $reflectionMethod) {
             $methodMetadata = new MethodMetadata($class->getName(), $reflectionMethod->getName());
             $jsonLdPath = $this->reader->getMethodAnnotation(
-              $reflectionMethod,
-              'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd'
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd'
             );
             if (null !== $jsonLdPath) {
                 $methodMetadata->setFrame($jsonLdPath->frame);
                 $methodMetadata->setOptions($jsonLdPath->options);
             }
             $subClassOfProperty = $this->reader->getMethodAnnotation(
-              $reflectionMethod,
-              'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf'
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf'
             );
             if (null !== $subClassOfProperty) {
                 $methodMetadata->setParentClass($subClassOfProperty->parentClass);
+            }
+            $typeProperty = $this->reader->getMethodAnnotation(
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\ResourceManager\\Annotation\\Resource'
+            );
+            if (null !== $typeProperty) {
+                $methodMetadata->setTypes($typeProperty->types);
             }
             $classMetadata->addMethodMetadata($methodMetadata);
         }

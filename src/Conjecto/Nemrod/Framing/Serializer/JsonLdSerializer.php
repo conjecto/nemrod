@@ -75,6 +75,14 @@ class JsonLdSerializer
     }
 
     /**
+     * @return MetadataFactory
+     */
+    public function getMetadataFactory()
+    {
+        return $this->metadataFactory;
+    }
+
+    /**
      * Serialize resource to JsonLD frame
      * @param $resource
      * @param null $frame

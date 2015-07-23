@@ -35,6 +35,12 @@ trait MetadataTrait
     public $options = array();
 
     /**
+     * Rdf types
+     * @var array
+     */
+    public $types;
+
+    /**
      * @return mixed
      */
     public function getFrame()
@@ -80,5 +86,21 @@ trait MetadataTrait
     public function setOptions($options)
     {
         $this->options = $options;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTypes()
+    {
+        return $this->types;
+    }
+
+    /**
+     * @param array $types
+     */
+    public function setTypes($types)
+    {
+        $this->types = $types;
     }
 }

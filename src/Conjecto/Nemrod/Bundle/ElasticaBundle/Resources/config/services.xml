@@ -39,7 +39,10 @@
             <argument type="service" id="nemrod.elastica.mapping_builder"/>
             <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
-        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%" />
+        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%">
+            <argument type="service" id="nemrod.jsonld.metadata_factory" />
+            <argument>%kernel.bundles%</argument>
+        </service>
         <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
         <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
         <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
