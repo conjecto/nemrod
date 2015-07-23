@@ -44,7 +44,7 @@ class Populator
      * @param $typeRegistry
      * @param $resetter
      */
-    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $serializerHelper, $jsonLdSerializer)
+    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $serializerHelper, JsonLdSerializer $jsonLdSerializer)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
@@ -56,7 +56,7 @@ class Populator
     }
 
     /**
-     * @param null $type
+     * @param Type $type
      * @param bool $reset
      * @param array $options
      * @param ConsoleOutput $output
@@ -65,31 +65,45 @@ class Populator
     public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
         if ($type) {
-            $types = array($type => $this->typeRegistry->getType($type));
+            $typeObj = $this->typeRegistry->getType($type);
+            $types = array($type => $typeObj);
+
+            if (!$typeObj) {
+                throw new \Exception("The index $type is not defined");
+            }
+
+            //creating index if not exists
+            if (!$typeObj->getIndex()->exists()){
+                $this->resetter->resetIndex($typeObj->getIndex()->getName());
+            }
         } else {
+            $this->resetter->reset();
             $types = $this->typeRegistry->getTypes();
         }
 
+        $this->jsonLdSerializer->getJsonLdFrameLoader()->setSerializerHelper($this->serializerHelper);
         $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
+
         $options['limit'] = $options['slice'];
         $options['orderBy'] = 'uri';
         /** @var Type $typ */
         foreach ($types as $key => $typ) {
             $output->writeln("populating " . $key);
 
-            if ($reset) {
-                $this->resetter->reset($key);
+            if ($reset & $type) {
+                $this->resetter->reset(null, $key, $output);
             }
 
+            $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($typ->getIndex()->getName());
             $size = $this->resourceManager->getRepository($key)
                 ->getQueryBuilder()->reset()->select('(COUNT(DISTINCT ?instance) AS ?count)')->where('?instance a ' . $key)->getQuery()
                 ->execute();
-				
-			// no object in triplestore
+
+            // no object in triplestore
             if (!current($size)) {
                 continue;
             }
-				
+
             $size = current($size)->count->getValue();
             $output->writeln($size . " entries");
             if ($showProgress) {

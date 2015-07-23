@@ -12,7 +12,7 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\Framing\Provider\ConstructedGraphProvider;
-use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
+use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
 use EasyRdf\Resource;
 
 /**
@@ -156,18 +156,20 @@ class SerializerHelper
 
     protected function fillTypeRequests($index, $typeName, $settings)
     {
-        $framePath = $settings['frame'];
-        $frame = $this->jsonLdFrameLoader->load($settings['frame']);
-
-        if (!isset($settings['type']) && !isset($frame['@type'])) {
-            throw new \Exception("You have to specify a type in your config or in the jsonLdFrame $framePath");
-        }
+        $type = null;
+        $frame = $this->jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
 
         if (isset($settings['type'])) {
             $type = $settings['type'];
-        } elseif (isset($frame['@type'])) {
+        }
+        else if (isset($frame['@type'])) {
             $type = $frame['@type'];
         }
+
+        if (!$type) {
+            throw new \Exception("You have to specify a type in your config or in the jsonLdFrame " . $settings['frame']);
+        }
+
         $this->requests[$index][$type]['name'] = $typeName;
         $this->requests[$index][$type]['type'] = $type;
         $this->requests[$index][$type]['frame'] = $settings['frame'];

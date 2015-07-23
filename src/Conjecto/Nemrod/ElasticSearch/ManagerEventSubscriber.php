@@ -130,8 +130,9 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $this->container->get('nemrod.elastica.jsonld.serializer')->getJsonLdFrameLoader()->setSerializerHelper($this->serializerHelper);
         $resourceToDocumentTransformer = new ResourceToDocumentTransformer(
-            $this->serializerHelper, $this->typeRegistry, $this->container->get('nemrod.type_mapper'), $this->container->get('nemrod.jsonld.serializer')
+            $this->serializerHelper, $this->typeRegistry, $this->container->get('nemrod.type_mapper'), $this->container->get('nemrod.elastica.jsonld.serializer')
         );
 
         $qb = $event->getRm()->getQueryBuilder();
@@ -158,6 +159,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $newTypes[] = $newType;
 
                 $index = $this->typeRegistry->getType($newType);
+                $this->container->get('nemrod.elastica.jsonld.serializer')->setEsIndex($index);
                 if ($index !== null) {
                     $index = $index->getIndex()->getName();
                 }
@@ -181,6 +183,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             $oldType = $this->changesRequests[$uri]['type'];
             if (!in_array($oldType, $newTypes)) {
                 $index = $this->typeRegistry->getType($oldType);
+                $this->container->get('nemrod.elastica.jsonld.serializer')->setEsIndex($index);
                 if ($index !== null) {
                     $index = $index->getIndex()->getName();
                     /**
@@ -207,6 +210,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         // cascade remove
         foreach ($this->arrayResourcesToUpdateAfterDeletion as $uri => $type) {
             $index = $this->typeRegistry->getType($type);
+            $this->container->get('nemrod.elastica.jsonld.serializer')->setEsIndex($index);
             if ($index !== null) {
                 $index = $index->getIndex()->getName();
                 $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $resourceToDocumentTransformer);

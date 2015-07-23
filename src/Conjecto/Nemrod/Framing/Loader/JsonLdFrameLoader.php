@@ -47,17 +47,32 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         return $decoded;
     }
 
-    public function load($name, $parentClass = null, $includeSubFrames = true, $assoc = true)
+    public function load($name, $parentClass = null, $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false)
     {
-        if ($includeSubFrames) {
-            $classMetadatas = $this->getParentMetadatas($parentClass);
-            $classMetadatas[]['frame'] = $name;
+        // if the parentClass have not been defined before, for elasticsearch mapping for example
+        if ($getTypeFromFrame) {
+            $frame = $this->load($name);
+            if (isset($frame['@type'])) {
+                $typeClass = $frame['@type'];
+                $phpClass = TypeMapper::get($typeClass);
+                if ($phpClass) {
+                    $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
+                    $parentClass = $metadata->getParentClass();
+                }
+            }
+        }
 
+        if ($includeSubFrames) {
+            // find parent class frames
+            $frames = $this->getParentFrames($parentClass);
+            $frames[] = $name;
+
+            // merge frames together
             $finalFrame = array();
-            foreach ($classMetadatas as $classMetadata) {
-                if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
+            foreach ($frames as $currentFrame) {
+                if (!empty($currentFrame)) {
                     // find frame with frame path and merge included frames
-                    $frame = $this->mergeWithIncludedFrames($this->getFrame($classMetadata['frame']), $assoc);
+                    $frame = $this->mergeWithIncludedFrames($this->getFrame($currentFrame), $assoc);
                     // merge current frame with other frames
                     $finalFrame = array_merge_recursive($finalFrame, $frame);
                 }
@@ -79,26 +94,31 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
     }
 
     /**
-     * Search parent classes and fill frame and options for each parent class
+     * Search parent frame pathes
      * @param $parentClass
-     * @param array $parentClasses
+     * @param array $parentFrames
      * @return array
      */
-    public function getParentMetadatas($parentClass, $parentClasses = array(), $skipRoot = false)
+    public function getParentFrames($parentClass, $parentFrames = array(), $skipRoot = false)
     {
         if (!$parentClass) {
-            return $parentClasses;
+            return $parentFrames;
         }
 
-        $metadata = $this->metadataFactory->getMetadataForClass(TypeMapper::get($parentClass));
-        $parentClass = $metadata->getParentClass();
-        // if we don't want to get the root frame
-        if (!$skipRoot) {
-            $parentClasses[]['frame'] = $metadata->getFrame();
-            $parentClasses[]['options'] = $metadata->getOptions();
+        $phpClass = TypeMapper::get($parentClass);
+        if ($phpClass) {
+            $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
+            $parentClass = $metadata->getParentClass();
+            // if we don't want to get the root frame
+            if (!$skipRoot) {
+                $parentFrames[] = $metadata->getFrame();
+            }
+
+            return $this->getParentFrames($metadata->getParentClass(), $parentFrames);
         }
-        $parentClasses = $this->getParentMetadatas($parentClass, $parentClasses);
-        return $parentClasses;
+        else {
+            return $parentFrames;
+        }
     }
 
     /**
@@ -137,7 +157,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             unset($frame["@include"]);
             $frame = array_merge_recursive($frame, $includedFrame);
         }
-        else if (is_array($subFrame) && isset($subFrame['frame']))
+        else if (is_array($subFrame) && isset($subFrame))
         {
             // get parentObjectFrames option before manipulating the frame
             $parentObjectFrames = null;
@@ -147,7 +167,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
             // get and merge the included frame
             unset($frame["@include"]);
-            $includedFrame = $this->getFrame($subFrame['frame']);
+            $includedFrame = $this->getFrame($subFrame);
             $frame = array_merge_recursive($includedFrame, $frame);
             // clear the frame
             unset($frame["@include"]);
@@ -159,8 +179,8 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             if ($parentObjectFrames && isset($frame["@type"])) {
                 $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
                 foreach ($parentClassMetadatas as $classMetadata) {
-                    if ($classMetadata && isset($classMetadata['frame']) && !empty($classMetadata['frame'])) {
-                        $frame = array_merge_recursive($frame, $this->getFrame($classMetadata['frame']));
+                    if ($classMetadata && isset($classMetadata) && !empty($classMetadata)) {
+                        $frame = array_merge_recursive($frame, $this->getFrame($classMetadata));
                     }
                 }
 

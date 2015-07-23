@@ -23,13 +23,13 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $config = $container->getExtensionConfig('elastica')[0];
-        $jsonLdFrameLoader = $container->get('nemrod.jsonld.frame.loader.filesystem');
+        $jsonLdFrameLoader = $container->get('nemrod.elastica.jsonld.frame.loader.filesystem');
         $confManager = $container->getDefinition('nemrod.elastica.config_manager');
 
         foreach ($config['indexes'] as $name => $types) {
 
             foreach ($types['types'] as $typeName => $settings) {
-                $frame = $jsonLdFrameLoader->load($settings['frame']);
+                $frame = $jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
                 $settings['frame'] = $frame;
                 if (isset($frame['@type']) || isset($settings['type'])) {
                     $type = '';

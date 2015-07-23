@@ -67,6 +67,14 @@ class JsonLdSerializer
     }
 
     /**
+     * @return \Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader
+     */
+    public function getJsonLdFrameLoader()
+    {
+        return $this->loader;
+    }
+
+    /**
      * Serialize resource to JsonLD frame
      * @param $resource
      * @param null $frame
@@ -77,20 +85,26 @@ class JsonLdSerializer
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
-        $parentClassMetadatas = array();
         $parentClass = null;
 
-        // if no frame provided try to find the default one in the resource metadata
-        if (!$frame) {
+        if (!$frame || !$options || (!empty($options) && isset($options['includeParentClassFrame']) && $options['includeParentClassFrame'] === true)) {
             $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
-            $frame = $metadata->getFrame();
-            $parentClass = $metadata->getParentClass();
-            $parentClassMetadatas = $this->loader->getParentMetadatas($parentClass);
+            // if no frame provided try to find the default one in the resource metadata
+            if (!$frame) {
+                $frame = $metadata->getFrame();
+            }
+
+            // if includeParentClassFrame is true, search parentClass with resource SubClassOf annotation
+            if (!empty($options) && isset($options['includeParentClassFrame']) && $options['includeParentClassFrame'] === true) {
+                $parentClass = $metadata->getParentClass();
+            }
         }
 
         // load the frame
         $frame = $this->loadFrame($frame, $parentClass);
-        $options = $this->getMergedOptions($parentClassMetadatas, $options);
+
+        // load and merge options
+        $options = $this->getMergedOptions($this->getParentOptions($parentClass), $options);
 
         // if compacting without context, extract it from the frame
         if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
@@ -134,10 +148,9 @@ class JsonLdSerializer
 
     /**
      * Load the frame.
-     *
-     * @param null $frame
-     *
-     * @return mixed|null
+     * @param string|null $frame
+     * @param string|null $parentClass
+     * @return array
      */
     protected function loadFrame($frame = null, $parentClass = null)
     {
@@ -157,6 +170,29 @@ class JsonLdSerializer
         }
 
         return $frame;
+    }
+
+    /**
+     * Search parent class serialization options
+     * @param $parentClass
+     * @param array $parentOptions
+     * @return array
+     */
+    public function getParentOptions($parentClass, $parentOptions = array())
+    {
+        if (!$parentClass) {
+            return $parentOptions;
+        }
+
+        $phpClass = TypeMapper::get($parentClass);
+        if ($phpClass) {
+            $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
+            $parentClass = $metadata->getParentClass();
+            $parentOptions[] = $metadata->getOptions();
+            $parentOptions = $this->getParentOptions($parentClass, $parentOptions);
+        }
+
+        return $parentOptions;
     }
 
     /**

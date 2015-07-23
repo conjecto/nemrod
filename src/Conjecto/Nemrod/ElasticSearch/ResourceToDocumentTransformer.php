@@ -12,9 +12,10 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
-use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
+use Conjecto\Nemrod\ElasticSearch\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
 use EasyRdf\Resource as BaseResource;
+use EasyRdf\TypeMapper;
 use Elastica\Document;
 
 class ResourceToDocumentTransformer
@@ -71,7 +72,13 @@ class ResourceToDocumentTransformer
         $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $frame = $this->serializerHelper->getTypeFramePath($index, $type);
-            $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $frame);
+
+            $phpClass = TypeMapper::get($type);
+            if (!$phpClass) {
+                $phpClass = "EasyRdf\\Resource";
+            }
+
+            $jsonLd = $this->jsonLdSerializer->serialize(new $phpClass($uri), $frame, array("includeParentClassFrame" => true));
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
                 return;
