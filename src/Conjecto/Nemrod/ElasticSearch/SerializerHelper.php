@@ -216,7 +216,7 @@ class SerializerHelper
             if (is_dir($dir = dirname($reflection->getFilename()).'/RdfResource')) {
                 foreach($finder->in($dir) as $file) {
                     if(is_file($file)) {
-                        $classBundlePath = $this->getClassBundlePath($file->getPathName());
+                        $classBundlePath = $this->getClassRelativePath($file->getPathName());
                         $metadata = $this->metadataFactory->getMetadataForClass($classBundlePath);
                         $types = $metadata->getTypes();
                         $parentClass = $metadata->getParentClass();
@@ -227,17 +227,41 @@ class SerializerHelper
         }
     }
 
-    public function getMostAccurateType($types, $uri = null)
+    public function getMostAccurateType($types)
     {
-        $arrayNoParentClassOf = array();
+        // filter types to have only types filiation defined with subClassOf annotation
+        $definedOntoTypes = array();
         foreach ($types as $type) {
+            $type = (string)$type;
             if ($type && !empty($type)) {
                 $shortenType = RdfNamespace::shorten($type);
-                if (isset($this->rdfFiliation[$shortenType]) &&
-                    !(isset($this->rdfFiliation[$shortenType]['parentClassOf']) && count($this->rdfFiliation[$shortenType]['parentClassOf']) >= 0)
-                ) {
-                    $arrayNoParentClassOf[] = $shortenType;
+                if (isset($this->rdfFiliation[$shortenType])) {
+                    $definedOntoTypes[] = $shortenType;
                 }
+            }
+        }
+
+        // if only one result then return it
+        if (count($definedOntoTypes) == 1) {
+            return $definedOntoTypes[0];
+        }
+
+        // try to find the most accurate type
+        $arrayNoParentClassOf = array();
+        foreach ($definedOntoTypes as $currentType) {
+            $mostAccurate = true;
+            if (isset($this->rdfFiliation[$currentType]['parentClassOf'])) {
+                $subClassTypes = $this->rdfFiliation[$currentType]['parentClassOf'];
+                // in class children types, look if one of them is defined with subClassOf annotation
+                foreach ($definedOntoTypes as $type) {
+                    if (in_array($type, $subClassTypes)) {
+                        $mostAccurate = false;
+                        break;
+                    }
+                }
+            }
+            if ($mostAccurate) {
+                $arrayNoParentClassOf[] = $currentType;
             }
         }
 
@@ -249,7 +273,7 @@ class SerializerHelper
         }
     }
 
-    protected function getClassBundlePath($filePath)
+    protected function getClassRelativePath($filePath)
     {
         $cutName = strstr($filePath, '\\src\\');
         $cutName = substr($cutName, 5);

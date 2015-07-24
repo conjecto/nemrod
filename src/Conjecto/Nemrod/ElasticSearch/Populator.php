@@ -116,47 +116,54 @@ class Populator
             $done = 0;
             while ($done < $size) {
                 $options['offset'] = $done;
-                //$result = $this->resourceManager->getRepository($key)->findBy(array(), $options);
-                $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a '.$key);
+                $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $key);
                 $select->orderBy('?uri');
                 $select->setOffset($done);
                 $select->setMaxResults($options['slice']);
-                $select = $select->setMaxResults(isset($options['slice']) ?$options['slice'] : null)->getQuery();
+                $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
                 $selectStr = $select->getCompleteSparqlQuery();
                 $result = $this->resourceManager->getRepository($key)
                     ->getQueryBuilder()
                     ->reset()
-                    ->construct('?uri a ogbd:DossierRechercheHeritier')
+                    ->construct("?uri a $key")
                     ->addConstruct('?uri rdf:type ?type')
                     ->where('?uri a ' . $key)
                     ->andWhere('?uri rdf:type ?type')
-                    ->andWhere('{'.$selectStr.'}')
+                    ->andWhere('{' . $selectStr . '}')
                     ->getQuery()
                     ->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $key));
 
                 $docs = array();
                 /* @var Resource $add */
                 foreach ($result as $res) {
-                    $mostAccurateType = $this->serializerHelper->getMostAccurateType($res->all('rdf:type'), $res->getUri());
+                    $types = $res->all('rdf:type');
+                    $mostAccurateType = $this->serializerHelper->getMostAccurateType($types);
                     if (!$mostAccurateType) {
                         $mostAccurateType = $key;
                     }
                     $doc = $trans->transform($res->getUri(), $mostAccurateType);
-
                     if ($doc) {
-                        $docs[] = $doc;
+                        $docs[$mostAccurateType][] = $doc;
                     }
                 }
-                if (count ($docs)) {
-                    $this->typeRegistry->getType($mostAccurateType)->addDocuments($docs);
-                } else {
-                    $output->writeln("");
-                    $output->writeln("nothing to index");
+
+                foreach ($docs as $type => $docs) {
+                    if ($type === $key) {
+                        if (count($docs)) {
+                            $this->typeRegistry->getType($type)->addDocuments($docs);
+                        }
+                        else {
+                            $output->writeln("");
+                            $output->writeln("nothing to index");
+                        }
+                    }
                 }
 
                 //advance
                 $done += $options['slice'];
-
+                if ($done > $size) {
+                    $done = $size;
+                }
                 //showing where we're at.
                 if ($showProgress) {
                     if ($output->isDecorated() ) {
