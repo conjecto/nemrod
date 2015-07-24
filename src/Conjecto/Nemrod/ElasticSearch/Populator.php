@@ -137,9 +137,13 @@ class Populator
                 /* @var Resource $add */
                 foreach ($result as $res) {
                     $types = $res->all('rdf:type');
-                    $mostAccurateType = $this->serializerHelper->getMostAccurateType($types);
-                    if (!$mostAccurateType) {
-                        $mostAccurateType = $key;
+                    $mostAccurateType = $key;
+                    $mostAccurateTypes = $this->serializerHelper->getMostAccurateType($types);
+                    if (count($mostAccurateTypes) == 1) {
+                        $mostAccurateType = $mostAccurateTypes[0];
+                    }
+                    else {
+                        $output->writeln("The most accurate type for " $res->getUri() . " has not be found. The type $key is used");
                     }
                     $doc = $trans->transform($res->getUri(), $mostAccurateType);
                     if ($doc) {

@@ -260,11 +260,11 @@ class SerializerHelper
 
         // if only one result then return it
         if (count($definedOntoTypes) == 1) {
-            return $definedOntoTypes[0];
+            return $definedOntoTypes;
         }
 
         // try to find the most accurate type
-        $arrayNoParentClassOf = array();
+        $arrayAccurateOnes = array();
         foreach ($definedOntoTypes as $currentType) {
             $mostAccurate = true;
             if (isset($this->rdfFiliation[$currentType]['parentClassOf'])) {
@@ -278,16 +278,11 @@ class SerializerHelper
                 }
             }
             if ($mostAccurate) {
-                $arrayNoParentClassOf[] = $currentType;
+                $arrayAccurateOnes[] = $currentType;
             }
         }
 
-        if (count($arrayNoParentClassOf) == 1) {
-            return $arrayNoParentClassOf[0];
-        }
-        else {
-            return null;
-        }
+        return $arrayAccurateOnes;
     }
 
     protected function getClassRelativePath($filePath)
