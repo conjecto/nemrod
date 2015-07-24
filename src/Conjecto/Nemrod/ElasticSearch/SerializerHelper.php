@@ -93,6 +93,20 @@ class SerializerHelper
         return in_array($properties, $this->requests[$index][$type]['properties']);
     }
 
+    public function getIndexedTypes($types)
+    {
+        $indexedTypes = array();
+        foreach ($types as $type) {
+            foreach ($this->requests as $index => $indexTypes) {
+                if ($this->isTypeIndexed($index, $type)) {
+                    $indexedTypes[] = $type;
+                }
+            }
+        }
+
+        return $indexedTypes;
+    }
+
     public function isTypeIndexed($index, $type, $properties = array())
     {
         if (empty($properties)) {
@@ -219,8 +233,11 @@ class SerializerHelper
                         $classBundlePath = $this->getClassRelativePath($file->getPathName());
                         $metadata = $this->metadataFactory->getMetadataForClass($classBundlePath);
                         $types = $metadata->getTypes();
-                        $parentClass = $metadata->getParentClass();
-                        $this->addParentClass($types, $parentClass);
+                        $types = $this->getIndexedTypes($types);
+                        if (!empty($types)) {
+                            $parentClass = $metadata->getParentClass();
+                            $this->addParentClass($types, $parentClass);
+                        }
                     }
                 }
             }
