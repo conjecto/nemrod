@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
 
@@ -87,10 +88,10 @@ class NemrodExtension extends Extension
     {
         foreach ($config['endpoints'] as $name => $endpoint) {
             $container
-              ->setDefinition('nemrod.sparql.connection.'.$name, new DefinitionDecorator('nemrod.sparql.connection'))
-              ->setArguments(array(
-                  $endpoint['query_uri'],
-                  isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
+                ->setDefinition('nemrod.sparql.connection.'.$name, new DefinitionDecorator('nemrod.sparql.connection'))
+                ->setArguments(array(
+                    $endpoint['query_uri'],
+                    isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'nemrod.sparql.connection.'.$name);
             if ($name === $config['default_endpoint']) {
@@ -145,33 +146,33 @@ class NemrodExtension extends Extension
      */
     private function registerResourceMappings(array $config, ContainerBuilder $container)
     {
-        $paths = array();
-
-        // foreach bundle, get the rdf resource path
-        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
-            // building resource dir path
-            $refl = new \ReflectionClass($class);
-            $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'] . DIRECTORY_SEPARATOR . 'RdfResource' . DIRECTORY_SEPARATOR;
-            //adding dir path to driver known pathes
-            if (is_dir($resourcePath)) {
-                $paths[$refl->getNamespaceName()] = $resourcePath;
-            }
-        }
-
         // registering all annotation mappings.
         $service = $container->getDefinition('nemrod.type_mapper');
-
         //setting default resource
         $service->addMethodCall('setDefaultResourceClass', array($container->getParameter('nemrod.resource.class')));
+
+        // get bundles and classes
+        $finder = new Finder();
+        $classes = array();
+        $paths = array();
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
+            // in bundle
+            $reflection = new \ReflectionClass($class);
+            if (is_dir($dir = dirname($reflection->getFilename()) . '/RdfResource')) {
+                $paths[$bundle] = dirname($reflection->getFilename()) . '/RdfResource';
+                foreach($finder->in($dir) as $file) {
+                    if(is_file($file)) {
+                        $classes[] = $this->getClassRelativePath($file->getPathName());
+                    }
+                }
+            }
+        }
 
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
         //adding paths to annotation driver
         $annDriver = $container->getDefinition('nemrod.metadata_annotation_driver');
         $annDriver->replaceArgument(1, $paths);
-
-        $classes = $driver->getAllClassNames();
 
         foreach ($classes as $class) {
             $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
@@ -221,6 +222,14 @@ class NemrodExtension extends Extension
             $name = substr($name, 0, -6);
         }
         $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir, $name));
+    }
+
+    private function getClassRelativePath($filePath)
+    {
+        $cutName = strstr($filePath, '\\src\\');
+        $cutName = substr($cutName, 5);
+        $name = substr($cutName, 0, strlen($cutName) - 4);
+        return str_replace('/', '\\', $name);
     }
 
     /**

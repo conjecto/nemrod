@@ -93,7 +93,7 @@ class JsonLdSerializer
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
-        $parentClass = null;
+        $parentClasses = array();
 
         if (!$frame || !$options || (!empty($options) && isset($options['includeParentClassFrame']) && $options['includeParentClassFrame'] === true)) {
             $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
@@ -104,15 +104,15 @@ class JsonLdSerializer
 
             // if includeParentClassFrame is true, search parentClass with resource SubClassOf annotation
             if (!empty($options) && isset($options['includeParentClassFrame']) && $options['includeParentClassFrame'] === true) {
-                $parentClass = $metadata->getParentClass();
+                $parentClasses = $metadata->getParentClasses();
             }
         }
 
         // load the frame
-        $frame = $this->loadFrame($frame, $parentClass);
+        $frame = $this->loadFrame($frame, $parentClasses);
 
         // load and merge options
-        $options = $this->getMergedOptions($this->getParentOptions($parentClass), $options);
+        $options = $this->getMergedOptions($this->getParentOptions($parentClasses), $options);
 
         // if compacting without context, extract it from the frame
         if ($frame && !empty($options['compact']) && empty($options['context']) && isset($frame['@context'])) {
@@ -160,11 +160,11 @@ class JsonLdSerializer
      * @param string|null $parentClass
      * @return array
      */
-    protected function loadFrame($frame = null, $parentClass = null)
+    protected function loadFrame($frame = null, $parentClasses = array())
     {
         // load the frame
         if ($frame) {
-            $frame = $this->loader->load($frame, $parentClass);
+            $frame = $this->loader->load($frame, $parentClasses);
         } else {
             $frame = array();
         }
@@ -186,20 +186,21 @@ class JsonLdSerializer
      * @param array $parentOptions
      * @return array
      */
-    public function getParentOptions($parentClass, $parentOptions = array())
+    public function getParentOptions($parentClasses, $parentOptions = array())
     {
-        if (!$parentClass) {
+        if (!$parentClasses || empty($parentClasses)) {
             return $parentOptions;
         }
 
-        $phpClass = TypeMapper::get($parentClass);
-        if ($phpClass) {
-            $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-            $parentClass = $metadata->getParentClass();
-            $parentOptions[] = $metadata->getOptions();
-            $parentOptions = $this->getParentOptions($parentClass, $parentOptions);
+        foreach ($parentClasses as $parentClass) {
+            $phpClass = TypeMapper::get($parentClass);
+            if ($phpClass) {
+                $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
+                $parentClasses = $metadata->getParentClasses();
+                $parentOptions[] = $metadata->getOptions();
+                $parentOptions = $this->getParentOptions($parentClasses, $parentOptions);
+            }
         }
-
         return $parentOptions;
     }
 

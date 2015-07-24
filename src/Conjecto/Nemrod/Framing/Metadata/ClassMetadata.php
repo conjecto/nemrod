@@ -30,7 +30,7 @@ class ClassMetadata extends MergeableClassMetadata
     {
         parent::merge($object);
         $this->frame =  $object->frame;
-        $this->parentClass =  $object->parentClass;
+        $this->parentClasses =  $object->parentClasses;
         $this->options = $object->options;
         $this->types = $object->types;
     }

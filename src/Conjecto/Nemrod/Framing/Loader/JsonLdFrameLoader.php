@@ -47,7 +47,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         return $decoded;
     }
 
-    public function load($name, $parentClass = null, $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false)
+    public function load($name, $parentClasses = array(), $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false)
     {
         // if the parentClass have not been defined before, for elasticsearch mapping for example
         if ($getTypeFromFrame) {
@@ -57,14 +57,14 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
                 $phpClass = TypeMapper::get($typeClass);
                 if ($phpClass) {
                     $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-                    $parentClass = $metadata->getParentClass();
+                    $parentClasses = $metadata->getParentClasses();
                 }
             }
         }
 
         if ($includeSubFrames) {
             // find parent class frames
-            $frames = $this->getParentFrames($parentClass);
+            $frames = $this->getParentFrames($parentClasses);
             $frames[] = $name;
 
             // merge frames together
@@ -99,25 +99,26 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
      * @param array $parentFrames
      * @return array
      */
-    public function getParentFrames($parentClass, $parentFrames = array(), $skipRoot = false)
+    public function getParentFrames($parentClasses, $parentFrames = array(), $skipRoot = false)
     {
-        if (!$parentClass) {
+        if (!$parentClasses || empty($parentClasses)) {
             return $parentFrames;
         }
 
-        $phpClass = TypeMapper::get($parentClass);
-        if ($phpClass) {
-            $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-            $parentClass = $metadata->getParentClass();
-            // if we don't want to get the root frame
-            if (!$skipRoot) {
-                $parentFrames[] = $metadata->getFrame();
+        foreach ($parentClasses as $parentClass) {
+            $phpClass = TypeMapper::get($parentClass);
+            if ($phpClass) {
+                $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
+                $parentClass = $metadata->getParentClasses();
+                // if we don't want to get the root frame
+                if (!$skipRoot) {
+                    $parentFrames[] = $metadata->getFrame();
+                }
+
+                return $this->getParentFrames($metadata->getParentClasses(), $parentFrames);
+            } else {
+                return $parentFrames;
             }
-
-            return $this->getParentFrames($metadata->getParentClass(), $parentFrames);
-        }
-        else {
-            return $parentFrames;
         }
     }
 

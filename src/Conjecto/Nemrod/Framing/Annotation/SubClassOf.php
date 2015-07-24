@@ -20,7 +20,7 @@ namespace Conjecto\Nemrod\Framing\Annotation;
 class SubClassOf
 {
     /**
-     * @var string
+     * @var array
      */
-    public $parentClass = "rdfs:Resource";
+    public $parentClasses = array();
 }

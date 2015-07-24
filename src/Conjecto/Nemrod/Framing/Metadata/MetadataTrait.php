@@ -23,9 +23,9 @@ trait MetadataTrait
     /**
      * JsonLD: subClassOf
      *
-     * @var string
+     * @var array
      */
-    public $parentClass;
+    public $parentClasses;
 
     /**
      * JsonLD : options.
@@ -57,19 +57,19 @@ trait MetadataTrait
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getParentClass()
+    public function getParentClasses()
     {
-        return $this->parentClass;
+        return $this->parentClasses;
     }
 
     /**
-     * @param string $parentClass
+     * @param string $parentClasses
      */
-    public function setParentClass($parentClass)
+    public function setParentClasses($parentClasses)
     {
-        $this->parentClass = $parentClass;
+        $this->parentClasses = $parentClasses;
     }
 
     /**

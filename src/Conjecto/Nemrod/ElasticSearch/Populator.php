@@ -109,7 +109,7 @@ class Populator
             $size = current($size)->count->getValue();
             $output->writeln($size . " entries");
             if ($showProgress) {
-                $progress  = new ProgressBar($output, ceil($size/$options['slice']));
+                $progress = new ProgressBar($output, ceil($size / $options['slice']));
                 $progress->start();
                 $progress->setFormat('debug');
             }
@@ -139,11 +139,15 @@ class Populator
                     $types = $res->all('rdf:type');
                     $mostAccurateType = $key;
                     $mostAccurateTypes = $this->serializerHelper->getMostAccurateType($types);
-                    if (count($mostAccurateTypes) == 1) {
+                    // not specified in project ontology description
+                    if ($mostAccurateTypes === null) {
+                        // keep the current $key
+                    } else if (count($mostAccurateTypes) == 1) {
                         $mostAccurateType = $mostAccurateTypes[0];
-                    }
-                    else {
-                        $output->writeln("The most accurate type for " $res->getUri() . " has not be found. The type $key is used");
+                    } else {
+                        $output->writeln("The most accurate type for " . $res->getUri() . " has not be found. The type $key is used");
+                        var_dump($mostAccurateTypes);
+                        die;
                     }
                     $doc = $trans->transform($res->getUri(), $mostAccurateType);
                     if ($doc) {
@@ -155,8 +159,7 @@ class Populator
                     if ($type === $key) {
                         if (count($docs)) {
                             $this->typeRegistry->getType($type)->addDocuments($docs);
-                        }
-                        else {
+                        } else {
                             $output->writeln("");
                             $output->writeln("nothing to index");
                         }
@@ -170,10 +173,10 @@ class Populator
                 }
                 //showing where we're at.
                 if ($showProgress) {
-                    if ($output->isDecorated() ) {
+                    if ($output->isDecorated()) {
                         $progress->advance();
                     } else {
-                        $output->writeln("did ".$done." over (".$size.") memory: ". Helper::formatMemory(memory_get_usage(true)) );
+                        $output->writeln("did " . $done . " over (" . $size . ") memory: " . Helper::formatMemory(memory_get_usage(true)));
                     }
                 }
                 //flushing manager for mem usage

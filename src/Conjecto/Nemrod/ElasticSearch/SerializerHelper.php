@@ -233,10 +233,10 @@ class SerializerHelper
                         $classBundlePath = $this->getClassRelativePath($file->getPathName());
                         $metadata = $this->metadataFactory->getMetadataForClass($classBundlePath);
                         $types = $metadata->getTypes();
-                        $types = $this->getIndexedTypes($types);
                         if (!empty($types)) {
-                            $parentClass = $metadata->getParentClass();
-                            $this->addParentClass($types, $parentClass);
+                            $parentClasses = $metadata->getParentClasses();
+
+                            $this->addParentClass($types, $parentClasses);
                         }
                     }
                 }
@@ -256,6 +256,10 @@ class SerializerHelper
                     $definedOntoTypes[] = $shortenType;
                 }
             }
+        }
+
+        if (count($definedOntoTypes) == 0) {
+            return null;
         }
 
         // if only one result then return it
@@ -293,15 +297,29 @@ class SerializerHelper
         return str_replace('/', '\\', $name);
     }
 
-    protected function addParentClass($types, $parentClass)
+    protected function addParentClass($types, $parentClasses)
     {
-        if ($parentClass) {
-            foreach ($types as $type) {
-                if (!(isset($this->rdfFiliation[$type])) || (isset($this->rdfFiliation[$type]['subClassOf']) && !in_array($parentClass, $this->rdfFiliation[$type]['subClassOf']))) {
-                    $this->rdfFiliation[$type]['subClassOf'][] = $parentClass;
+        if ($parentClasses) {
+            foreach ($parentClasses as $parentClass) {
+                foreach ($types as $type) {
+                    if (!(isset($this->rdfFiliation[$type])) || (isset($this->rdfFiliation[$type]['subClassOf']) && !in_array($parentClass, $this->rdfFiliation[$type]['subClassOf']))) {
+                        $this->rdfFiliation[$type]['subClassOf'][] = $parentClass;
+                    }
+                    if (!(isset($this->rdfFiliation[$parentClass])) || (isset($this->rdfFiliation[$parentClass]['parentClassOf']) && !in_array($type, $this->rdfFiliation[$parentClass]['parentClassOf']))) {
+                        $this->rdfFiliation[$parentClass]['parentClassOf'][] = $type;
+                    }
                 }
-                if (!(isset($this->rdfFiliation[$parentClass])) || (isset($this->rdfFiliation[$parentClass]['parentClassOf']) && !in_array($type, $this->rdfFiliation[$parentClass]['parentClassOf']))) {
-                    $this->rdfFiliation[$parentClass]['parentClassOf'][] = $type;
+            }
+        }
+        else {
+            foreach ($types as $type) {
+                if (!isset($this->rdfFiliation[$type])) {
+                    if (!isset($this->rdfFiliation[$type]['subClassOf'])) {
+                        $this->rdfFiliation[$type]['subClassOf'] = array();
+                    }
+                    if (!isset($this->rdfFiliation[$type]['parentClassOf'])) {
+                        $this->rdfFiliation[$type]['parentClassOf'] = array();
+                    }
                 }
             }
         }

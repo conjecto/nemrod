@@ -52,7 +52,7 @@ class AnnotationDriver implements DriverInterface
         $subClassOfProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf');
         if (null !== $subClassOfProperty) {
             // ParentClass
-            $classMetadata->setParentClass($subClassOfProperty->parentClass);
+            $classMetadata->setParentClasses($subClassOfProperty->parentClasses);
         }
         $typeProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\ResourceManager\\Annotation\\Resource');
         if (null !== $typeProperty) {
@@ -75,7 +75,7 @@ class AnnotationDriver implements DriverInterface
                 'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf'
             );
             if (null !== $subClassOfProperty) {
-                $methodMetadata->setParentClass($subClassOfProperty->parentClass);
+                $methodMetadata->setParentClasses($subClassOfProperty->parentClasses);
             }
             $typeProperty = $this->reader->getMethodAnnotation(
                 $reflectionMethod,
