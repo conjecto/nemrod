@@ -152,9 +152,6 @@ class ConfigManager
             if (!isset($property['store'])) {
                 $property['store'] = true;
             }
-
         }
-
-
     }
 }

@@ -8,6 +8,7 @@
  */
 namespace Conjecto\Nemrod\Bundle\ElasticaBundle\DependencyInjection\CompilerPass;
 
+use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
@@ -25,11 +26,13 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
         $config = $container->getExtensionConfig('elastica')[0];
         $jsonLdFrameLoader = $container->get('nemrod.elastica.jsonld.frame.loader.filesystem');
         $confManager = $container->getDefinition('nemrod.elastica.config_manager');
+        $filiationBuilder = $container->get('nemrod.filiation.builder');
+        $jsonLdFrameLoader->setFiliationBuilder($filiationBuilder);
 
         foreach ($config['indexes'] as $name => $types) {
-
             foreach ($types['types'] as $typeName => $settings) {
-                $frame = $jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
+                $jsonLdFrameLoader->setEsIndex($name);
+                $frame = $jsonLdFrameLoader->load($settings['frame'], null, false);
                 $settings['frame'] = $frame;
                 if (isset($frame['@type']) || isset($settings['type'])) {
                     $type = '';

@@ -180,6 +180,10 @@ class NemrodExtension extends Extension
                 $service->addMethodCall('set', array($type, $class));
             }
         }
+
+        // guess class filiation
+        $registry = $container->getDefinition('nemrod.filiation.builder');
+        $registry->addMethodCall('guessRdfClassFiliation', array($classes));
     }
 
     /**
@@ -206,6 +210,9 @@ class NemrodExtension extends Extension
         if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
             $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
         }
+
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setFiliationBuilder', array(new Reference('nemrod.filiation.builder')));
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setMetadataFactory', array(new Reference('nemrod.jsonld.metadata_factory')));
     }
 
     /**

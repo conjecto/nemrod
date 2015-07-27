@@ -13,6 +13,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\RdfNamespace;
 use Elastica\Type;
@@ -37,8 +38,14 @@ class Populator
     /** @var  TypeMapperRegistry */
     protected $typeMapperRegistry;
 
-    /** @var  @var JsonLdSerializer */
+    /** @var JsonLdSerializer */
     protected $jsonLdSerializer;
+
+    /** @var SerializerHelper */
+    protected $serializerHelper;
+
+    /** @var FiliationBuilder */
+    protected $filiationBuilder;
 
     /**
      * @param $resourceManager
@@ -46,7 +53,9 @@ class Populator
      * @param $typeRegistry
      * @param $resetter
      */
-    public function __construct($resourceManager, $indexManager, $typeRegistry, $resetter, $typeMapperRegistry, $serializerHelper, JsonLdSerializer $jsonLdSerializer)
+    public function __construct(Manager $resourceManager, IndexRegistry $indexManager, TypeRegistry $typeRegistry, Resetter $resetter,
+                                TypeMapperRegistry $typeMapperRegistry, SerializerHelper $serializerHelper, JsonLdSerializer $jsonLdSerializer,
+                                FiliationBuilder $filiationBuilder)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
@@ -55,6 +64,7 @@ class Populator
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->serializerHelper = $serializerHelper;
         $this->jsonLdSerializer = $jsonLdSerializer;
+        $this->filiationBuilder = $filiationBuilder;
     }
 
     /**
@@ -83,7 +93,6 @@ class Populator
             $types = $this->typeRegistry->getTypes();
         }
 
-        $this->jsonLdSerializer->getJsonLdFrameLoader()->setSerializerHelper($this->serializerHelper);
         $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
         $options['limit'] = $options['slice'];
@@ -138,7 +147,7 @@ class Populator
                 foreach ($result as $res) {
                     $types = $res->all('rdf:type');
                     $mostAccurateType = $key;
-                    $mostAccurateTypes = $this->serializerHelper->getMostAccurateType($types);
+                    $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types);
                     // not specified in project ontology description
                     if ($mostAccurateTypes === null) {
                         // keep the current $key

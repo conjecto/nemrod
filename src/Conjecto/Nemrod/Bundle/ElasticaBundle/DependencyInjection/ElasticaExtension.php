@@ -80,11 +80,6 @@ class ElasticaExtension extends Extension
                     'port' => $client['port'],
                 )));
         }
-
-        $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
-        $serializerHelper->addMethodCall('setConstructedGraphProvider', array(new Reference('nemrod.jsonld.graph_provider')));
-        $serializerHelper->addMethodCall('setJsonLdFrameLoader', array(new Reference('nemrod.elastica.jsonld.frame.loader.filesystem')));
-        $serializerHelper->addMethodCall('setConfig', array($config));
     }
 
     /**
@@ -95,6 +90,9 @@ class ElasticaExtension extends Extension
     public function registerJsonLdFramePaths($config, ContainerBuilder $container)
     {
         $jsonLdFilesystemLoaderDefinition = $container->getDefinition('nemrod.elastica.jsonld.frame.loader.filesystem');
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setFiliationBuilder', array(new Reference('nemrod.filiation.builder')));
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setMetadataFactory', array(new Reference('nemrod.jsonld.metadata_factory')));
+
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             // in app
             if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
@@ -111,6 +109,12 @@ class ElasticaExtension extends Extension
         if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
             $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
         }
+
+        $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
+        $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
+        $serializerHelper->addMethodCall('setJsonLdFrameLoader', array(new Reference('nemrod.elastica.jsonld.frame.loader.filesystem')));
+        $serializerHelper->addMethodCall('setConfig', array($config));
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setSerializerHelper', array(new Reference('nemrod.elastica.serializer_helper')));
     }
 
     /**

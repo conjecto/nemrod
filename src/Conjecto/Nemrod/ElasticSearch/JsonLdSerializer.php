@@ -12,6 +12,7 @@ use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer as BaseJsonLdSerializer;
 use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
 use Conjecto\Nemrod\Framing\Provider\GraphProviderInterface;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
+use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Metadata\MetadataFactory;
 
 class JsonLdSerializer extends BaseJsonLdSerializer
@@ -26,8 +27,9 @@ class JsonLdSerializer extends BaseJsonLdSerializer
      */
     protected $missingProperties;
 
-    public function __construct(RdfNamespaceRegistry $nsRegistry, JsonLdFrameLoader $loader, GraphProviderInterface $provider, MetadataFactory $metadataFactory)
+    public function __construct(RdfNamespaceRegistry $nsRegistry, JsonLdFrameLoader $loader, GraphProviderInterface $provider,
+                                MetadataFactory $metadataFactory, TypeMapperRegistry $typeMapperRegistry)
     {
-        parent::__construct($nsRegistry, $loader, $provider, $metadataFactory);
+        parent::__construct($nsRegistry, $loader, $provider, $metadataFactory, $typeMapperRegistry);
     }
 }

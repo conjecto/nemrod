@@ -15,9 +15,6 @@ use Conjecto\Nemrod\Framing\Provider\ConstructedGraphProvider;
 use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Resource;
-use EasyRdf\TypeMapper;
-use Metadata\MetadataFactory;
-use Symfony\Component\Finder\Finder;
 
 /**
  * Class SerializerHelper.
@@ -39,25 +36,10 @@ class SerializerHelper
      */
     protected $jsonLdFrameLoader;
 
-    /**
-     * @var MetadataFactory
-     */
-    protected $metadataFactory;
-
-    protected $kernelBundles;
-
-    function __construct(MetadataFactory $metadataFactory, $kernelBundles)
-    {
-        $this->metadataFactory = $metadataFactory;
-        $this->kernelBundles = $kernelBundles;
-        $this->rdfFiliation = array();
-    }
-
     public function setConfig($config)
     {
         $this->config = $config;
         $this->guessRequests();
-        $this->guessRdfClassFiliation();
     }
 
     /**
@@ -75,6 +57,9 @@ class SerializerHelper
 
     public function getGraph($index, $uri, $type)
     {
+        if (!$this->cgp) {
+            throw new \Exception('The constructed graph provider is not setted');
+        }
         return $this->cgp->getGraph(new Resource($uri), $this->getTypeFrame($index, $type));
     }
 
@@ -141,7 +126,8 @@ class SerializerHelper
 
     public function getTypeFrame($index, $type)
     {
-        return $this->jsonLdFrameLoader->load($this->getTypeFramePath($index, $type));
+        $this->jsonLdFrameLoader->setEsIndex($index);
+        return $this->jsonLdFrameLoader->load($this->getTypeFramePath($index, $type), $type);
     }
 
     public function getTypeName($index, $type)
@@ -169,7 +155,7 @@ class SerializerHelper
             return $this->requests[$index][$type][$key];
         }
 
-        throw new \Exception('No matching found for index '.$index.' and type '.$type);
+        return null;
     }
 
     protected function guessRequests()
@@ -180,7 +166,7 @@ class SerializerHelper
             }
             foreach ($types['types'] as $type => $settings) {
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
-                    throw new \Exception('You have to specify a frame for '.$type);
+                    throw new \Exception('You have to specify a frame for ' . $type);
                 }
                 $this->fillTypeRequests($index, $type, $settings);
             }
@@ -190,12 +176,12 @@ class SerializerHelper
     protected function fillTypeRequests($index, $typeName, $settings)
     {
         $type = null;
-        $frame = $this->jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
+        $this->jsonLdFrameLoader->setEsIndex($index);
+        $frame = $this->jsonLdFrameLoader->load($settings['frame'], $type, false);
 
         if (isset($settings['type'])) {
             $type = $settings['type'];
-        }
-        else if (isset($frame['@type'])) {
+        } else if (isset($frame['@type'])) {
             $type = $frame['@type'];
         }
 
@@ -203,6 +189,7 @@ class SerializerHelper
             throw new \Exception("You have to specify a type in your config or in the jsonLdFrame " . $settings['frame']);
         }
 
+        $frame = $this->jsonLdFrameLoader->load($settings['frame'], $type);
         $this->requests[$index][$type]['name'] = $typeName;
         $this->requests[$index][$type]['type'] = $type;
         $this->requests[$index][$type]['frame'] = $settings['frame'];
@@ -219,109 +206,5 @@ class SerializerHelper
         }
 
         return $properties;
-    }
-
-    protected function guessRdfClassFiliation()
-    {
-        $finder = new Finder();
-        foreach ($this->kernelBundles as $bundle => $class) {
-            // in bundle
-            $reflection = new \ReflectionClass($class);
-            if (is_dir($dir = dirname($reflection->getFilename()).'/RdfResource')) {
-                foreach($finder->in($dir) as $file) {
-                    if(is_file($file)) {
-                        $classBundlePath = $this->getClassRelativePath($file->getPathName());
-                        $metadata = $this->metadataFactory->getMetadataForClass($classBundlePath);
-                        $types = $metadata->getTypes();
-                        if (!empty($types)) {
-                            $parentClasses = $metadata->getParentClasses();
-
-                            $this->addParentClass($types, $parentClasses);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public function getMostAccurateType($types)
-    {
-        // filter types to have only types filiation defined with subClassOf annotation
-        $definedOntoTypes = array();
-        foreach ($types as $type) {
-            $type = (string)$type;
-            if ($type && !empty($type)) {
-                $shortenType = RdfNamespace::shorten($type);
-                if (isset($this->rdfFiliation[$shortenType])) {
-                    $definedOntoTypes[] = $shortenType;
-                }
-            }
-        }
-
-        if (count($definedOntoTypes) == 0) {
-            return null;
-        }
-
-        // if only one result then return it
-        if (count($definedOntoTypes) == 1) {
-            return $definedOntoTypes;
-        }
-
-        // try to find the most accurate type
-        $arrayAccurateOnes = array();
-        foreach ($definedOntoTypes as $currentType) {
-            $mostAccurate = true;
-            if (isset($this->rdfFiliation[$currentType]['parentClassOf'])) {
-                $subClassTypes = $this->rdfFiliation[$currentType]['parentClassOf'];
-                // in class children types, look if one of them is defined with subClassOf annotation
-                foreach ($definedOntoTypes as $type) {
-                    if (in_array($type, $subClassTypes)) {
-                        $mostAccurate = false;
-                        break;
-                    }
-                }
-            }
-            if ($mostAccurate) {
-                $arrayAccurateOnes[] = $currentType;
-            }
-        }
-
-        return $arrayAccurateOnes;
-    }
-
-    protected function getClassRelativePath($filePath)
-    {
-        $cutName = strstr($filePath, '\\src\\');
-        $cutName = substr($cutName, 5);
-        $name = substr($cutName, 0, strlen($cutName) - 4);
-        return str_replace('/', '\\', $name);
-    }
-
-    protected function addParentClass($types, $parentClasses)
-    {
-        if ($parentClasses) {
-            foreach ($parentClasses as $parentClass) {
-                foreach ($types as $type) {
-                    if (!(isset($this->rdfFiliation[$type])) || (isset($this->rdfFiliation[$type]['subClassOf']) && !in_array($parentClass, $this->rdfFiliation[$type]['subClassOf']))) {
-                        $this->rdfFiliation[$type]['subClassOf'][] = $parentClass;
-                    }
-                    if (!(isset($this->rdfFiliation[$parentClass])) || (isset($this->rdfFiliation[$parentClass]['parentClassOf']) && !in_array($type, $this->rdfFiliation[$parentClass]['parentClassOf']))) {
-                        $this->rdfFiliation[$parentClass]['parentClassOf'][] = $type;
-                    }
-                }
-            }
-        }
-        else {
-            foreach ($types as $type) {
-                if (!isset($this->rdfFiliation[$type])) {
-                    if (!isset($this->rdfFiliation[$type]['subClassOf'])) {
-                        $this->rdfFiliation[$type]['subClassOf'] = array();
-                    }
-                    if (!isset($this->rdfFiliation[$type]['parentClassOf'])) {
-                        $this->rdfFiliation[$type]['parentClassOf'] = array();
-                    }
-                }
-            }
-        }
     }
 }

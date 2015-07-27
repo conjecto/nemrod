@@ -39,10 +39,7 @@
             <argument type="service" id="nemrod.elastica.mapping_builder"/>
             <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
-        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%">
-            <argument type="service" id="nemrod.jsonld.metadata_factory" />
-            <argument>%kernel.bundles%</argument>
-        </service>
+        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%"/>
         <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
         <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
         <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
@@ -53,6 +50,7 @@
             <argument type="service" id="nemrod.type_mapper" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />
             <argument type="service" id="nemrod.elastica.jsonld.serializer" />
+            <argument type="service" id="nemrod.filiation.builder" />
         </service>
         <service id="nemrod.elastica.manager_event_subscriber" class="%nemrod.elastica.manager_event_subscriber.class%">
             <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" />
@@ -68,6 +66,7 @@
             <argument type="service" id="nemrod.elastica.jsonld.frame.loader" />
             <argument type="service" id="nemrod.jsonld.graph_provider" />
             <argument type="service" id="nemrod.jsonld.metadata_factory" />
+            <argument type="service" id="nemrod.type_mapper" />
             <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" />
         </service>
     </services>

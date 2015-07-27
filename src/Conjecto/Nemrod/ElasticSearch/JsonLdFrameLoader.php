@@ -10,6 +10,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use \Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader as BaseJsonLdFrameLoader;
 use EasyRdf\TypeMapper;
+use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 
 class JsonLdFrameLoader extends BaseJsonLdFrameLoader
 {
@@ -24,7 +25,7 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
     protected $esIndex;
 
     /**
-     * @param $serializerHelper
+     * @param SerializerHelper $serializerHelper
      */
     public function setSerializerHelper($serializerHelper)
     {
@@ -45,31 +46,31 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
      * @param array $parentFrames
      * @return array
      */
-    public function getParentMetadatas($parentClasses, $parentFrames = array(), $skipRoot = false)
+    public function getParentFrames($type)
     {
+        if (!$type) {
+            return array();
+        }
+
         if (!$this->esIndex) {
             throw new \Exception('Elasticsearch index is not defined');
         }
 
-        if (!$parentClasses) {
+        $parentClasses = $this->filiationBuilder->getParentTypes($type);
+        $parentFrames = array();
+
+        if (!$parentClasses || empty($parentClasses)) {
             return $parentFrames;
         }
 
         foreach ($parentClasses as $parentClass) {
-            // if we don't want to get the root frame
-            if (!$skipRoot) {
-                foreach ($parentClasses as $parentClass) {
-                    $parentFrames[] = $this->serializerHelper->getTypeFramePath($this->esIndex, $parentClass);
-                }
-            }
-            $phpClass = TypeMapper::get($parentClass);
-            if ($phpClass) {
-                $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-                return $this->getParentMetadatas($metadata->getParentClasses(), $parentFrames);
-            } else {
-                return $parentFrames;
+            $frame = $this->serializerHelper->getTypeFramePath($this->esIndex, $parentClass);
+            if ($frame) {
+                $parentFrames[] = $frame;
             }
         }
+
+        return $parentFrames;
     }
 
     /**
@@ -79,9 +80,9 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
      * @param bool $assoc
      * @param bool $getTypeFromFrame
      */
-    public function load($name, $parentClass = null, $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false)
+    public function load($name, $type = null, $includeSubFrames = true, $assoc = true)
     {
-        $frame = parent::load($name, $parentClass = null, $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false);
+        $frame = parent::load($name, $type, $includeSubFrames, $assoc);
         return $this->addMissingProperties($frame);
     }
 

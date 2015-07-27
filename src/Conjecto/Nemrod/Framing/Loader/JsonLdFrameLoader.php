@@ -13,6 +13,7 @@ namespace Conjecto\Nemrod\Framing\Loader;
 
 use EasyRdf\TypeMapper;
 use Symfony\Component\Templating\TemplateReferenceInterface;
+use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use Metadata\MetadataFactory;
 
 /**
@@ -35,6 +36,19 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
     }
 
     /**
+     * @var FiliationBuilder
+     */
+    protected $filiationBuilder;
+
+    /**
+     * @param FiliationBuilder $filiationBuilder
+     */
+    public function setFiliationBuilder(FiliationBuilder $filiationBuilder)
+    {
+        $this->filiationBuilder = $filiationBuilder;
+    }
+
+    /**
      * Return the decoded frame.
      */
     public function getFrame($name, $assoc = true)
@@ -47,25 +61,13 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         return $decoded;
     }
 
-    public function load($name, $parentClasses = array(), $includeSubFrames = true, $assoc = true, $getTypeFromFrame = false)
+    public function load($name, $type = null, $includeSubFrames = true, $assoc = true)
     {
-        // if the parentClass have not been defined before, for elasticsearch mapping for example
-        if ($getTypeFromFrame) {
-            $frame = $this->load($name);
-            if (isset($frame['@type'])) {
-                $typeClass = $frame['@type'];
-                $phpClass = TypeMapper::get($typeClass);
-                if ($phpClass) {
-                    $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-                    $parentClasses = $metadata->getParentClasses();
-                }
-            }
-        }
-
         if ($includeSubFrames) {
-            // find parent class frames
-            $frames = $this->getParentFrames($parentClasses);
-            $frames[] = $name;
+            $frames = $this->getParentFrames($type);
+            if (!in_array($name, $frames)) {
+                $frames[] = $name;
+            }
 
             // merge frames together
             $finalFrame = array();
@@ -82,7 +84,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             if (isset($finalFrame['@type'])) {
                 $types = $finalFrame['@type'];
                 if (is_array($types)) {
-                    $finalFrame['@type'] = $types[count($types) - 1];
+                    $finalFrame['@type'] = $types[0];
                 }
             }
 
@@ -99,8 +101,11 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
      * @param array $parentFrames
      * @return array
      */
-    public function getParentFrames($parentClasses, $parentFrames = array(), $skipRoot = false)
+    public function getParentFrames($type)
     {
+        $parentClasses = $this->filiationBuilder->getParentTypes($type);
+        $parentFrames = array();
+
         if (!$parentClasses || empty($parentClasses)) {
             return $parentFrames;
         }
@@ -109,17 +114,11 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             $phpClass = TypeMapper::get($parentClass);
             if ($phpClass) {
                 $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-                $parentClass = $metadata->getParentClasses();
-                // if we don't want to get the root frame
-                if (!$skipRoot) {
-                    $parentFrames[] = $metadata->getFrame();
-                }
-
-                return $this->getParentFrames($metadata->getParentClasses(), $parentFrames);
-            } else {
-                return $parentFrames;
+                $parentFrames[] = $metadata->getFrame();
             }
         }
+
+        return $parentFrames;
     }
 
     /**
