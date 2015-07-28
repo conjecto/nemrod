@@ -147,33 +147,27 @@ class Populator
                 /* @var Resource $add */
                 foreach ($result as $res) {
                     $types = $res->all('rdf:type');
-                    $mostAccurateType = $key;
+                    $mostAccurateType = null;
                     $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types);
                     // not specified in project ontology description
-                    if ($mostAccurateTypes === null) {
-                        // keep the current $key
-                    } else if (count($mostAccurateTypes) == 1) {
+                    if (count($mostAccurateTypes) == 1) {
                         $mostAccurateType = $mostAccurateTypes[0];
                     } else {
-                        $output->writeln("The most accurate type for " . $res->getUri() . " has not be found. The type $key is used");
-                        var_dump($mostAccurateTypes);
-                        die;
+                        $output->writeln("The most accurate type for " . $res->getUri() . " has not be found. The resource will not be indexed.");
                     }
-                    $doc = $trans->transform($res->getUri(), $mostAccurateType);
-                    if ($doc) {
-                        $docs[$mostAccurateType][] = $doc;
+                    if ($key === $mostAccurateType) {
+                        $doc = $trans->transform($res->getUri(), $mostAccurateType);
+                        if ($doc) {
+                            $docs[] = $doc;
+                        }
                     }
                 }
 
-                foreach ($docs as $type => $docs) {
-                    if ($type === $key) {
-                        if (count($docs)) {
-                            $this->typeRegistry->getType($type)->addDocuments($docs);
-                        } else {
-                            $output->writeln("");
-                            $output->writeln("nothing to index");
-                        }
-                    }
+                if (count($docs)) {
+                    $this->typeRegistry->getType($key)->addDocuments($docs);
+                } else {
+                    $output->writeln("");
+                    $output->writeln("nothing to index");
                 }
 
                 //advance
