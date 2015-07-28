@@ -11,8 +11,8 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
+use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
-use Conjecto\Nemrod\ElasticSearch\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
 use EasyRdf\Resource as BaseResource;
 use EasyRdf\TypeMapper;

@@ -19,7 +19,6 @@
         <parameter key="nemrod.elastica_index_registry.class">Conjecto\Nemrod\ElasticSearch\IndexRegistry</parameter>
         <parameter key="nemrod.elastica_populator.class">Conjecto\Nemrod\ElasticSearch\Populator</parameter>
         <parameter key="nemrod.elastica.manager_event_subscriber.class">Conjecto\Nemrod\ElasticSearch\ManagerEventSubscriber</parameter>
-        <parameter key="nemrod.elastica.jsonld.serializer.class">Conjecto\Nemrod\ElasticSearch\JsonLdSerializer</parameter>
         <parameter key="nemrod.elastica.jsonld.frame.loader.filesystem.class">Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader</parameter>
     </parameters>
 
@@ -61,13 +60,12 @@
 
         <service id="nemrod.elastica.jsonld.frame.loader.filesystem" class="%nemrod.elastica.jsonld.frame.loader.filesystem.class%" public="false"/>
         <service id="nemrod.elastica.jsonld.frame.loader" alias="nemrod.elastica.jsonld.frame.loader.filesystem" />
-        <service id="nemrod.elastica.jsonld.serializer" class="%nemrod.elastica.jsonld.serializer.class%">
+        <service id="nemrod.elastica.jsonld.serializer" class="%nemrod.jsonld.serializer.class%">
             <argument type="service" id="nemrod.namespace_registry" />
             <argument type="service" id="nemrod.elastica.jsonld.frame.loader" />
             <argument type="service" id="nemrod.jsonld.graph_provider" />
             <argument type="service" id="nemrod.jsonld.metadata_factory" />
             <argument type="service" id="nemrod.type_mapper" />
-            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" />
         </service>
     </services>
 

@@ -111,10 +111,9 @@ class ElasticaExtension extends Extension
         }
 
         $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
-        $serializerHelper = $container->getDefinition('nemrod.elastica.serializer_helper');
         $serializerHelper->addMethodCall('setJsonLdFrameLoader', array(new Reference('nemrod.elastica.jsonld.frame.loader.filesystem')));
         $serializerHelper->addMethodCall('setConfig', array($config));
-        $jsonLdFilesystemLoaderDefinition->addMethodCall('setSerializerHelper', array(new Reference('nemrod.elastica.serializer_helper')));
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setContainer', array(new Reference('service_container')));
     }
 
     /**

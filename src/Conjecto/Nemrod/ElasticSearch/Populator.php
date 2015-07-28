@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
+use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\ResourceManager\FiliationBuilder;

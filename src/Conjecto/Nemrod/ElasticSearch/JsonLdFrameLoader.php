@@ -11,13 +11,14 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use \Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader as BaseJsonLdFrameLoader;
 use EasyRdf\TypeMapper;
 use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class JsonLdFrameLoader extends BaseJsonLdFrameLoader
 {
     /**
-     * @var SerializerHelper
+     * @var ContainerInterface
      */
-    protected $serializerHelper;
+    protected $container;
 
     /**
      * @var string
@@ -25,11 +26,11 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
     protected $esIndex;
 
     /**
-     * @param SerializerHelper $serializerHelper
+     * @param ContainerInterface $container
      */
-    public function setSerializerHelper($serializerHelper)
+    public function setContainer($container)
     {
-        $this->serializerHelper = $serializerHelper;
+        $this->container = $container;
     }
 
     /**
@@ -48,6 +49,7 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
      */
     public function getParentFrames($type)
     {
+        $serializerHelper = $this->container->get('nemrod.elastica.serializer_helper');
         if (!$type) {
             return array();
         }
@@ -64,7 +66,7 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
         }
 
         foreach ($parentClasses as $parentClass) {
-            $frame = $this->serializerHelper->getTypeFramePath($this->esIndex, $parentClass);
+            $frame = $serializerHelper->getTypeFramePath($this->esIndex, $parentClass);
             if ($frame) {
                 $parentFrames[] = $frame;
             }
@@ -80,9 +82,9 @@ class JsonLdFrameLoader extends BaseJsonLdFrameLoader
      * @param bool $assoc
      * @param bool $getTypeFromFrame
      */
-    public function load($name, $type = null, $includeSubFrames = true, $assoc = true)
+    public function load($name, $type = null, $includeSubFrames = true, $assoc = true, $findTypeInFrames = false)
     {
-        $frame = parent::load($name, $type, $includeSubFrames, $assoc);
+        $frame = parent::load($name, $type, $includeSubFrames, $assoc, $findTypeInFrames);
         return $this->addMissingProperties($frame);
     }
 

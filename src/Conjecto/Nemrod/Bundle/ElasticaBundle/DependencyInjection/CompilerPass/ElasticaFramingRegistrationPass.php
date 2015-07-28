@@ -32,7 +32,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
         foreach ($config['indexes'] as $name => $types) {
             foreach ($types['types'] as $typeName => $settings) {
                 $jsonLdFrameLoader->setEsIndex($name);
-                $frame = $jsonLdFrameLoader->load($settings['frame'], null, false);
+                $frame = $jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
                 $settings['frame'] = $frame;
                 if (isset($frame['@type']) || isset($settings['type'])) {
                     $type = '';

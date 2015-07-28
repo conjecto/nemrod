@@ -61,8 +61,15 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         return $decoded;
     }
 
-    public function load($name, $type = null, $includeSubFrames = true, $assoc = true)
+    public function load($name, $type = null, $includeSubFrames = true, $assoc = true, $findTypeInFrames = false)
     {
+        if ($findTypeInFrames) {
+            $frame = $this->getFrame($name, true);
+            if (isset($frame['@type'])) {
+                $type = $frame['@type'];
+            }
+        }
+
         if ($includeSubFrames) {
             $frames = $this->getParentFrames($type);
             if (!in_array($name, $frames)) {
