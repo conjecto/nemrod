@@ -13,6 +13,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use EasyRdf\RdfNamespace;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -49,10 +50,10 @@ class CascadeUpdateHelper
      * @param Manager                       $rm
      * @param array                         $resourcesModified
      */
-    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, ResourceToDocumentTransformer $resourceToDocumentTransformer, $rm, $resourcesModified)
+    public function cascadeUpdate($uri, $resourceType, $propertiesUpdated, FiliationBuilder $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer, $rm, $resourcesModified)
     {
-        $qbByIndex = $this->search($uri, $resourceType, $propertiesUpdated, $rm, $resourcesModified);
-        $this->updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified);
+        $qbByIndex = $this->search($uri, $resourceType, $propertiesUpdated, $rm);
+        $this->updateDocuments($qbByIndex, $resourceToDocumentTransformer, $resourcesModified, $filiationBuilder);
     }
 
     /**
@@ -61,7 +62,7 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    public function searchResourcesToCascadeRemove($arrayResourcesDeleted, $rm)
+    public function searchResourcesToCascadeRemove($arrayResourcesDeleted, $filiationBuilder, $rm)
     {
         $arrayResult = array();
         foreach ($arrayResourcesDeleted as $uri => $resourceType) {
@@ -77,10 +78,22 @@ class CascadeUpdateHelper
      * @param string                        $uri
      * @param string                        $typeName
      * @param string                        $index
+     * @param FiliationBuilder              $filiationBuilder
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $index, ResourceToDocumentTransformer $resourceToDocumentTransformer)
+    public function updateDocument($uri, $typeName, $index, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
+        // find the finest type of the resource in order to index the resource ony once
+        $typeName = $filiationBuilder->getMostAccurateType(array($typeName));
+        // not specified in project ontology description
+        if ($typeName === null) {
+            throw new \Exception('No type found to update the ES document ' .$uri);
+        } else if (count($typeName) == 1) {
+            $typeName = $typeName[0];
+        } else {
+            throw new \Exception("The most accurate type for " . $uri . " has not be found.");
+        }
+
         $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $typeName));
         $document = $resourceToDocumentTransformer->transform($uri, $typeName);
         if ($document) {
@@ -103,7 +116,7 @@ class CascadeUpdateHelper
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
                     $uri = $result->uri->getUri();
-                    $typeName = RdfNamespace::shorten($result->typeName->getUri());
+                    $typeName = $result->typeName->getUri();
                     $arrayResult[$uri] = $typeName;
                 }
             }
@@ -134,16 +147,15 @@ class CascadeUpdateHelper
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      * @param array                         $resourcesModified
      */
-    protected function updateDocuments($qbByIndex, ResourceToDocumentTransformer $resourceToDocumentTransformer, $resourcesModified)
+    protected function updateDocuments($qbByIndex, ResourceToDocumentTransformer $resourceToDocumentTransformer, $resourcesModified, FiliationBuilder $filiationBuilder)
     {
         foreach ($qbByIndex as $index => $qb) {
             if ($qb !== null) {
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
                     $uri = $result->uri->getUri();
-                    $typeName = RdfNamespace::shorten($result->typeName->getUri());
                     if (!array_key_exists($uri, $resourcesModified)) {
-                        $this->updateDocument($uri, $typeName, $index, $resourceToDocumentTransformer);
+                        $this->updateDocument($uri, $result->typeName->getUri(), $index, $filiationBuilder, $resourceToDocumentTransformer);
                     }
                 }
             }

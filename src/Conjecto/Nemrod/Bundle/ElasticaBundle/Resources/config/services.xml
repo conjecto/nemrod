@@ -55,6 +55,7 @@
             <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />
             <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="nemrod.filiation.builder" />
             <argument type="service" id="service_container" />
         </service>
 
