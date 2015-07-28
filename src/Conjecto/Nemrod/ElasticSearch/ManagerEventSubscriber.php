@@ -197,7 +197,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
      */
     protected function updateDocument($uri, $types, $trans)
     {
-        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types);
+        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
         $mostAccurateType = null;
         // not specified in project ontology description
         if ($mostAccurateTypes === null) {

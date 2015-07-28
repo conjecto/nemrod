@@ -84,7 +84,7 @@ class CascadeUpdateHelper
     public function updateDocument($uri, $typeName, $index, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         // find the finest type of the resource in order to index the resource ony once
-        $typeName = $filiationBuilder->getMostAccurateType(array($typeName));
+        $typeName = $filiationBuilder->getMostAccurateType(array($typeName), $this->serializerHelper->getAllTypes());
         // not specified in project ontology description
         if ($typeName === null) {
             throw new \Exception('No type found to update the ES document ' .$uri);

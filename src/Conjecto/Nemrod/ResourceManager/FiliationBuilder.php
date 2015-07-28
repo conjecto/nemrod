@@ -54,7 +54,7 @@ class FiliationBuilder
      * @param $types
      * @return array|null
      */
-    public function getMostAccurateType($types)
+    public function getMostAccurateType($types, $knowTypesForExternService = array())
     {
         // filter types to have only types filiation defined with subClassOf annotation
         $definedOntoTypes = array();
@@ -96,7 +96,40 @@ class FiliationBuilder
             }
         }
 
+        if (!empty($knowTypesForExternService)) {
+            return $this->findMostAccurateTypesInKnowTypesByExternalService($arrayAccurateOnes, $knowTypesForExternService);
+        }
+
         return $arrayAccurateOnes;
+    }
+
+    /**
+     * Find the most accurate type based of one founds but also with the array of types knows by the external service
+     * @param $arrayAccurateOnes
+     * @param $knowTypesForExternService
+     * @return array
+     * @throws \Exception
+     */
+    protected function findMostAccurateTypesInKnowTypesByExternalService($arrayAccurateOnes, $knowTypesForExternService)
+    {
+        $mostAccurateTypeInKnowsExternalServiceTypes = array();
+        foreach ($arrayAccurateOnes as $type) {
+            if (!in_array($type, $knowTypesForExternService)) {
+                $allParentTypes = $this->getParentTypes($type, false, true);
+                foreach ($allParentTypes as $parentType) {
+                    if (in_array($parentType, $knowTypesForExternService)) {
+                        $mostAccurateTypeInKnowsExternalServiceTypes[] = $parentType;
+                    }
+                    else {
+                        $mostAccurateTypeInKnowsExternalServiceTypes = $this->findMostAccurateTypesInKnowTypesByExternalService(array($parentType), $knowTypesForExternService);
+                    }
+                }
+            }
+            else {
+                $mostAccurateTypeInKnowsExternalServiceTypes[] = $type;
+            }
+        }
+        return $mostAccurateTypeInKnowsExternalServiceTypes;
     }
 
     /**
@@ -105,7 +138,7 @@ class FiliationBuilder
      * @return array
      * @throws \Exception
      */
-    public function getParentTypes($type)
+    public function getParentTypes($type, $recursive = true, $justNewTypes = false)
     {
         $types = array();
 
@@ -119,7 +152,7 @@ class FiliationBuilder
             throw new \Exception('A string or an array is attempted');
         }
 
-        $types = $this->getRecursiveParentTypes(array($type));
+        $types = $this->getRecursiveParentTypes(array($type), $recursive, $justNewTypes);
         return $types;
     }
 
@@ -127,7 +160,7 @@ class FiliationBuilder
      * @param $types
      * @return array
      */
-    protected function getRecursiveParentTypes($types)
+    protected function getRecursiveParentTypes($types, $recursive, $justNewTypes)
     {
         $newTypes = array();
         foreach ($types as $type) {
@@ -136,8 +169,12 @@ class FiliationBuilder
             }
         }
 
-        if (!empty($newTypes)) {
-            return array_merge($types, $this->getRecursiveParentTypes($newTypes));
+        if (!empty($newTypes) && $recursive) {
+            return array_merge($types, $this->getRecursiveParentTypes($newTypes, $recursive, $justNewTypes));
+        }
+
+        if ($justNewTypes) {
+            return $newTypes;
         }
         return array_merge($types, $newTypes);
     }

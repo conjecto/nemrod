@@ -112,6 +112,18 @@ class SerializerHelper
         return $this->getTypeKey($index, $type, 'frame');
     }
 
+    public function getAllTypes()
+    {
+        $array = array();
+        foreach ($this->requests as $index => $types) {
+            foreach ($types as $typeName => $type) {
+                $array[] = $type['type'];
+            }
+        }
+
+        return $array;
+    }
+
     public function getAllFrames()
     {
         $array = array();

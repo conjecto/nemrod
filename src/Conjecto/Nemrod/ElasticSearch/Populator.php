@@ -148,7 +148,7 @@ class Populator
                 foreach ($result as $res) {
                     $types = $res->all('rdf:type');
                     $mostAccurateType = null;
-                    $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types);
+                    $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
                     // not specified in project ontology description
                     if (count($mostAccurateTypes) == 1) {
                         $mostAccurateType = $mostAccurateTypes[0];
