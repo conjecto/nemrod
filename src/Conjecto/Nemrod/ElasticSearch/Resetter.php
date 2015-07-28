@@ -45,25 +45,47 @@ class Resetter
     /**
      *
      */
-    public function reset($type = null, $output = null)
+    public function reset($index = null, $type = null, $output = null, $force = false)
     {
-
-        if (!$type) {
-            $types = $this->configManager->getTypes();
+        if (null !== $type) {
+            $output->writeln(sprintf('<info>Resetting</info> <comment>%s/%s</comment>', $index, $type));
+            $this->resetType($type);
         } else {
-            $types = array($type);
-        }
-        /** @var Type $type */
-        foreach ($types as $type) {
-            if ($output) {
-                $output->writeln("resetting ".$type);
-            }
-            //creating index if not exists
-            $this->mappingBuilder->createIndexIfNotExists($type);
 
-            //building type mapping
-            $this->mappingBuilder->buildMapping($type);
+            $types = $this->configManager->getTypes();
+
+            $indexes = null === $index
+                ? array_keys($this->configManager->getIndexes())
+                : array($index)
+            ;
+
+            //var_dump($indexes);
+            foreach ($indexes as $index) {
+                if ($output) {
+                    $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
+                }
+                //var_dump($index);
+                $this->resetIndex($index, false, $force);
+            }
+
+            /** @var Type $type */
+            foreach ($types as $type) {
+                $this->resetType($type, $output);
+            }
         }
+    }
+
+    /**
+     * @param $index
+     * @param $type
+     */
+    public function resetType($type)
+    {
+        //creating index if not exists
+        $this->mappingBuilder->createIndexIfNotExists($type);
+
+        //building type mapping
+        $this->mappingBuilder->buildMapping($type);
     }
 
     /**
@@ -75,18 +97,14 @@ class Resetter
         /** @var Index $index */
         $indexObj = $this->typeRegistry->getIndex($index);
 
-
-        $indexObj->close();
+        $config = $this->configManager->getIndexConfig($index);
 
         if (!$indexObj->exists()) {
-            $indexObj->create();
+            $indexObj->create($config);
         } else {
             $indexObj->close();
+            $indexObj->setSettings($config);
+            $indexObj->open();
         }
-
-        $config = $this->configManager->getIndexConfig($index);
-        $indexObj->setSettings($config);
-
-        $indexObj->open();
     }
 }
