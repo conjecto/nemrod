@@ -77,6 +77,109 @@ class Populator
      */
     public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
+        $types = $this->getTypesToPopulate($type);
+        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
+
+        $options['limit'] = $options['slice'];
+        $options['orderBy'] = 'uri';
+
+        /** @var Type $typ */
+        foreach ($types as $key => $typ) {
+            $this->populateType($key, $typ, $type, $options, $trans, $output, $reset, $showProgress);
+        }
+    }
+
+    protected function populateType($key, $typ, $type, $options, $trans, $output, $reset, $showProgress)
+    {
+        $output->writeln("populating " . $key);
+        if ($reset & $type) {
+            $this->resetter->reset(null, $key, $output);
+        }
+        $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($typ->getIndex()->getName());
+        $size = $this->getSize($key);
+
+        // no object in triplestore
+        if (!current($size)) {
+            continue;
+        }
+
+        $size = current($size)->count->getValue();
+        $progress = $this->displayInitialAvancement($size, $options, $showProgress, $output);
+        $done = 0;
+        while ($done < $size) {
+            $resources = $this->getResources($key, $options, $done);
+            $docs = array();
+            /* @var Resource $add */
+            foreach ($resources as $resource) {
+                $types = $resource->all('rdf:type');
+                $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $key);
+
+                // index only the current resource if the most accurate type is the key populating
+                if ($key === $mostAccurateType) {
+                    $doc = $trans->transform($resource->getUri(), $mostAccurateType);
+                    if ($doc) {
+                        $docs[] = $doc;
+                    }
+                }
+            }
+
+            // send documents to elasticsearch
+            if (count($docs)) {
+                $this->typeRegistry->getType($key)->addDocuments($docs);
+            } else {
+                $output->writeln("");
+                $output->writeln("nothing to index");
+            }
+
+            $done = $this->displayAvancement($options, $done, $size, $showProgress, $output, $progress);
+
+            //flushing manager for mem usage
+            $this->resourceManager->flush();
+        }
+        $progress->finish();
+    }
+
+    protected function getMostAccurateType($types, $resource, $output, $key)
+    {
+        $mostAccurateType = null;
+        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
+        // not specified in project ontology description
+        if (count($mostAccurateTypes) == 1) {
+            $mostAccurateType = $mostAccurateTypes[0];
+        }
+        else if ($mostAccurateTypes === null) {
+            $output->writeln("No accurate type found for " . $resource->getUri() . ". The type $key will be used.");
+            $mostAccurateType = $key;
+        }
+        else {
+            $output->writeln("The most accurate type for " . $resource->getUri() . " has not be found. The resource will not be indexed.");
+        }
+
+        return $mostAccurateType;
+    }
+
+    protected function getResources($key, $options, $done)
+    {
+        $options['offset'] = $done;
+        $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $key);
+        $select->orderBy('?uri');
+        $select->setOffset($done);
+        $select->setMaxResults($options['slice']);
+        $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
+        $qb = $this->resourceManager->getRepository($key)->getQueryBuilder();
+        $qb->reset()
+            ->construct("?uri a $key")
+            ->addConstruct('?uri rdf:type ?type')
+            ->where('?uri a ' . $key)
+            ->andWhere('?uri rdf:type ?type')
+            ->andWhere('{' . $selectStr . '}');
+
+        return $qb->getQuery()->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $key));
+    }
+
+    protected function getTypesToPopulate($type)
+    {
         if ($type) {
             $typeObj = $this->typeRegistry->getType($type);
             $types = array($type => $typeObj);
@@ -86,7 +189,7 @@ class Populator
             }
 
             //creating index if not exists
-            if (!$typeObj->getIndex()->exists()){
+            if (!$typeObj->getIndex()->exists()) {
                 $this->resetter->resetIndex($typeObj->getIndex()->getName());
             }
         } else {
@@ -94,99 +197,49 @@ class Populator
             $types = $this->typeRegistry->getTypes();
         }
 
-        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
+        return $types;
+    }
 
-        $options['limit'] = $options['slice'];
-        $options['orderBy'] = 'uri';
-        /** @var Type $typ */
-        foreach ($types as $key => $typ) {
-            $output->writeln("populating " . $key);
+    protected function getSize($key)
+    {
+        $qb = $this->resourceManager->getRepository($key) ->getQueryBuilder();
+        $qb->reset()
+            ->select('(COUNT(DISTINCT ?instance) AS ?count)')
+            ->where('?instance a ' . $key);
 
-            if ($reset & $type) {
-                $this->resetter->reset(null, $key, $output);
-            }
+        return $qb->getQuery()->execute();
+    }
 
-            $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($typ->getIndex()->getName());
-            $size = $this->resourceManager->getRepository($key)
-                ->getQueryBuilder()->reset()->select('(COUNT(DISTINCT ?instance) AS ?count)')->where('?instance a ' . $key)->getQuery()
-                ->execute();
-
-            // no object in triplestore
-            if (!current($size)) {
-                continue;
-            }
-
-            $size = current($size)->count->getValue();
-            $output->writeln($size . " entries");
-            if ($showProgress) {
-                $progress = new ProgressBar($output, ceil($size / $options['slice']));
-                $progress->start();
-                $progress->setFormat('debug');
-            }
-            $done = 0;
-            while ($done < $size) {
-                $options['offset'] = $done;
-                $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $key);
-                $select->orderBy('?uri');
-                $select->setOffset($done);
-                $select->setMaxResults($options['slice']);
-                $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
-                $selectStr = $select->getCompleteSparqlQuery();
-                $result = $this->resourceManager->getRepository($key)
-                    ->getQueryBuilder()
-                    ->reset()
-                    ->construct("?uri a $key")
-                    ->addConstruct('?uri rdf:type ?type')
-                    ->where('?uri a ' . $key)
-                    ->andWhere('?uri rdf:type ?type')
-                    ->andWhere('{' . $selectStr . '}')
-                    ->getQuery()
-                    ->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $key));
-
-                $docs = array();
-                /* @var Resource $add */
-                foreach ($result as $res) {
-                    $types = $res->all('rdf:type');
-                    $mostAccurateType = null;
-                    $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
-                    // not specified in project ontology description
-                    if (count($mostAccurateTypes) == 1) {
-                        $mostAccurateType = $mostAccurateTypes[0];
-                    } else {
-                        $output->writeln("The most accurate type for " . $res->getUri() . " has not be found. The resource will not be indexed.");
-                    }
-                    if ($key === $mostAccurateType) {
-                        $doc = $trans->transform($res->getUri(), $mostAccurateType);
-                        if ($doc) {
-                            $docs[] = $doc;
-                        }
-                    }
-                }
-
-                if (count($docs)) {
-                    $this->typeRegistry->getType($key)->addDocuments($docs);
-                } else {
-                    $output->writeln("");
-                    $output->writeln("nothing to index");
-                }
-
-                //advance
-                $done += $options['slice'];
-                if ($done > $size) {
-                    $done = $size;
-                }
-                //showing where we're at.
-                if ($showProgress) {
-                    if ($output->isDecorated()) {
-                        $progress->advance();
-                    } else {
-                        $output->writeln("did " . $done . " over (" . $size . ") memory: " . Helper::formatMemory(memory_get_usage(true)));
-                    }
-                }
-                //flushing manager for mem usage
-                $this->resourceManager->flush();
-            }
-            $progress->finish();
+    protected function displayInitialAvancement($size, $options, $showProgress, $output)
+    {
+        $progress = null;
+        $output->writeln($size . " entries");
+        if ($showProgress) {
+            $progress = new ProgressBar($output, ceil($size / $options['slice']));
+            $progress->start();
+            $progress->setFormat('debug');
         }
+
+        return $progress;
+    }
+
+    protected function displayAvancement($options, $done, $size, $showProgress, $output, $progress)
+    {
+        //advance
+        $done += $options['slice'];
+        if ($done > $size) {
+            $done = $size;
+        }
+
+        //showing where we're at.
+        if ($showProgress) {
+            if ($output->isDecorated()) {
+                $progress->advance();
+            } else {
+                $output->writeln("did " . $done . " over (" . $size . ") memory: " . Helper::formatMemory(memory_get_usage(true)));
+            }
+        }
+
+        return $done;
     }
 }

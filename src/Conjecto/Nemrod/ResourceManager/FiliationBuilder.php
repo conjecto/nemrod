@@ -198,17 +198,28 @@ class FiliationBuilder
                 }
             }
         }
+        foreach ($types as $type) {
+            $this->addEmptyType($type, null);
+        }
     }
 
     protected function addEmptyType($type, $parentClass)
     {
-        if (!isset($this->rdfFiliation[$type])) {
-            $this->rdfFiliation[$type]['subClassOf'] = array();
-            $this->rdfFiliation[$type]['parentClassOf'] = array();
+        if ($type && !isset($this->rdfFiliation[$type])) {
+            if (!isset($this->rdfFiliation[$type]['subClassOf'])) {
+                $this->rdfFiliation[$type]['subClassOf'] = array();
+            }
+            if (!isset($this->rdfFiliation[$type]['parentClassOf'])) {
+                $this->rdfFiliation[$type]['parentClassOf'] = array();
+            }
         }
-        if (!isset($this->rdfFiliation[$parentClass])) {
-            $this->rdfFiliation[$parentClass]['subClassOf'] = array();
-            $this->rdfFiliation[$parentClass]['parentClassOf'] = array();
+        if ($parentClass && !isset($this->rdfFiliation[$parentClass])) {
+            if (!isset($this->rdfFiliation[$parentClass]['subClassOf'])) {
+                $this->rdfFiliation[$parentClass]['subClassOf'] = array();
+            }
+            if (!isset($this->rdfFiliation[$parentClass]['parentClassOf'])) {
+                $this->rdfFiliation[$parentClass]['parentClassOf'] = array();
+            }
         }
     }
 }
