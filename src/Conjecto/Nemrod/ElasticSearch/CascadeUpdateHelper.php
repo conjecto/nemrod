@@ -136,8 +136,8 @@ class CascadeUpdateHelper
     protected function search($uri, $resourceType, $propertiesUpdated, Manager $rm)
     {
         $qb = $rm->getQueryBuilder();
-        $frames = $this->getAllFrames($resourceType, $propertiesUpdated);
-        $qbByIndex = $this->getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, $qb, $uri);
+        $typesToReIndex = $this->getAllResourceTypesIndexingThisResourceType($resourceType, $propertiesUpdated);
+        $qbByIndex = $this->getQueryBuilderByIndex($typesToReIndex, $resourceType, $propertiesUpdated, $qb, $uri);
 
         return $qbByIndex;
     }
@@ -154,6 +154,7 @@ class CascadeUpdateHelper
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
                     $uri = $result->uri->getUri();
+                    // not reindex a resource to times
                     if (!array_key_exists($uri, $resourcesModified)) {
                         $this->updateDocument($uri, $result->typeName->getUri(), $index, $filiationBuilder, $resourceToDocumentTransformer);
                     }
@@ -171,29 +172,27 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    protected function getQueryBuilderByIndex($frames, $resourceType, $propertiesUpdated, QueryBuilder $qb, $uriResourceUpdated)
+    protected function getQueryBuilderByIndex($typesToReIndex, $resourceType, $propertiesUpdated, QueryBuilder $qb, $uriResourceUpdated)
     {
         $arrayOfTypes = array();
-        foreach ($frames as $index => $types) {
+        foreach ($typesToReIndex as $index => $types) {
             $arrayUnion = array();
-            foreach ($types as $type => $frame) {
+            foreach ($types as $type => $pathToResourceType) {
                 $stringWhere = '?uri a ?typeName;';
                 $arrayWhere = array();
-                if ($this->checkIfFrameHasSearchedResourceType($frame, $resourceType, $propertiesUpdated, $arrayWhere)) {
-                    $arrayWhere = array_reverse($arrayWhere);
-                    $i = 0;
-                    foreach ($arrayWhere as $key) {
-                        if ($i === 0) {
-                            $stringWhere .= ' '.$key;
-                        } else {
-                            $stringWhere .= ' / '.$key;
-                        }
-                        $i++;
+                $this->fillPathToResource($pathToResourceType, $resourceType, $propertiesUpdated, $arrayWhere);
+                $i = 0;
+                foreach ($arrayWhere as $key) {
+                    if ($i === 0) {
+                        $stringWhere .= ' '.$key;
+                    } else {
+                        $stringWhere .= ' / '.$key;
                     }
-                    $stringWhere .= ' <'.$uriResourceUpdated.'>';
-                    $stringWhere .= " . VALUES ?typeName { $type }";
-                    $arrayUnion[] = $stringWhere;
+                    $i++;
                 }
+                $stringWhere .= ' <'.$uriResourceUpdated.'>';
+                $stringWhere .= " . VALUES ?typeName { $type }";
+                $arrayUnion[] = $stringWhere;
             }
             if (count($arrayUnion) > 0) {
                 $_qb = clone $qb->reset()->select('?uri ?typeName')->setDistinct(true);
@@ -219,26 +218,21 @@ class CascadeUpdateHelper
      *
      * @return bool
      */
-    protected function checkIfFrameHasSearchedResourceType($frames, $resourceType, $propertiesUpdated, &$arrayWhere)
+    protected function fillPathToResource($pathToResourceType, $resourceType, $propertiesUpdated, &$arrayWhere)
     {
-        foreach ($frames as $key => $values) {
-            if (isset($values['resources']) && $this->checkIfFrameHasSearchedResourceType($values['resources'], $resourceType, $propertiesUpdated, $arrayWhere)) {
-                $arrayWhere[] = $key;
-
-                return true;
-            }
-            if (isset($values['type']) && $values['type'] === $resourceType && isset($values['properties'])) {
-                foreach ($values['properties'] as $property) {
-                    if (in_array($property, array_keys($propertiesUpdated))) {
-                        $arrayWhere[] = $key;
-
-                        return true;
+        foreach ($pathToResourceType as $key => $values) {
+            if ($key === 'resources') {
+                foreach ($values as $propertyRelation => $resource) {
+                    $arrayWhere[] = $propertyRelation;
+                    if (isset($resource['resources'])) {
+                        $this->fillPathToResource($resource['resources'], $resourceType, $propertiesUpdated, $arrayWhere);
                     }
                 }
             }
+            else {
+                $arrayWhere[] = $key;
+            }
         }
-
-        return false;
     }
 
     /**
@@ -248,27 +242,33 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    protected function getFrameResources($frame, $resourceType, $propertiesUpdated)
+    protected function getResourceTypesIndexingPropertiesOfRootResourceType($frame, $resourceType, $propertiesUpdated, $parentProperty = null)
     {
-        $types = array();
+        $pathToResourceType = array();
         foreach ($frame as $key => $value) {
-            if (!strstr($key, '@') && isset($value['@type'])) {
-                if ($value['@type'] === $resourceType) {
-                    foreach ($this->serializerHelper->getProperties($value) as $property) {
-                        if (in_array($property, array_keys($propertiesUpdated))) {
-                            $types[$key]['type'] = $value['@type'];
-                            $types[$key]['properties'][] = $property;
-                        }
+            if ($key === "@type" && $value === $resourceType) {
+                foreach ($this->serializerHelper->getProperties($frame) as $property) {
+                    if (in_array($property, $propertiesUpdated)) {
+                        $pathToResourceType[$parentProperty]['type'] = $value;
+                        $pathToResourceType[$parentProperty]['properties'][] = $property;
                     }
-                } else {
-                    $types[$key]['properties'] = array();
                 }
-                $types[$key]['type'] = $value['@type'];
-                $types[$key]['resources'] = $this->getFrameResources($value, $resourceType, $propertiesUpdated);
+            }
+            else if (is_array($value)) {
+                $subTypes = $this->getResourceTypesIndexingPropertiesOfRootResourceType($value, $resourceType, $propertiesUpdated, $key);
+                if (!empty($subTypes)) {
+                    // no parentProperty for first passage in the function
+                    if ($parentProperty) {
+                        $pathToResourceType[$parentProperty]['resources'] = $subTypes;
+                    }
+                    else {
+                        $pathToResourceType['resources'] = $subTypes;
+                    }
+                }
             }
         }
 
-        return $types;
+        return $pathToResourceType;
     }
 
     /**
@@ -277,18 +277,22 @@ class CascadeUpdateHelper
      *
      * @return array
      */
-    protected function getAllFrames($resourceType, $propertiesUpdated)
+    protected function getAllResourceTypesIndexingThisResourceType($resourceType, $propertiesUpdated)
     {
         $frames = $this->serializerHelper->getAllFrames();
-        $resourceFrames = array();
+        $resourceTypesIndexingThisResourceType = array();
 
         foreach ($frames as $index => $types) {
-            foreach ($types as $typeName => $type) {
-                $frame = $frames[$index][$typeName];
-                $resourceFrames[$index][$typeName] = $this->getFrameResources($frame, $resourceType, $propertiesUpdated);
+            foreach ($types as $typeName => $frame) {
+                if ($typeName !== $resourceType) {
+                    $pathToResourceType = $this->getResourceTypesIndexingPropertiesOfRootResourceType($frame, $resourceType, $propertiesUpdated);
+                    if (!empty($pathToResourceType)) {
+                        $resourceTypesIndexingThisResourceType[$index][$typeName] = $pathToResourceType;
+                    }
+                }
             }
         }
 
-        return $resourceFrames;
+        return $resourceTypesIndexingThisResourceType;
     }
 }

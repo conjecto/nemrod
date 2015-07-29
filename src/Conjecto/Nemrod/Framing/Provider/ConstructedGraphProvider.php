@@ -193,10 +193,11 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             return $uriChild;
         } else {
             $stringedChild = $uriChild.'.';
+            $typeString = "";
             $firstProperty = ' {}'; // first open solution to simulate optional
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild.' '.$uriChild.' a '.$val.' .';
+                    $typeString = $uriChild . ' a ' . $val.' .';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) !== '@' && is_array($val)) {
@@ -206,7 +207,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 }
             }
 
-            return $stringedChild;
+            return $stringedChild . $typeString;
         }
     }
 }
