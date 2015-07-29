@@ -158,8 +158,8 @@ class NemrodExtension extends Extension
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             // in bundle
             $reflection = new \ReflectionClass($class);
-            if (is_dir($dir = dirname($reflection->getFilename()) . '/RdfResource')) {
-                $paths[$bundle] = dirname($reflection->getFilename()) . '/RdfResource';
+            if (is_dir($dir = dirname($reflection->getFilename()) . DIRECTORY_SEPARATOR.'RdfResource')) {
+                $paths[$bundle] = dirname($reflection->getFilename()) . DIRECTORY_SEPARATOR.'RdfResource';
                 foreach($finder->in($dir) as $file) {
                     if(is_file($file)) {
                         $classes[] = $this->getClassRelativePath($file->getPathName());
@@ -167,7 +167,9 @@ class NemrodExtension extends Extension
                 }
             }
         }
-
+        var_dump($paths);
+        var_dump($classes);
+        die;
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
         //adding paths to annotation driver
@@ -196,18 +198,18 @@ class NemrodExtension extends Extension
         $jsonLdFilesystemLoaderDefinition = $container->getDefinition('nemrod.jsonld.frame.loader.filesystem');
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             // in app
-            if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
+            if (is_dir($dir = $container->getParameter('kernel.root_dir').DIRECTORY_SEPARATOR . 'Resources' . DIRECTORY_SEPARATOR.$bundle.DIRECTORY_SEPARATOR.'frames')) {
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
 
             // in bundle
             $reflection = new \ReflectionClass($class);
-            if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/frames')) {
+            if (is_dir($dir = dirname($reflection->getFilename()).DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'frames')) {
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
         }
 
-        if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
+        if (is_dir($dir = $container->getParameter('kernel.root_dir').DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'frames')) {
             $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
         }
 
@@ -233,10 +235,10 @@ class NemrodExtension extends Extension
 
     private function getClassRelativePath($filePath)
     {
-        $cutName = strstr($filePath, '\\src\\');
+        $cutName = strstr($filePath, DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR);
         $cutName = substr($cutName, 5);
         $name = substr($cutName, 0, strlen($cutName) - 4);
-        return str_replace('/', '\\', $name);
+        return str_replace(DIRECTORY_SEPARATOR, '\\', $name);
     }
 
     /**
