@@ -43,6 +43,7 @@ class CascadeUpdateHelper
     }
 
     /**
+     * Search all documents containing the updated resource and update these documents
      * @param string                        $uri
      * @param string                        $resourceType
      * @param array                         $propertiesUpdated
@@ -75,6 +76,7 @@ class CascadeUpdateHelper
     }
 
     /**
+     * Update the elasticsearch document
      * @param string                        $uri
      * @param string                        $typeName
      * @param string                        $index
@@ -126,11 +128,11 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param string  $uri
-     * @param string  $resourceType
-     * @param array   $propertiesUpdated
+     * Search all documents containing the updated resource
+     * @param $uri
+     * @param $resourceType
+     * @param $propertiesUpdated
      * @param Manager $rm
-     *
      * @return array
      */
     protected function search($uri, $resourceType, $propertiesUpdated, Manager $rm)
@@ -143,9 +145,12 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array                         $frames
+     * update documents with resource's document to update
+     * @param $qbByIndex
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
-     * @param array                         $resourcesModified
+     * @param $resourcesModified
+     * @param FiliationBuilder $filiationBuilder
+     * @throws \Exception
      */
     protected function updateDocuments($qbByIndex, ResourceToDocumentTransformer $resourceToDocumentTransformer, $resourcesModified, FiliationBuilder $filiationBuilder)
     {
@@ -164,12 +169,12 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array        $frames
-     * @param string       $resourceType
-     * @param array        $propertiesUpdated
+     * With correspondant frames found, contruct a query to find resources that contains the updated resource
+     * @param $typesToReIndex
+     * @param $resourceType
+     * @param $propertiesUpdated
      * @param QueryBuilder $qb
-     * @param string       $uriResourceUpdated
-     *
+     * @param $uriResourceUpdated
      * @return array
      */
     protected function getQueryBuilderByIndex($typesToReIndex, $resourceType, $propertiesUpdated, QueryBuilder $qb, $uriResourceUpdated)
@@ -211,12 +216,11 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array  $frames
-     * @param string $resourceType
-     * @param array  $propertiesUpdated
-     * @param array  $arrayWhere
-     *
-     * @return bool
+     * Get a array with path access to a property and fill the $arrayWhere with this path
+     * @param $pathToResourceType
+     * @param $resourceType
+     * @param $propertiesUpdated
+     * @param $arrayWhere
      */
     protected function fillPathToResource($pathToResourceType, $resourceType, $propertiesUpdated, &$arrayWhere)
     {
@@ -236,10 +240,11 @@ class CascadeUpdateHelper
     }
 
     /**
-     * @param array  $frame
-     * @param string $resourceType
-     * @param array  $propertiesUpdated
-     *
+     * Search all frames containing the type of the resource updated and verify that frame properties contain the resource properties updated
+     * @param $frame
+     * @param $resourceType
+     * @param $propertiesUpdated
+     * @param null $parentProperty
      * @return array
      */
     protected function getResourceTypesIndexingPropertiesOfRootResourceType($frame, $resourceType, $propertiesUpdated, $parentProperty = null)
@@ -272,9 +277,9 @@ class CascadeUpdateHelper
     }
 
     /**
+     * Search correspondant frames and return only ones corresponding to the searched mapping
      * @param string $resourceType
      * @param array  $propertiesUpdated
-     *
      * @return array
      */
     protected function getAllResourceTypesIndexingThisResourceType($resourceType, $propertiesUpdated)
