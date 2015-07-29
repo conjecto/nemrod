@@ -167,9 +167,7 @@ class NemrodExtension extends Extension
                 }
             }
         }
-        var_dump($paths);
-        var_dump($classes);
-        die;
+
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
         //adding paths to annotation driver
