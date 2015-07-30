@@ -47,7 +47,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                     $typeId = 'nemrod.elastica.type.'.$name.'.'.$typeName;
                     $indexId = 'nemrod.elastica.index.'.$name;
                     $typeDef = new DefinitionDecorator('nemrod.elastica.type.abstract');
-                    $typeDef->replaceArgument(0, $typeName);
+                    $typeDef->replaceArgument(0, $type);
                     $typeDef->setFactory(array(new Reference($indexId), 'getType'));
                     $typeDef->addTag('nemrod.elastica.type', array('type' => $type));
 
