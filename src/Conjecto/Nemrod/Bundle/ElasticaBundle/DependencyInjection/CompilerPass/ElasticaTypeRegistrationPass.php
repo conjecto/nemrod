@@ -37,7 +37,7 @@ class ElasticaTypeRegistrationPass implements CompilerPassInterface
 
         foreach ($typesSevices as $id => $tagAttributes) {
             foreach ($tagAttributes as $tagAttr) {
-                $definition->addMethodCall('registerType', array($tagAttr['type'], new Reference($id)));
+                $definition->addMethodCall('registerType', array($tagAttr['name'], new Reference($id)));
             }
         }
     }
