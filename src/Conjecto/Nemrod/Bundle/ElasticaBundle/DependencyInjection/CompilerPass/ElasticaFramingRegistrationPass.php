@@ -29,8 +29,9 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
         $filiationBuilder = $container->get('nemrod.filiation.builder');
         $jsonLdFrameLoader->setFiliationBuilder($filiationBuilder);
 
-        foreach ($config['indexes'] as $name => $types) {
-            foreach ($types['types'] as $typeName => $settings) {
+        foreach ($config['indexes'] as $name => $index) {
+            $indexName = isset($index['index_name']) ? $index['index_name']: $name;
+            foreach ($index['types'] as $typeName => $settings) {
                 $jsonLdFrameLoader->setEsIndex($name);
                 $frame = $jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
                 $settings['frame'] = $frame;
@@ -46,7 +47,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                     $typeId = 'nemrod.elastica.type.'.$name.'.'.$typeName;
                     $indexId = 'nemrod.elastica.index.'.$name;
                     $typeDef = new DefinitionDecorator('nemrod.elastica.type.abstract');
-                    $typeDef->replaceArgument(0, $name);
+                    $typeDef->replaceArgument(0, $typeName);
                     $typeDef->setFactory(array(new Reference($indexId), 'getType'));
                     $typeDef->addTag('nemrod.elastica.type', array('type' => $type));
 
