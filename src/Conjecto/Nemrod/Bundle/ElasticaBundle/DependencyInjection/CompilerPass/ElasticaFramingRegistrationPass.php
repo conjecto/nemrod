@@ -43,19 +43,17 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
                     }
 
                     //type
-                    $container
-                        ->setDefinition('nemrod.elastica.type.'.$name.'.'.$typeName, new DefinitionDecorator('nemrod.elastica.type'))
-                        ->setArguments(array(new Reference('nemrod.elastica.index.'.$name), $type))
-                        ->addTag('nemrod.elastica.type', array('type' => $type));
+                    $typeId = 'nemrod.elastica.type.'.$name.'.'.$typeName;
+                    $indexId = 'nemrod.elastica.index.'.$name;
+                    $typeDef = new DefinitionDecorator('nemrod.elastica.type.abstract');
+                    $typeDef->replaceArgument(0, $name);
+                    $typeDef->setFactory(array(new Reference($indexId), 'getType'));
+                    $typeDef->addTag('nemrod.elastica.type', array('type' => $type));
 
-                    //search service
-                    $container
-                        ->setDefinition('nemrod.elastica.search.'.$name.'.'.$typeName, new DefinitionDecorator('nemrod.elastica.search'))
-                        ->setArguments(array(new Reference('nemrod.elastica.type.'.$name.'.'.$typeName), $typeName));
+                    $container->setDefinition($typeId, $typeDef);
 
                     //registering config to configManager
-                    $settings['type_service_id'] = 'nemrod.elastica.type.'.$name.'.'.$typeName;
-
+                    $settings['type_service_id'] = $typeId;
                     $confManager->addMethodCall('setConfig', array($type, $settings));
                 }
             }

@@ -44,6 +44,13 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->children()
+                ->scalarNode('default_client')
+                    ->info('Defaults to the first client defined')
+                ->end()
+                ->scalarNode('default_index')
+                    ->info('Defaults to the first index defined')
+                ->end()
+                ->scalarNode('default_manager')->defaultValue('rm')->end()
             //clients
                 ->arrayNode('clients')//node 'clients' is
                 ->isRequired()

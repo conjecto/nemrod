@@ -40,21 +40,92 @@ class ElasticaExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
+        if (empty($config['clients']) || empty($config['indexes'])) {
+            // No Clients or indexes are defined
+            return;
+        }
+
+        if (empty($config['default_client'])) {
+            $keys = array_keys($config['clients']);
+            $config['default_client'] = reset($keys);
+        }
+
+        if (empty($config['default_index'])) {
+            $keys = array_keys($config['indexes']);
+            $config['default_index'] = reset($keys);
+        }
+
+
+        $this->loadClients($config['clients'], $container);
+        $container->setAlias('nemrod.elastica.client', sprintf('nemrod.elastica.client.%s', $config['default_client']));
+
+        $this->loadIndexes($config['indexes'], $container);
+        $container->setAlias('nemrod.elastica.index', sprintf('nemrod.elastica.index.%s', $config['default_index']));
+
         //register elastica indexes and mappings
-        $this->registerElasticaIndexes($config, $container);
+        //$this->registerElasticaIndexes($config, $container);
 
         // register jsonld frames paths
         $this->registerJsonLdFramePaths($config, $container);
     }
 
     /**
+     * Loads the configured clients.
+     *
+     * @param array $clients An array of clients configurations
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     * @return array
+     */
+    private function loadClients(array $clients, ContainerBuilder $container)
+    {
+        foreach ($clients as $name => $clientConfig) {
+            $clientId = sprintf('nemrod.elastica.client.%s', $name);
+            $clientDef = new DefinitionDecorator('nemrod.elastica.client.abstract');
+            $clientDef->replaceArgument(0, $clientConfig);
+            $clientDef->addTag('nemrod.elastica.client');
+            $container->setDefinition($clientId, $clientDef);
+        }
+    }
+
+
+    /**
+     * Loads the configured indexes.
+     *
+     * @param array $indexes An array of indexes configurations
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     * @throws \InvalidArgumentException
+     * @return array
+     */
+    private function loadIndexes(array $indexes, ContainerBuilder $container)
+    {
+        foreach ($indexes as $name => $index) {
+            $indexId = sprintf('nemrod.elastica.index.%s', $name);
+            $indexName = isset($index['index_name']) ? $index['index_name']: $name;
+
+            $indexDef = new DefinitionDecorator('nemrod.elastica.index.abstract');
+            $indexDef->replaceArgument(0, $indexName);
+            $indexDef->addTag('nemrod.elastica.index', array(
+                'name' => $name,
+            ));
+
+            if (isset($index['client'])) {
+                $clientId = 'nemrod.elastica.client.' . $index['client'];
+                $indexDef->setFactory(array(new Reference($clientId), 'getIndex'));
+            }
+
+            $container->setDefinition($indexId, $indexDef);
+        }
+    }
+
+    /**
      * @param array            $config
      * @param ContainerBuilder $container
      */
-    public function registerElasticaIndexes(array $config, ContainerBuilder $container)
+    /*public function registerElasticaIndexes(array $config, ContainerBuilder $container)
     {
 
         $confManager = $container->getDefinition('nemrod.elastica.config_manager');
+
 
         foreach ($config['indexes'] as $name => $types) {
             $clientRef = new Reference('nemrod.elastica.client.' . $types['client']);
@@ -80,7 +151,7 @@ class ElasticaExtension extends Extension
                     'port' => $client['port'],
                 )));
         }
-    }
+    }*/
 
     /**
      * Register jsonld frames paths for each bundle.
