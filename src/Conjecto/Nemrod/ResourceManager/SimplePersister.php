@@ -54,7 +54,7 @@ class SimplePersister implements PersisterInterface
      *
      * @throws Exception
      */
-    public function constructUri($className, $uri)
+    public function constructUri($uri, $className = null)
     {
         $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
 
