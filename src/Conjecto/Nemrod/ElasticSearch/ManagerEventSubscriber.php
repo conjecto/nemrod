@@ -60,7 +60,6 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->container);
         $this->resourceToDocumentTransformer = new ResourceToDocumentTransformer(
             $this->serializerHelper,
-            $this->typeRegistry,
             $this->container->get('nemrod.type_mapper'),
             $this->container->get('nemrod.elastica.jsonld.serializer')
         );

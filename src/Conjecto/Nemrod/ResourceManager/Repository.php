@@ -43,7 +43,7 @@ class Repository
     public function find($uri)
     {
         /** @var \EasyRdf_Sparql_Result $result */
-        $result = $this->_rm->find($this->className, $uri);
+        $result = $this->_rm->find($uri, $this->className);
 
         return $result;
     }

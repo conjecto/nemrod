@@ -80,7 +80,7 @@ class Resource extends BaseResource
             foreach ($result as $res) {
 
                 if ($res instanceof self && (!empty($this->_rm))) {
-                    $llResult[] = $this->_rm->find(null, $res->getUri());
+                    $llResult[] = $this->_rm->find($res->getUri());
                 }
             }
 
@@ -90,7 +90,7 @@ class Resource extends BaseResource
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
                 } else {
-                    $re = $this->_rm->find(null, $result->getUri());
+                    $re = $this->_rm->find($result->getUri());
                 }
                 if (!empty($re)) {
                     if ($rest === '') {
@@ -143,7 +143,7 @@ class Resource extends BaseResource
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
                     $re->setRm($this->_rm);
                 } else {
-                    $re = $this->_rm->find(null, $result->getUri());
+                    $re = $this->_rm->find($result->getUri());
                 }
 
                 if (!empty($re)) {

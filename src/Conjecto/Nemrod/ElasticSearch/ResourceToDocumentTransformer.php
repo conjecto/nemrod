@@ -26,11 +26,6 @@ class ResourceToDocumentTransformer
     protected $serializerHelper;
 
     /**
-     * @var TypeRegistry
-     */
-    protected $typeRegistry;
-
-    /**
      * @var JsonLdSerializer
      */
     protected $jsonLdSerializer;
@@ -46,10 +41,9 @@ class ResourceToDocumentTransformer
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param JsonLdSerializer   $jsonLdSerializer
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
+    public function __construct(SerializerHelper $serializerHelper, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
         $this->serializerHelper = $serializerHelper;
-        $this->typeRegistry = $typeRegistry;
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->jsonLdSerializer = $jsonLdSerializer;
     }
@@ -62,14 +56,8 @@ class ResourceToDocumentTransformer
      *
      * @return Document|null
      */
-    public function transform($uri, $type)
+    public function transform($uri, $index, $type)
     {
-        $index = $this->typeRegistry->getType($type);
-        if (!$index) {
-            return;
-        }
-
-        $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $frame = $this->serializerHelper->getTypeFramePath($index, $type);
 

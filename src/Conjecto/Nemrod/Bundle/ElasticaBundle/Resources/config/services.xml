@@ -43,7 +43,7 @@
         <service id="nemrod.elastica.config_manager" class="%nemrod.elastica_config_manager.class%" />
         <service id="nemrod.elastica.mapping_builder" class="%nemrod.elastica_mapping_builder.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
-            <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
         <service id="nemrod.elastica.resetter" class="%nemrod.elastica_resetter.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
@@ -55,8 +55,8 @@
         <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
         <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
             <argument type="service" id="rm" />
+            <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.index_registry" />
-            <argument type="service" id="nemrod.elastica.type_registry" />
             <argument type="service" id="nemrod.elastica.resetter" />
             <argument type="service" id="nemrod.type_mapper" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />

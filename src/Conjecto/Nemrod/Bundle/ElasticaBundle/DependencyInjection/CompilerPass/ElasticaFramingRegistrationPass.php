@@ -55,7 +55,7 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
 
                     //registering config to configManager
                     $settings['type_service_id'] = $typeId;
-                    $confManager->addMethodCall('setConfig', array($type, $settings));
+                    $confManager->addMethodCall('setTypeConfigurationArray', array($name, $typeName, $settings));
                 }
             }
         }

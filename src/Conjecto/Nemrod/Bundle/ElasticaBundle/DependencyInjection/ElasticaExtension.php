@@ -25,6 +25,20 @@ use Symfony\Component\Config\FileLocator;
 class ElasticaExtension extends Extension
 {
     /**
+     * Definition of elastica clients as configured by this extension.
+     *
+     * @var array
+     */
+    private $clients = array();
+
+    /**
+     * An array of indexes as configured by the extension.
+     *
+     * @var array
+     */
+    private $indexConfigs = array();
+
+    /**
      * Responds to the app.config configuration parameter.
      *
      * @param array            $configs
@@ -80,13 +94,20 @@ class ElasticaExtension extends Extension
     {
         foreach ($clients as $name => $clientConfig) {
             $clientId = sprintf('nemrod.elastica.client.%s', $name);
+
             $clientDef = new DefinitionDecorator('nemrod.elastica.client.abstract');
             $clientDef->replaceArgument(0, $clientConfig);
+
             $clientDef->addTag('nemrod.elastica.client');
+
             $container->setDefinition($clientId, $clientDef);
+
+            $this->clients[$name] = array(
+                'id' => $clientId,
+                'reference' => new Reference($clientId)
+            );
         }
     }
-
 
     /**
      * Loads the configured indexes.
@@ -98,6 +119,9 @@ class ElasticaExtension extends Extension
      */
     private function loadIndexes(array $indexes, ContainerBuilder $container)
     {
+        $confManager = $container->getDefinition('nemrod.elastica.config_manager');
+        $indexRegistry = $container->getDefinition('nemrod.elastica.index_registry');
+
         foreach ($indexes as $name => $index) {
             $indexId = sprintf('nemrod.elastica.index.%s', $name);
             $indexName = isset($index['index_name']) ? $index['index_name']: $name;
@@ -114,6 +138,20 @@ class ElasticaExtension extends Extension
             }
 
             $container->setDefinition($indexId, $indexDef);
+            $reference = new Reference($indexId);
+
+            $this->indexConfigs[$name] = array(
+                'elasticsearch_name' => $indexName,
+                'reference' => $reference,
+                'name' => $name,
+                'settings' => $index['settings'],
+                //'type_prototype' => isset($index['type_prototype']) ? $index['type_prototype'] : array(),
+                //'use_alias' => $index['use_alias'],
+            );
+
+            $confManager->addMethodCall('setIndexConfigurationArray', array($name, $this->indexConfigs[$name]));
+
+            $indexRegistry->addMethodCall('registerIndex', array($name, $reference));
         }
     }
 

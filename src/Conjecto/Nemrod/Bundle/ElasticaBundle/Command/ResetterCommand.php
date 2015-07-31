@@ -36,6 +36,13 @@ class ResetterCommand extends ContainerAwareCommand
         $type = $input->getOption('type');
         $force = (bool) $input->getOption('force');
 
+        /*if (null === $index && null !== $type) {
+            throw new \InvalidArgumentException('Cannot specify type option without an index.');
+        }*/
+        if (null === $index) {
+            throw new \InvalidArgumentException('You must specify an index.');
+        }
+
         $this->getContainer()->get('nemrod.elastica.resetter')->reset($index, $type, $output, $force);
     }
 }

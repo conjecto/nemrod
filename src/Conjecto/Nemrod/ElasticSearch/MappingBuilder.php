@@ -22,17 +22,17 @@ class MappingBuilder
     /** @var ConfigManager */
     protected $configManager;
 
-    /** @var  TypeRegistry */
-    protected $typeRegistry;
+    /** @var  IndexRegistry */
+    protected $indexRegistry;
 
     /**
      * @param $configManager
      * @param $typeRegistry
      */
-    public function __construct($configManager, $typeRegistry)
+    public function __construct($configManager, $indexRegistry)
     {
         $this->configManager = $configManager;
-        $this->typeRegistry = $typeRegistry;
+        $this->indexRegistry = $indexRegistry;
     }
 
     /**
@@ -42,15 +42,16 @@ class MappingBuilder
      *
      * @throws \Exception
      */
-    public function buildMapping($type)
+    public function buildMapping($index, $type)
     {
-        $mappingData = $this->configManager->getConfig($type, 'properties');
+        $typeConfig = $this->configManager->getTypeConfiguration($index, $type);
+        $mappingData = $typeConfig->getProperties();
         if (!$mappingData) {
             throw new \Exception('no mapping for type');
         }
 
         /** @var Type $typeObj */
-        $typeObj = $this->typeRegistry->getType($type);
+        $typeObj = $this->indexRegistry->getIndex($index)->getType($type);
 
         try {
             $typeObj->delete();
@@ -65,17 +66,12 @@ class MappingBuilder
     /**
      * @param $type
      */
-    public function createIndexIfNotExists($type)
+    public function createIndexIfNotExists($index)
     {
-        $typeObj = $this->typeRegistry->getType($type);
-
-        $index = $typeObj->getIndex();
-        if (!$index) {
-            throw new \Exception('type is not known to Nemrod!');
-        }
-
-        if (!$typeObj->getIndex()->exists()) {
-            $typeObj->getIndex()->create();
+        //$indexConfig = $this->configManager->getIndexConfiguration($index);
+        $index = $this->indexRegistry->getIndex($index);
+        if (!$index->exists()) {
+            $index->create();
         }
     }
 
