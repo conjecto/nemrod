@@ -82,7 +82,7 @@ class Populator
     public function populate($index, $type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
         $types = $this->getTypesToPopulate($index, $type);
-        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeMapperRegistry, $this->jsonLdSerializer);
+        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->configManager, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
         $options['limit'] = $options['slice'];
         $options['orderBy'] = 'uri';
@@ -212,18 +212,18 @@ class Populator
             $this->resetter->resetIndex($index);
         }
 
-        $typeKeys = array_keys($this->configManager->getIndexConfiguration($index)->getTypes());
-
+        $typesConfig = $this->configManager->getIndexConfiguration($index)->getTypes();
         if ($type) {
-            if (!in_array($type, $typeKeys)) {
+            if(!isset($typesConfig[$type])) {
                 throw new \Exception("The type $type is not defined in this index.");
             }
-            $types = array($type => $indexObj->getType($type));
+            $typeConfig = $typesConfig[$type];
+            $types = array($type => $indexObj->getType($typeConfig->getType()));
         } else {
             $this->resetter->reset($index);
-            $types = array_combine($typeKeys, array_map(function($key) use ($indexObj) {
-                return $indexObj->getType($key);
-            }, $typeKeys));
+            $types = array_combine(array_keys($typesConfig), array_map(function(TypeConfig $typeConfig) use ($indexObj) {
+                return $indexObj->getType($typeConfig->getType());
+            }, $typesConfig));
         }
 
         return $types;

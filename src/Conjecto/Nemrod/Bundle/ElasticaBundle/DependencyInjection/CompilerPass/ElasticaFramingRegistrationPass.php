@@ -34,29 +34,24 @@ class ElasticaFramingRegistrationPass implements CompilerPassInterface
             foreach ($index['types'] as $typeName => $settings) {
                 $jsonLdFrameLoader->setEsIndex($name);
                 $frame = $jsonLdFrameLoader->load($settings['frame'], null, true, true, true);
-                $settings['frame'] = $frame;
-                if (isset($frame['@type']) || isset($settings['type'])) {
-                    $type = '';
-                    if (isset($settings['type'])) {
-                        $type = $settings['type'];
-                    } elseif (isset($frame['@type'])) {
-                        $type = $frame['@type'];
-                    }
 
-                    //type
-                    $typeId = 'nemrod.elastica.type.'.$name.'.'.$typeName;
-                    $indexId = 'nemrod.elastica.index.'.$name;
-                    $typeDef = new DefinitionDecorator('nemrod.elastica.type.abstract');
-                    $typeDef->replaceArgument(0, $type);
-                    $typeDef->setFactory(array(new Reference($indexId), 'getType'));
-                    $typeDef->addTag('nemrod.elastica.type', array('index' => $name, 'name' => $typeName));
-
-                    $container->setDefinition($typeId, $typeDef);
-
-                    //registering config to configManager
-                    $settings['type_service_id'] = $typeId;
-                    $confManager->addMethodCall('setTypeConfigurationArray', array($name, $typeName, $settings));
+                $type = !empty($frame['@type']) ? $frame['@type'] : $settings['type'];
+                if(empty($type)) {
+                    throw \Exception("You must provide a RDF Type.");
                 }
+
+                //type
+                $typeId = 'nemrod.elastica.type.'.$name.'.'.$typeName;
+                $indexId = 'nemrod.elastica.index.'.$name;
+                $typeDef = new DefinitionDecorator('nemrod.elastica.type.abstract');
+                $typeDef->replaceArgument(0, $type);
+                $typeDef->setFactory(array(new Reference($indexId), 'getType'));
+                $typeDef->addTag('nemrod.elastica.type', array('index' => $name, 'name' => $typeName, 'type' => $type));
+
+                $container->setDefinition($typeId, $typeDef);
+
+                //registering config to configManager
+                $confManager->addMethodCall('setTypeConfigurationArray', array($name, $typeName, $type, $frame));
             }
         }
     }

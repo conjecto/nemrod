@@ -29,14 +29,16 @@ class ConfigManager
 
     /**
      * @param $indexName
-     * @param $config
+     * @param $typeName
+     * @param $type
+     * @param $frame
      */
-    public function setTypeConfigurationArray($indexName, $typeName, $config) {
+    public function setTypeConfigurationArray($indexName, $typeName, $type, $frame) {
         $index = $this->getIndexConfiguration($indexName);
         $index->addType($typeName, new TypeConfig(
             $typeName,
-            $config['type'],
-            $config['frame']
+            $type,
+            $frame
         ));
     }
 

@@ -51,7 +51,7 @@ class MappingBuilder
         }
 
         /** @var Type $typeObj */
-        $typeObj = $this->indexRegistry->getIndex($index)->getType($type);
+        $typeObj = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
 
         try {
             $typeObj->delete();

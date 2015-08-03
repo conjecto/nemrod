@@ -218,7 +218,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             $indexConfig = $typeConfig->getIndex();
             $index = $indexConfig->getName();
             $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
-            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getName());
+            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
             $document = $trans->transform($uri, $index, $mostAccurateType);
             if ($document) {
                 $esType->addDocument($document);
@@ -252,7 +252,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $index = $indexConfig->getName();
                 $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
                 if ($index !== null) {
-                    $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getName());
+                    $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
                     // Trow an exeption if document does not exist
                     try {
                         $esType->deleteDocument(new Document($uri, array(), $oldType, $indexConfig->getElasticSearchName()));
@@ -290,7 +290,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $index = $indexConfig->getName();
                 $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
                 if ($index !== null) {
-                    $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $this->filiationBuilder, $this->resourceToDocumentTransformer);
+                    $this->cascadeUpdateHelper->updateDocument($uri, $type, $this->filiationBuilder, $this->resourceToDocumentTransformer);
                 }
             }
         }

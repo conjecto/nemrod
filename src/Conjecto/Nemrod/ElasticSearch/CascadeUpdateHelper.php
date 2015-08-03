@@ -95,7 +95,7 @@ class CascadeUpdateHelper
      * @param FiliationBuilder              $filiationBuilder
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $index, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
+    public function updateDocument($uri, $typeName, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         // find the finest type of the resource in order to index the resource ony once
         $typeName = $filiationBuilder->getMostAccurateType(array($typeName), $this->serializerHelper->getAllTypes());
@@ -112,7 +112,7 @@ class CascadeUpdateHelper
         foreach($typesConfig as $typeConfig) {
             $indexConfig = $typeConfig->getIndex();
             $index = $indexConfig->getName();
-            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getName());
+            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
             $document = $resourceToDocumentTransformer->transform($uri, $index, $typeName);
             if ($document) {
                 $esType->addDocument($document);
@@ -178,7 +178,7 @@ class CascadeUpdateHelper
                     $uri = $result->uri->getUri();
                     // not reindex a resource to times
                     if (!array_key_exists($uri, $resourcesModified)) {
-                        $this->updateDocument($uri, $result->typeName->getUri(), $index, $filiationBuilder, $resourceToDocumentTransformer);
+                        $this->updateDocument($uri, $result->typeName->getUri(), $filiationBuilder, $resourceToDocumentTransformer);
                     }
                 }
             }
