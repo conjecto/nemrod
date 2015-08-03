@@ -26,9 +26,9 @@ class ResourceToDocumentTransformer
     protected $serializerHelper;
 
     /**
-     * @var TypeRegistry
+     * @var ConfigManager
      */
-    protected $typeRegistry;
+    protected $configManager;
 
     /**
      * @var JsonLdSerializer
@@ -46,10 +46,10 @@ class ResourceToDocumentTransformer
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param JsonLdSerializer   $jsonLdSerializer
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
         $this->serializerHelper = $serializerHelper;
-        $this->typeRegistry = $typeRegistry;
+        $this->configManager = $configManager;
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->jsonLdSerializer = $jsonLdSerializer;
     }
@@ -58,18 +58,13 @@ class ResourceToDocumentTransformer
      * Transform a resource to an elastica document.
      *
      * @param $uri
+     * @param $index
      * @param $type
      *
      * @return Document|null
      */
-    public function transform($uri, $type)
+    public function transform($uri, $index, $type)
     {
-        $index = $this->typeRegistry->getType($type);
-        if (!$index) {
-            return;
-        }
-
-        $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $frame = $this->serializerHelper->getTypeFramePath($index, $type);
 
@@ -91,6 +86,7 @@ class ResourceToDocumentTransformer
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
 
+            $index = $this->configManager->getIndexConfiguration($index)->getElasticSearchName();
             return new Document($uri, $json, $type, $index);
         }
 

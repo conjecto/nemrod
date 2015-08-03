@@ -32,7 +32,8 @@ class PopulatorCommand extends ContainerAwareCommand
         $this
             ->setName('nemrod:elastica:populate')
             ->setDescription('(Reset and) populate elastica indexes')
-            ->addArgument('type', InputArgument::OPTIONAL, 'target type')
+            ->addOption('index', null, InputOption::VALUE_OPTIONAL, 'The index to repopulate')
+            ->addOption('type', null, InputOption::VALUE_OPTIONAL, 'The type to repopulate')
             ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 50)
             ->addOption('no-reset', null, InputOption::VALUE_NONE, 'populate without index reset')
             ->addOption('no-clear-cache', null, InputOption::VALUE_NONE, 'does not clear the cache')
@@ -43,7 +44,15 @@ class PopulatorCommand extends ContainerAwareCommand
     {
         $reset = !$input->getOption('no-reset');
 
-        $type = $input->getArgument('type');
+        $index         = $input->getOption('index');
+        $type          = $input->getOption('type');
+
+        /*if (null === $index && null !== $type) {
+            throw new \InvalidArgumentException('Cannot specify type option without an index.');
+        }*/
+        if (null === $index) {
+            throw new \InvalidArgumentException('You must specify an index.');
+        }
 
         $options['slice'] = $input->getOption('batch');
 
@@ -60,15 +69,18 @@ class PopulatorCommand extends ContainerAwareCommand
             $ccInput = new ArrayInput(array());
             $command->run($ccInput, new NullOutput());
 
-            $env = $kernel->getEnvironment();
             $args = array_merge(array('php', $kernel->getRootDir() . DIRECTORY_SEPARATOR . '../app/console', 'nemrod:elastica:populate', '--no-clear-cache'));
 
             if ($options['slice']) {
                 $args[] = "--batch=".$options['slice'];
             }
 
+            if ($index) {
+                $args[] = '--index=' . $index;
+            }
+
             if ($type) {
-                $args[] = $type;
+                $args[] = '--type=' . $type;
             }
 
             $pb = new ProcessBuilder($args);
@@ -90,6 +102,6 @@ class PopulatorCommand extends ContainerAwareCommand
 
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
 
-        $this->getContainer()->get('nemrod.elastica.populator')->populate($type, $reset, $options, $output);
+        $this->getContainer()->get('nemrod.elastica.populator')->populate($index, $type, $reset, $options, $output);
     }
 }

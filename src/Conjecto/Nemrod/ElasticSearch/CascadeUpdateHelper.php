@@ -28,6 +28,16 @@ class CascadeUpdateHelper
     protected $serializerHelper;
 
     /**
+     * @var ConfigManager
+     */
+    protected $configManager;
+
+    /**
+     * @var IndexRegistry
+     */
+    protected $indexRegistry;
+
+    /**
      * @var Container
      */
     protected $container;
@@ -36,9 +46,11 @@ class CascadeUpdateHelper
      * @param SerializerHelper $serializerHelper
      * @param Container        $container
      */
-    public function __construct(SerializerHelper $serializerHelper, Container $container)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, IndexRegistry $indexRegistry,Container $container)
     {
         $this->serializerHelper = $serializerHelper;
+        $this->configManager = $configManager;
+        $this->indexRegistry = $indexRegistry;
         $this->container = $container;
     }
 
@@ -83,7 +95,7 @@ class CascadeUpdateHelper
      * @param FiliationBuilder              $filiationBuilder
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $index, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
+    public function updateDocument($uri, $typeName, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         // find the finest type of the resource in order to index the resource ony once
         $typeName = $filiationBuilder->getMostAccurateType(array($typeName), $this->serializerHelper->getAllTypes());
@@ -96,10 +108,15 @@ class CascadeUpdateHelper
             throw new \Exception("The most accurate type for " . $uri . " has not be found.");
         }
 
-        $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $typeName));
-        $document = $resourceToDocumentTransformer->transform($uri, $typeName);
-        if ($document) {
-            $esType->addDocument($document);
+        $typesConfig = $this->configManager->getTypesConfigurationByClass($typeName);
+        foreach($typesConfig as $typeConfig) {
+            $indexConfig = $typeConfig->getIndex();
+            $index = $indexConfig->getName();
+            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
+            $document = $resourceToDocumentTransformer->transform($uri, $index, $typeName);
+            if ($document) {
+                $esType->addDocument($document);
+            }
         }
     }
 
@@ -161,7 +178,7 @@ class CascadeUpdateHelper
                     $uri = $result->uri->getUri();
                     // not reindex a resource to times
                     if (!array_key_exists($uri, $resourcesModified)) {
-                        $this->updateDocument($uri, $result->typeName->getUri(), $index, $filiationBuilder, $resourceToDocumentTransformer);
+                        $this->updateDocument($uri, $result->typeName->getUri(), $filiationBuilder, $resourceToDocumentTransformer);
                     }
                 }
             }

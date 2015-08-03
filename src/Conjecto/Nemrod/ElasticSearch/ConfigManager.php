@@ -1,157 +1,109 @@
 <?php
 
-/*
- * This file is part of the Nemrod package.
- *
- * (c) Conjecto <contact@conjecto.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Conjecto\Nemrod\ElasticSearch;
-
 /**
- * Class ConfigManager stores and manages mainly (elastica) type mappings.
+ * Central manager for index and type configuration.
+ */
+/**
+ * Class ConfigManager
+ * @package Conjecto\Nemrod\Configuration
  */
 class ConfigManager
 {
     /**
-     * all types configs
-     * @var array
+     * @var IndexConfig[]
      */
-    private $config;
+    private $indexes = array();
 
     /**
-     * @var array
+     * @param $indexName
+     * @param $config
      */
-    private $indexConfig;
+    public function setIndexConfigurationArray($indexName, $config) {
+        $this->indexes[$indexName] =  new IndexConfig($config['name'], array(), array(
+            'elasticSearchName' => $config['elasticsearch_name'],
+            'settings' => $config['settings'],
+            //'useAlias' => $config['use_alias'],
+        ));
+    }
 
     /**
-     * Skip adding default information to certain fields.
-     * @var array
-     */
-    private $skipTypes = array('completion');
-
-    /**
-     * Set a mapping config for a type
+     * @param $indexName
+     * @param $typeName
      * @param $type
-     * @param $data
+     * @param $frame
      */
-    public function setConfig($type, $data)
-    {
-        $properties = array();
-        $this->parseFrame($data['frame'], $properties);
-        $this->fixProperties($properties);
-        unset($data['frame']);
-        $data['properties'] = $properties;
-        $this->config[$type] = $data;
+    public function setTypeConfigurationArray($indexName, $typeName, $type, $frame) {
+        $index = $this->getIndexConfiguration($indexName);
+        $index->addType($typeName, new TypeConfig(
+            $typeName,
+            $type,
+            $frame
+        ));
     }
 
     /**
-     * @return mixed
+     * @param $indexName
+     * @return IndexConfig
      */
-    public function getIndexConfig($index)
+    public function getIndexConfiguration($indexName)
     {
-        if (!isset($this->indexConfig[$index])) return;
-        return $this->indexConfig[$index];
-    }
-
-    /**
-     * @param mixed $indexConfig
-     */
-    public function setIndexConfig($index, $config)
-    {
-        $this->indexConfig[$index] = $config;
-    }
-
-
-
-    /**
-     * returns the [section (if provided) of a] config for a given type
-     *
-     * @param $type
-     * @param null $section
-     *
-     * @return $array|null
-     */
-    public function getConfig($type, $section = null)
-    {
-        if (!$section) {
-            if (!isset($this->config[$type])) {
-                return null;
-            }
-
-            return $this->config[$type];
-        }
-        if (!isset($this->config[$type][$section])) {
-            return null;
+        if (!$this->hasIndexConfiguration($indexName)) {
+            throw new \InvalidArgumentException(sprintf('Index with name "%s" is not configured.', $indexName));
         }
 
-        return $this->config[$type][$section];
+        return $this->indexes[$indexName];
     }
 
     /**
-     * Get mapped types
      * @return array
      */
-    public function getTypes()
+    public function getIndexNames()
     {
-        return array_keys($this->config);
+        return array_keys($this->indexes);
     }
 
     /**
-     * returns all known indexes
-     * @return mixed
+     * @param $indexName
+     * @param $typeName
+     * @return TypeConfig
      */
-    public function getIndexes()
+    public function getTypeConfiguration($indexName, $typeName)
     {
-        return $this->indexConfig;
+        $index = $this->getIndexConfiguration($indexName);
+        $type = $index->getType($typeName);
+
+        if (!$type) {
+            throw new \InvalidArgumentException(sprintf('Type with name "%s" on index "%s" is not configured', $typeName, $indexName));
+        }
+
+        return $type;
     }
 
     /**
-     * Get properties mapping
-     * @param $frame
-     * @param $properties
+     * @param $indexName
+     * @return bool
      */
-    protected function parseFrame($frame, &$mapping) {
-        foreach ($frame as $key => $property) {
-            if (substr($key, 0, 1) !== '@') {
-                $mapping[$key] = isset($property['@mapping']) ? $property['@mapping'] : array();
+    public function hasIndexConfiguration($indexName)
+    {
+        return isset($this->indexes[$indexName]);
+    }
 
-                if (is_array($property)) {
-                    $this->parseFrame($property, $mapping[$key]['properties']);
+    /**
+     * Return all elastica types configured for a semantic class
+     * @param $class
+     * @return TypeConfig[]
+     */
+    public function getTypesConfigurationByClass($class)
+    {
+        $types = array();
+        foreach($this->indexes as $key => $index) {
+            foreach($index->getTypes() as $type) {
+                if($type->getType() == $class) {
+                    $types[] = $type;
                 }
             }
         }
-    }
-
-    /**
-     * Fixes any properties and applies basic defaults for any field that does not have
-     * required options.
-     *
-     * @param $properties
-     */
-    protected function fixProperties(&$properties, $top = true)
-    {
-        foreach ($properties as $name => &$property) {
-            if (!isset($property['type'])) {
-                if(isset($property['properties'])) {
-                    $property['type'] = 'object';
-                    $property['properties']['_id'] = array("store" => true, "type" => "string", "index" => "not_analyzed");
-                } else {
-                    $property['type'] = 'string';
-                }
-            }
-            if (isset($property['properties'])) {
-                $this->fixProperties($property['properties'], false);
-            }
-            if (in_array($property['type'], $this->skipTypes)) {
-                continue;
-            }
-            if (!isset($property['store'])) {
-                $property['store'] = true;
-            }
-        }
+        return $types;
     }
 }

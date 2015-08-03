@@ -27,11 +27,11 @@ class Populator
     /** @var  Manager */
     protected $resourceManager;
 
+    /** @var  ConfigManager */
+    protected $configManager;
+
     /** @var  IndexRegistry */
     protected $indexRegistry;
-
-    /** @var  TypeRegistry */
-    protected $typeRegistry;
 
     /** @var  Resetter */
     protected $resetter;
@@ -49,18 +49,22 @@ class Populator
     protected $filiationBuilder;
 
     /**
-     * @param $resourceManager
-     * @param $indexManager
-     * @param $typeRegistry
-     * @param $resetter
+     * @param Manager $resourceManager
+     * @param ConfigManager $configManager
+     * @param IndexRegistry $indexManager
+     * @param Resetter $resetter
+     * @param TypeMapperRegistry $typeMapperRegistry
+     * @param SerializerHelper $serializerHelper
+     * @param JsonLdSerializer $jsonLdSerializer
+     * @param FiliationBuilder $filiationBuilder
      */
-    public function __construct(Manager $resourceManager, IndexRegistry $indexManager, TypeRegistry $typeRegistry, Resetter $resetter,
+    public function __construct(Manager $resourceManager, ConfigManager $configManager, IndexRegistry $indexManager,  Resetter $resetter,
                                 TypeMapperRegistry $typeMapperRegistry, SerializerHelper $serializerHelper, JsonLdSerializer $jsonLdSerializer,
                                 FiliationBuilder $filiationBuilder)
     {
         $this->resourceManager = $resourceManager;
         $this->indexRegistry = $indexManager;
-        $this->typeRegistry = $typeRegistry;
+        $this->configManager = $configManager;
         $this->resetter = $resetter;
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->serializerHelper = $serializerHelper;
@@ -75,48 +79,60 @@ class Populator
      * @param ConsoleOutput $output
      * @param bool $showProgress
      */
-    public function populate($type = null, $reset = true, $options = array(), $output, $showProgress = true)
+    public function populate($index, $type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
-        $types = $this->getTypesToPopulate($type);
-        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->typeRegistry, $this->typeMapperRegistry, $this->jsonLdSerializer);
+        $types = $this->getTypesToPopulate($index, $type);
+        $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->configManager, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
         $options['limit'] = $options['slice'];
         $options['orderBy'] = 'uri';
 
         /** @var Type $typ */
         foreach ($types as $key => $typ) {
-            $this->populateType($key, $typ, $type, $options, $trans, $output, $reset, $showProgress);
+            $this->populateType($index, $key, $typ, $type, $options, $trans, $output, $reset, $showProgress);
         }
     }
 
-    protected function populateType($key, $typ, $type, $options, $trans, $output, $reset, $showProgress)
+    /**
+     * @param $index
+     * @param $key
+     * @param $typ
+     * @param $type
+     * @param $options
+     * @param $trans
+     * @param $output
+     * @param $reset
+     * @param $showProgress
+     */
+    protected function populateType($index, $key, Type $typ, $type, $options, $trans, $output, $reset, $showProgress)
     {
-        $output->writeln("populating " . $key);
         if ($reset & $type) {
-            $this->resetter->reset(null, $key, $output);
+            $this->resetter->reset($index, $type, $key, $output);
         }
-        $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($typ->getIndex()->getName());
-        $size = $this->getSize($key);
+        $output->writeln("Populating " . $key);
+
+        $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($index);
+        $class = $this->configManager->getIndexConfiguration($index)->getType($key)->getType();
+        $size = $this->getSize($class);
 
         // no object in triplestore
         if (!current($size)) {
-            continue;
+            return;
         }
 
         $size = current($size)->count->getValue();
         $progress = $this->displayInitialAvancement($size, $options, $showProgress, $output);
         $done = 0;
         while ($done < $size) {
-            $resources = $this->getResources($key, $options, $done);
+            $resources = $this->getResources($class, $options, $done);
             $docs = array();
             /* @var Resource $add */
             foreach ($resources as $resource) {
                 $types = $resource->all('rdf:type');
-                $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $key);
-
+                $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $class);
                 // index only the current resource if the most accurate type is the key populating
-                if ($key === $mostAccurateType) {
-                    $doc = $trans->transform($resource->getUri(), $mostAccurateType);
+                if ($class === $mostAccurateType) {
+                    $doc = $trans->transform($resource->getUri(), $index,  $mostAccurateType);
                     if ($doc) {
                         $docs[] = $doc;
                     }
@@ -125,7 +141,7 @@ class Populator
 
             // send documents to elasticsearch
             if (count($docs)) {
-                $this->typeRegistry->getType($key)->addDocuments($docs);
+                $typ->addDocuments($docs);
             } else {
                 $output->writeln("");
                 $output->writeln("nothing to index");
@@ -139,7 +155,7 @@ class Populator
         $progress->finish();
     }
 
-    protected function getMostAccurateType($types, $resource, $output, $key)
+    protected function getMostAccurateType($types, $resource, $output, $class)
     {
         $mostAccurateType = null;
         $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
@@ -148,8 +164,8 @@ class Populator
             $mostAccurateType = $mostAccurateTypes[0];
         }
         else if ($mostAccurateTypes === null) {
-            $output->writeln("No accurate type found for " . $resource->getUri() . ". The type $key will be used.");
-            $mostAccurateType = $key;
+            $output->writeln("No accurate type found for " . $resource->getUri() . ". The type $class will be used.");
+            $mostAccurateType = $class;
         }
         else {
             $output->writeln("The most accurate type for " . $resource->getUri() . " has not be found. The resource will not be indexed.");
@@ -158,43 +174,56 @@ class Populator
         return $mostAccurateType;
     }
 
-    protected function getResources($key, $options, $done)
+    protected function getResources($class, $options, $done)
     {
         $options['offset'] = $done;
-        $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $key);
+        $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $class);
         $select->orderBy('?uri');
         $select->setOffset($done);
         $select->setMaxResults($options['slice']);
         $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
-        $qb = $this->resourceManager->getRepository($key)->getQueryBuilder();
+        $qb = $this->resourceManager->getRepository($class)->getQueryBuilder();
         $qb->reset()
-            ->construct("?uri a $key")
+            ->construct("?uri a $class")
             ->addConstruct('?uri rdf:type ?type')
-            ->where('?uri a ' . $key)
+            ->where('?uri a ' . $class)
             ->andWhere('?uri rdf:type ?type')
             ->andWhere('{' . $selectStr . '}');
 
-        return $qb->getQuery()->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $key));
+        return $qb->getQuery()->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $class));
     }
 
-    protected function getTypesToPopulate($type)
+    /**
+     * @param $index
+     * @param $type
+     * @return array
+     * @throws \Exception
+     */
+    protected function getTypesToPopulate($index, $type = null)
     {
+        $indexObj = $this->indexRegistry->getIndex($index);
+        if (!$indexObj) {
+            throw new \Exception("The index $index is not defined");
+        }
+
+        // creating index if not exists
+        if (!$indexObj->exists()) {
+            $this->resetter->resetIndex($index);
+        }
+
+        $typesConfig = $this->configManager->getIndexConfiguration($index)->getTypes();
         if ($type) {
-            $typeObj = $this->typeRegistry->getType($type);
-            $types = array($type => $typeObj);
-
-            if (!$typeObj) {
-                throw new \Exception("The index $type is not defined");
+            if(!isset($typesConfig[$type])) {
+                throw new \Exception("The type $type is not defined in this index.");
             }
-
-            //creating index if not exists
-            if (!$typeObj->getIndex()->exists()) {
-                $this->resetter->resetIndex($typeObj->getIndex()->getName());
-            }
+            $typeConfig = $typesConfig[$type];
+            $types = array($type => $indexObj->getType($typeConfig->getType()));
         } else {
-            $this->resetter->reset();
-            $types = $this->typeRegistry->getTypes();
+            $this->resetter->reset($index);
+            $types = array_combine(array_keys($typesConfig), array_map(function(TypeConfig $typeConfig) use ($indexObj) {
+                return $indexObj->getType($typeConfig->getType());
+            }, $typesConfig));
         }
 
         return $types;

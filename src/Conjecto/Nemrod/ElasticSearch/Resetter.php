@@ -29,48 +29,38 @@ class Resetter
      */
     private $mappingBuilder;
 
-    private $typeRegistry;
+    /**
+     * @var IndexRegistry
+     */
+    private $indexRegistry;
 
     /**
      * @param $configManager
      * @param $mappingBuilder
      */
-    public function __construct($configManager, $mappingBuilder, $typeRegistry)
+    public function __construct(ConfigManager$configManager, MappingBuilder $mappingBuilder, IndexRegistry $indexRegistry)
     {
         $this->configManager = $configManager;
         $this->mappingBuilder = $mappingBuilder;
-        $this->typeRegistry = $typeRegistry;
+        $this->indexRegistry = $indexRegistry;
     }
 
     /**
      *
      */
-    public function reset($index = null, $type = null, $output = null, $force = false)
+    public function reset($index, $type = null, $output = null, $force = false)
     {
         if (null !== $type) {
             $output->writeln(sprintf('<info>Resetting</info> <comment>%s/%s</comment>', $index, $type));
-            $this->resetType($type);
+            $this->resetType($index, $type);
         } else {
-
-            $types = $this->configManager->getTypes();
-
-            $indexes = null === $index
-                ? array_keys($this->configManager->getIndexes())
-                : array($index)
-            ;
-
-            //var_dump($indexes);
-            foreach ($indexes as $index) {
-                if ($output) {
-                    $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
-                }
-                //var_dump($index);
-                $this->resetIndex($index, false, $force);
+            if ($output) {
+                $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
             }
-
-            /** @var Type $type */
-            foreach ($types as $type) {
-                $this->resetType($type, $output);
+            $this->resetIndex($index, false, $force);
+            $indexConfig = $this->configManager->getIndexConfiguration($index);
+            foreach($indexConfig->getTypes() as $type => $typeConfig) {
+                $this->resetType($index, $type, $output);
             }
         }
     }
@@ -79,13 +69,13 @@ class Resetter
      * @param $index
      * @param $type
      */
-    public function resetType($type)
+    public function resetType($index, $type)
     {
         //creating index if not exists
-        $this->mappingBuilder->createIndexIfNotExists($type);
+        $this->mappingBuilder->createIndexIfNotExists($index);
 
         //building type mapping
-        $this->mappingBuilder->buildMapping($type);
+        $this->mappingBuilder->buildMapping($index, $type);
     }
 
     /**
@@ -94,10 +84,8 @@ class Resetter
      */
     public function resetIndex($index, $output = null)
     {
-        /** @var Index $index */
-        $indexObj = $this->typeRegistry->getIndex($index);
-
-        $config = $this->configManager->getIndexConfig($index);
+        $indexObj = $this->indexRegistry->getIndex($index);
+        $config = $this->configManager->getIndexConfiguration($index)->getSettings();
 
         if (!$indexObj->exists()) {
             $indexObj->create($config);

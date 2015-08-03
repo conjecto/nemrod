@@ -28,6 +28,5 @@ class ElasticaBundle extends Bundle
     {
         parent::build($container);
         $container->addCompilerPass(new ElasticaFramingRegistrationPass());
-        $container->addCompilerPass(new ElasticaTypeRegistrationPass());
     }
 }
