@@ -26,6 +26,11 @@ class ResourceToDocumentTransformer
     protected $serializerHelper;
 
     /**
+     * @var ConfigManager
+     */
+    protected $configManager;
+
+    /**
      * @var JsonLdSerializer
      */
     protected $jsonLdSerializer;
@@ -41,9 +46,10 @@ class ResourceToDocumentTransformer
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param JsonLdSerializer   $jsonLdSerializer
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
         $this->serializerHelper = $serializerHelper;
+        $this->configManager = $configManager;
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->jsonLdSerializer = $jsonLdSerializer;
     }
@@ -52,6 +58,7 @@ class ResourceToDocumentTransformer
      * Transform a resource to an elastica document.
      *
      * @param $uri
+     * @param $index
      * @param $type
      *
      * @return Document|null
@@ -79,6 +86,7 @@ class ResourceToDocumentTransformer
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
 
+            $index = $this->configManager->getIndexConfiguration($index)->getElasticSearchName();
             return new Document($uri, $json, $type, $index);
         }
 

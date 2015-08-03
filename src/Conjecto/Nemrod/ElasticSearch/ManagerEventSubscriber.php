@@ -24,8 +24,11 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     /** @var SerializerHelper */
     protected $serializerHelper;
 
-    /** @var TypeRegistry */
-    protected $typeRegistry;
+    /** @var  ConfigManager */
+    protected $configManager;
+
+    /** @var IndexRegistry */
+    protected $indexRegistry;
 
     /** @var Container */
     protected $container;
@@ -47,19 +50,22 @@ class ManagerEventSubscriber implements EventSubscriberInterface
 
     /**
      * @param SerializerHelper $serializerHelper
-     * @param TypeRegistry $typeRegistry
+     * @param IndexRegistry $indexRegistry
+     * @param ConfigManager $configManager
      * @param FiliationBuilder $filiationBuilder
      * @param Container $container
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, FiliationBuilder $filiationBuilder, Container $container)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, IndexRegistry $indexRegistry, FiliationBuilder $filiationBuilder, Container $container)
     {
         $this->serializerHelper = $serializerHelper;
-        $this->typeRegistry = $typeRegistry;
+        $this->configManager = $configManager;
+        $this->indexRegistry = $indexRegistry;
         $this->container = $container;
         $this->filiationBuilder = $filiationBuilder;
-        $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->container);
+        $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->configManager, $this->indexRegistry, $this->container);
         $this->resourceToDocumentTransformer = new ResourceToDocumentTransformer(
             $this->serializerHelper,
+            $this->configManager,
             $this->container->get('nemrod.type_mapper'),
             $this->container->get('nemrod.elastica.jsonld.serializer')
         );
@@ -206,12 +212,14 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         } else {
             throw new \Exception("The most accurate type for " . $uri . " has not be found.");
         }
-        $index = $this->typeRegistry->getType($mostAccurateType);
-        if ($index !== null) {
-            $index = $index->getIndex()->getName();
+
+        $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);
+        foreach($typesConfig as $typeConfig) {
+            $indexConfig = $typeConfig->getIndex();
+            $index = $indexConfig->getName();
             $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
-            $esType = $this->container->get('nemrod.elastica.type.' . $index . '.' . $this->serializerHelper->getTypeName($index, $mostAccurateType));
-            $document = $trans->transform($uri, $mostAccurateType);
+            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getName());
+            $document = $trans->transform($uri, $index, $mostAccurateType);
             if ($document) {
                 $esType->addDocument($document);
             }
@@ -238,16 +246,19 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         }
 
         if (!in_array($oldType, $newTypes)) {
-            $index = $this->typeRegistry->getType($oldType);
-            $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
-            if ($index !== null) {
-                $index = $index->getIndex()->getName();
-                $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $oldType));
-                // Trow an exeption if document does not exist
-                try {
-                    $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
-                    return true;
-                } catch (\Exception $e) {
+            $typesConfig = $this->configManager->getTypesConfigurationByClass($oldType);
+            foreach($typesConfig as $typeConfig) {
+                $indexConfig = $typeConfig->getIndex();
+                $index = $indexConfig->getName();
+                $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
+                if ($index !== null) {
+                    $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getName());
+                    // Trow an exeption if document does not exist
+                    try {
+                        $esType->deleteDocument(new Document($uri, array(), $oldType, $indexConfig->getElasticSearchName()));
+                        return true;
+                    } catch (\Exception $e) {
+                    }
                 }
             }
         }
@@ -273,11 +284,14 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     {
         // cascade remove
         foreach ($this->arrayResourcesToUpdateAfterDeletion as $uri => $type) {
-            $index = $this->typeRegistry->getType($type);
-            $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
-            if ($index !== null) {
-                $index = $index->getIndex()->getName();
-                $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $this->filiationBuilder, $this->resourceToDocumentTransformer);
+            $typesConfig = $this->configManager->getTypesConfigurationByClass($type);
+            foreach($typesConfig as $typeConfig) {
+                $indexConfig = $typeConfig->getIndex();
+                $index = $indexConfig->getName();
+                $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
+                if ($index !== null) {
+                    $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $this->filiationBuilder, $this->resourceToDocumentTransformer);
+                }
             }
         }
     }

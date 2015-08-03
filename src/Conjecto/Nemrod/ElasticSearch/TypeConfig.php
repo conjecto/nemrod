@@ -14,6 +14,11 @@ namespace Conjecto\Nemrod\ElasticSearch;
 class TypeConfig
 {
     /**
+     * @var IndexConfig
+     */
+    private $index;
+
+    /**
      * @var string
      */
     private $name;
@@ -34,7 +39,7 @@ class TypeConfig
     private $properties;
 
 
-    public function __construct($name, $type, array $frame)
+    public function __construct( $name, $type, array $frame)
     {
         $this->name = $name;
         $this->type = $type;
@@ -44,6 +49,22 @@ class TypeConfig
         $this->parseFrame($frame, $properties);
         $this->fixProperties($properties);
         $this->properties = $properties;
+    }
+
+    /**
+     * @return IndexConfig
+     */
+    public function getIndex()
+    {
+        return $this->index;
+    }
+
+    /**
+     * @param IndexConfig $index
+     */
+    public function setIndex($index)
+    {
+        $this->index = $index;
     }
 
     /**

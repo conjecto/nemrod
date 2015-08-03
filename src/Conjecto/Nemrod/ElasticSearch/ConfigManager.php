@@ -86,4 +86,22 @@ class ConfigManager
     {
         return isset($this->indexes[$indexName]);
     }
+
+    /**
+     * Return all elastica types configured for a semantic class
+     * @param $class
+     * @return TypeConfig[]
+     */
+    public function getTypesConfigurationByClass($class)
+    {
+        $types = array();
+        foreach($this->indexes as $key => $index) {
+            foreach($index->getTypes() as $type) {
+                if($type->getType() == $class) {
+                    $types[] = $type;
+                }
+            }
+        }
+        return $types;
+    }
 }

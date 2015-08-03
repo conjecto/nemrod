@@ -91,6 +91,7 @@ class IndexConfig
      */
     public function addType($typeName, TypeConfig $config)
     {
+        $config->setIndex($this);
         $this->types[$typeName] = $config;
     }
 
@@ -109,7 +110,7 @@ class IndexConfig
     }
 
     /**
-     * @return \FOS\ElasticaBundle\Configuration\TypeConfig[]
+     * @return TypeConfig[]
      */
     public function getTypes()
     {
