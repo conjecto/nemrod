@@ -83,15 +83,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
                     // find frame with frame path and merge included frames
                     $frame = $this->mergeWithIncludedFrames($this->getFrame($currentFrame), $assoc);
                     // merge current frame with other frames
-                    $finalFrame = array_merge_recursive($finalFrame, $frame);
-                }
-            }
-
-            // keep the original type
-            if (isset($finalFrame['@type'])) {
-                $types = $finalFrame['@type'];
-                if (is_array($types)) {
-                    $finalFrame['@type'] = $types[0];
+                    $finalFrame = $this->array_merge_recursive($finalFrame, $frame);
                 }
             }
 
@@ -121,7 +113,10 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             $phpClass = TypeMapper::get($parentClass);
             if ($phpClass) {
                 $metadata = $this->metadataFactory->getMetadataForClass($phpClass);
-                $parentFrames[] = $metadata->getFrame();
+                $frame = $metadata->getFrame();
+                if ($frame) {
+                    $parentFrames[] = $metadata->getFrame();
+                }
             }
         }
 
@@ -162,7 +157,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         if (is_string($subFrame)) {
             $includedFrame = $this->getFrame($subFrame);
             unset($frame["@include"]);
-            $frame = array_merge_recursive($frame, $includedFrame);
+            $frame = $this->array_merge_recursive($frame, $includedFrame);
         }
         else if (is_array($subFrame) && isset($subFrame))
         {
@@ -175,7 +170,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             // get and merge the included frame
             unset($frame["@include"]);
             $includedFrame = $this->getFrame($subFrame);
-            $frame = array_merge_recursive($includedFrame, $frame);
+            $frame = $this->array_merge_recursive($includedFrame, $frame);
             // clear the frame
             unset($frame["@include"]);
             if ($initialFrameType) {
@@ -187,10 +182,9 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
                 $parentClassMetadatas = $this->getParentMetadatas($frame["@type"], array(), true);
                 foreach ($parentClassMetadatas as $classMetadata) {
                     if ($classMetadata && isset($classMetadata) && !empty($classMetadata)) {
-                        $frame = array_merge_recursive($frame, $this->getFrame($classMetadata));
+                        $frame = $this->array_merge_recursive($frame, $this->getFrame($classMetadata));
                     }
                 }
-
                 // reset the initial type
                 if (isset($frame['@type'])) {
                     $types = $frame['@type'];
@@ -240,5 +234,43 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         }
 
         return $this->cache[$logicalName] = $file;
+    }
+
+    private function array_merge_recursive($array1, $array2)
+    {
+        if (empty($array1) && !empty($array2)) {
+            return $array2;
+        }
+        if (empty($array2) && !empty($array1)) {
+            return $array1;
+        }
+        $finalArray = array();
+        $keys = array_merge(array_keys($array1), array_keys($array2));
+
+        foreach ($keys as $key) {
+            $result = array();
+            if (isset($array1[$key])) {
+                if (isset($array2[$key])) {
+                    if (!is_array($array1[$key])) {
+                        $result = $array1[$key];
+                    }
+                    else if(!is_array($array2[$key])) {
+                        $result = $array1[$key];
+                    }
+                    else {
+                        $result = $this->array_merge_recursive($array1[$key], $array2[$key]);
+                    }
+                }
+                else {
+                    $result = $array1[$key];
+                }
+            }
+            else if (isset($array2[$key])){
+                $result = $array2[$key];
+            }
+            $finalArray[$key] = $result;
+        }
+
+        return $finalArray;
     }
 }
