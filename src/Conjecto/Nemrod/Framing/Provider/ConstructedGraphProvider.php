@@ -141,6 +141,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      */
     protected function getArrayConstruct($frame, $arrayConstruct, $uriParent)
     {
+
         foreach ($frame as $prop => $val) {
             if ($prop === '@type') {
                 $arrayConstruct[] = "$uriParent a $val";
