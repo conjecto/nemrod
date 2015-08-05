@@ -205,12 +205,10 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
         $mostAccurateType = null;
         // not specified in project ontology description
-        if ($mostAccurateTypes === null) {
-            throw new \Exception('No type found to update the ES document ' . $uri);
-        } else if (count($mostAccurateTypes) == 1) {
+        if (count($mostAccurateTypes) == 1) {
             $mostAccurateType = $mostAccurateTypes[0];
         } else {
-            throw new \Exception("The most accurate type for " . $uri . " has not be found.");
+            echo "Seems to not have to be indexed";
         }
 
         $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);
