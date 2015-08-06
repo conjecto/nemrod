@@ -161,6 +161,7 @@ class TypeConfig
                 if(isset($property['properties'])) {
                     $property['type'] = 'object';
                     $property['properties']['_id'] = array("store" => true, "type" => "string", "index" => "not_analyzed");
+                    $property['properties']['_type'] = array("store" => true, "type" => "string", "index" => "not_analyzed");
                 } else {
                     $property['type'] = 'string';
                 }
