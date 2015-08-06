@@ -12,6 +12,7 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadataAccessor;
+use EasyRdf\Literal;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -81,6 +82,9 @@ class Resource extends BaseResource
 
                 if ($res instanceof self && (!empty($this->_rm))) {
                     $llResult[] = $this->_rm->find($res->getUri());
+                }
+                else if ($res instanceof Literal) {
+                    $llResult[] = $res;
                 }
             }
 
