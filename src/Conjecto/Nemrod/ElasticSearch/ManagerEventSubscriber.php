@@ -208,7 +208,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
         if (count($mostAccurateTypes) == 1) {
             $mostAccurateType = $mostAccurateTypes[0];
         } else {
-            echo "Seems to not have to be indexed";
+//            echo "Seems to not have to be indexed";
         }
 
         $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);

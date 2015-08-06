@@ -90,7 +90,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             return $finalFrame;
         }
         else {
-            return $this->getFrame($name, $assoc);
+            return $this->mergeWithIncludedFrames($this->getFrame($name), $assoc);
         }
     }
 
