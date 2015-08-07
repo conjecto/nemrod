@@ -243,8 +243,18 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             }
         }
 
-        if (!in_array($oldType, $newTypes)) {
-            $typesConfig = $this->configManager->getTypesConfigurationByClass($oldType);
+        // Get most accurtype of oldtype
+        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType(array(RdfNamespace::expand($oldType)), $this->serializerHelper->getAllTypes());
+        $mostAccurateType = null;
+        // not specified in project ontology description
+        if (count($mostAccurateTypes) == 1) {
+            $mostAccurateType = $mostAccurateTypes[0];
+        } else {
+//            echo "Seems to not have to be indexed";
+        }
+
+        if (!in_array($mostAccurateType, $newTypes)) {
+            $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);
             foreach($typesConfig as $typeConfig) {
                 $indexConfig = $typeConfig->getIndex();
                 $index = $indexConfig->getName();
@@ -253,7 +263,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                     $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
                     // Trow an exeption if document does not exist
                     try {
-                        $esType->deleteDocument(new Document($uri, array(), $oldType, $indexConfig->getElasticSearchName()));
+                        $esType->deleteDocument(new Document($uri, array(), $mostAccurateType, $indexConfig->getElasticSearchName()));
                         return true;
                     } catch (\Exception $e) {
                     }

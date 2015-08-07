@@ -70,31 +70,30 @@ class FiliationBuilder
             }
         }
 
+        $arrayAccurateOnes = array();
         if (count($definedOntoTypes) == 0) {
             return null;
         }
-
-        // if only one result then return it
-        if (count($definedOntoTypes) == 1) {
-            return $definedOntoTypes;
+        else if (count($definedOntoTypes) == 1) {
+            $arrayAccurateOnes = $definedOntoTypes;
         }
-
-        // try to find the most accurate type
-        $arrayAccurateOnes = array();
-        foreach ($definedOntoTypes as $currentType) {
-            $mostAccurate = true;
-            if (isset($this->rdfFiliation[$currentType]['parentClassOf'])) {
-                $subClassTypes = $this->rdfFiliation[$currentType]['parentClassOf'];
-                // in class children types, look if one of them is defined with subClassOf annotation
-                foreach ($definedOntoTypes as $type) {
-                    if (in_array($type, $subClassTypes)) {
-                        $mostAccurate = false;
-                        break;
+        else {
+            // try to find the most accurate type
+            foreach ($definedOntoTypes as $currentType) {
+                $mostAccurate = true;
+                if (isset($this->rdfFiliation[$currentType]['parentClassOf'])) {
+                    $subClassTypes = $this->rdfFiliation[$currentType]['parentClassOf'];
+                    // in class children types, look if one of them is defined with subClassOf annotation
+                    foreach ($definedOntoTypes as $type) {
+                        if (in_array($type, $subClassTypes)) {
+                            $mostAccurate = false;
+                            break;
+                        }
                     }
                 }
-            }
-            if ($mostAccurate) {
-                $arrayAccurateOnes[] = $currentType;
+                if ($mostAccurate) {
+                    $arrayAccurateOnes[] = $currentType;
+                }
             }
         }
 
