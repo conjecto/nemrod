@@ -298,7 +298,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
                 $index = $indexConfig->getName();
                 $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
                 if ($index !== null) {
-                    $this->cascadeUpdateHelper->updateDocument($uri, $type, $this->filiationBuilder, $this->resourceToDocumentTransformer);
+                    $this->cascadeUpdateHelper->updateDocument($uri, array($type), $this->filiationBuilder, $this->resourceToDocumentTransformer);
                 }
             }
         }

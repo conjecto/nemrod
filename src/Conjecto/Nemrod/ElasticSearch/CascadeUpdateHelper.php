@@ -90,15 +90,15 @@ class CascadeUpdateHelper
     /**
      * Update the elasticsearch document
      * @param string                        $uri
-     * @param string                        $typeName
+     * @param array                         $types
      * @param string                        $index
      * @param FiliationBuilder              $filiationBuilder
      * @param ResourceToDocumentTransformer $resourceToDocumentTransformer
      */
-    public function updateDocument($uri, $typeName, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
+    public function updateDocument($uri, $types, $filiationBuilder, ResourceToDocumentTransformer $resourceToDocumentTransformer)
     {
         // find the finest type of the resource in order to index the resource ony once
-        $typeName = $filiationBuilder->getMostAccurateType(array($typeName), $this->serializerHelper->getAllTypes());
+        $typeName = $filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
         // not specified in project ontology description
         if ($typeName === null) {
             throw new \Exception('No type found to update the ES document ' .$uri);
@@ -174,15 +174,32 @@ class CascadeUpdateHelper
         foreach ($qbByIndex as $index => $qb) {
             if ($qb !== null) {
                 $res = $qb->getQuery()->execute();
-                foreach ($res as $result) {
-                    $uri = $result->uri->getUri();
+                $res = $this->groupTypesByUri($res);
+                foreach ($res as $uri => $types) {
                     // not reindex a resource to times
                     if (!array_key_exists($uri, $resourcesModified)) {
-                        $this->updateDocument($uri, $result->typeName->getUri(), $filiationBuilder, $resourceToDocumentTransformer);
+                        $this->updateDocument($uri, $types, $filiationBuilder, $resourceToDocumentTransformer);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param $resources
+     * @return array
+     */
+    protected function groupTypesByUri($resources)
+    {
+        $arrayUris = array();
+        foreach ($resources as $resource) {
+            if (!isset($arrayUris[$resource->uri->getUri()])) {
+                $arrayUris[$resource->uri->getUri()] = array();
+            }
+            $arrayUris[$resource->uri->getUri()][] = $resource->allTypes->getUri();
+        }
+
+        return $arrayUris;
     }
 
     /**
@@ -200,7 +217,7 @@ class CascadeUpdateHelper
         foreach ($typesToReIndex as $index => $types) {
             $arrayUnion = array();
             foreach ($types as $type => $pathToResourceType) {
-                $stringWhere = '?uri a ?typeName;';
+                $stringWhere = '?uri a ?typeName; rdf:type ?allTypes;';
                 $arrayWhere = array();
                 $this->fillPathToResource($pathToResourceType, $resourceType, $propertiesUpdated, $arrayWhere);
                 $i = 0;
@@ -217,7 +234,7 @@ class CascadeUpdateHelper
                 $arrayUnion[] = $stringWhere;
             }
             if (count($arrayUnion) > 0) {
-                $_qb = clone $qb->reset()->select('?uri ?typeName')->setDistinct(true);
+                $_qb = clone $qb->reset()->select('?uri ?allTypes')->setDistinct(true);
                 if (count($arrayUnion) > 1) {
                     $_qb->addUnion($arrayUnion);
                 } else {
