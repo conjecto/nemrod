@@ -523,7 +523,7 @@ class UnitOfWork
     {
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
 
-        return (isset($this->registeredResources[$uri]));
+        return (isset($this->registeredResources[$uri]) || isset($this->registeredResources[$this->uriCorrespondances[$uri]]));
     }
 
     /**
@@ -806,15 +806,15 @@ class UnitOfWork
 
                 //getting snapshots also for blank nodes
                 if (!empty($bigSnapshot))
-                foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
-                    return $bigSnapshot;
-                    foreach ($values as $value) {
-                        $array[] = $value['value'];
+                    foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                        return $bigSnapshot;
+                        foreach ($values as $value) {
+                            $array[] = $value['value'];
 //                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
 //                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
 //                        }
+                        }
                     }
-                }
                 return $array;
             }
         }
@@ -856,7 +856,7 @@ class UnitOfWork
             ->construct('?s a ?t; ?p <'.$resource->getUri().'>')
             ->where('?s a ?t; ?p <'.$resource->getUri().'>')
             ->getQuery()
-        ->execute();
+            ->execute();
 
         $resources = $result->resources();
         /** @var \Conjecto\Nemrod\Resource $re */

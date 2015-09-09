@@ -144,8 +144,13 @@ class Resource extends BaseResource
             try {
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
-                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                    $re->setRm($this->_rm);
+                    if ($this->_rm->getUnitOfWork()->isManaged($result)) {
+                        $re = $this->_rm->getUnitOfWork()->retrieveResource($result->getUri());
+                    }
+                    else {
+                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                        $re->setRm($this->_rm);
+                    }
                 } else {
                     $re = $this->_rm->find($result->getUri());
                 }
@@ -155,7 +160,7 @@ class Resource extends BaseResource
                         return $re;
                     }
                     //if rest of path is not empty, we get along it
-                     return $re->get($rest, $type, $lang);
+                    return $re->get($rest, $type, $lang);
                 }
 
                 return;
