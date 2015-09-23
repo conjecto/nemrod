@@ -248,15 +248,17 @@ class Query
             $this->completeSparqlQuery = $this->getCompleteSparqlQuery();
             $this->state = self::STATE_CLEAN;
         }
-//echo $this->completeSparqlQuery;
+
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
-        if ($this->type === QueryBuilder::CONSTRUCT) {
-            $this->result = $this->resultToGraph($this->result);
+        if ($this->type === QueryBuilder::SELECT) {
+            $this->result = $this->resultToArray($this->result);
         }
-
-        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
-            $this->result = $hydrator->hydrateResources($options);
+        else if ($this->type === QueryBuilder::CONSTRUCT) {
+            $this->result = $this->resultToGraph($this->result);
+            if (($hydrator = $this->newHydrator($hydratation)) !== null) {
+                $this->result = $hydrator->hydrateResources($options);
+            }
         }
 
         return $this->result;
@@ -413,5 +415,28 @@ class Query
         }
 
         return $graph;
+    }
+
+    /**
+     * @param Result $results
+     * @return array
+     */
+    private function resultToArray($results)
+    {
+        $arrayResult = array();
+        foreach ($results as $key => $result) {
+            foreach ($results->getFields() as $field) {
+                if ($result->$field instanceof \EasyRdf\Literal) {
+                    $arrayResult[$key][$field] = $result->$field->getValue();
+                }
+                else if ($result->$field instanceof \EasyRdf\Resource) {
+                    $arrayResult[$key][$field] = $result->$field->getUri();
+                }
+                else {
+                    $arrayResult[$key][$field] = $result->$field;
+                }
+            }
+        }
+        return $arrayResult;
     }
 }
