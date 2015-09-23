@@ -120,7 +120,7 @@ class Populator
             return;
         }
 
-        $size = current($size)->count->getValue();
+        $size = current($size)['count'];
         $progress = $this->displayInitialAvancement($size, $options, $showProgress, $output);
         $done = 0;
         while ($done < $size) {
