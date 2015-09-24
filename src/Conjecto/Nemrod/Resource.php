@@ -75,7 +75,9 @@ class Resource extends BaseResource
         list($first, $rest) = $this->split($property);
 
         $result = parent::all($property, $type, $lang);
-
+        if ($this->isBNode() && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            return $result;
+        }
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
