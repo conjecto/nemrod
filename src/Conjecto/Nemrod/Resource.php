@@ -73,44 +73,47 @@ class Resource extends BaseResource
     public function all($property, $type = null, $lang = null)
     {
         list($first, $rest) = $this->split($property);
-
         $result = parent::all($property, $type, $lang);
-        if ($this->isBNode() && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            return $result;
-        }
+
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
-
                 if ($res instanceof self && (!empty($this->_rm))) {
-                    $llResult[] = $this->_rm->find($res->getUri());
+                    if ($this->_rm->getUnitOfWork()->isManaged($res)) {
+                        $llResult[] = $this->_rm->getUnitOfWork()->retrieveResource($res->getUri());
+                    }
+                    else {
+                        $resLazyLoad = $this->_rm->find($res->getUri());
+                        $llResult[] = $resLazyLoad ? $resLazyLoad : $res;
+                    }
                 }
                 else if ($res instanceof Literal) {
                     $llResult[] = $res;
                 }
             }
-
             return $llResult;
-        } elseif ($this->_rm->isResource($result)) {
+        }
+        else if ($this->_rm->isResource($result)) {
             try {
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                } else {
+                }
+                else {
                     $re = $this->_rm->find($result->getUri());
                 }
                 if (!empty($re)) {
                     if ($rest === '') {
                         return $re;
                     }
-
                     return $re->all($rest, $type, $lang);
                 }
-
-                return;
-            } catch (Exception $e) {
-                return;
+                return $re;
             }
-        } else {
+            catch (Exception $e) {
+                return $e->getMessage();
+            }
+        }
+        else {
             return $result;
         }
     }
