@@ -193,10 +193,10 @@ class CascadeUpdateHelper
     {
         $arrayUris = array();
         foreach ($resources as $resource) {
-            if (!isset($arrayUris[$resource->uri]) || !isset($arrayUris[$resource->uri->getUri()])) {
-                $arrayUris[$resource->uri->getUri()] = array();
+            if (!isset($arrayUris[$resource['uri']])) {
+                $arrayUris[$resource['uri']] = array();
             }
-            $arrayUris[$resource->uri->getUri()][] = $resource->allTypes->getUri();
+            $arrayUris[$resource['uri']] = $resource['allTypes'];
         }
 
         return $arrayUris;
