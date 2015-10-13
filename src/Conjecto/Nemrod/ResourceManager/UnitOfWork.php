@@ -370,6 +370,20 @@ class UnitOfWork
     }
 
     /**
+     * return the managed uri from a bnode
+     * @param string
+     *
+     * @return string
+     */
+    public function getManagedUri($bnode)
+    {
+        if (isset($this->uriCorrespondances[$bnode])) {
+            return $this->uriCorrespondances[$bnode];
+        }
+        return $bnode;
+    }
+
+    /**
      * @param $chSet
      *
      * @return array

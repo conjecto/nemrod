@@ -207,6 +207,17 @@ class Manager
     }
 
     /**
+     * return the managed uri from a bnode
+     * @param string
+     *
+     * @return string
+     */
+    public function getManagedUri($bnode)
+    {
+        return $this->getUnitOfWork()->getManagedUri($bnode);
+    }
+
+    /**
      * @return QueryBuilder
      */
     public function createQueryBuilder()
