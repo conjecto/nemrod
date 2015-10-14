@@ -37,6 +37,7 @@ class PopulatorCommand extends ContainerAwareCommand
             ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 50)
             ->addOption('no-reset', null, InputOption::VALUE_NONE, 'populate without index reset')
             ->addOption('no-clear-cache', null, InputOption::VALUE_NONE, 'does not clear the cache')
+            ->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'maximum command execution time, 3600 by default', 3600)
         ;
     }
 
@@ -46,6 +47,7 @@ class PopulatorCommand extends ContainerAwareCommand
 
         $index         = $input->getOption('index');
         $type          = $input->getOption('type');
+        $maxTimeExecution = (int)$input->getOption('timeout');
 
         /*if (null === $index && null !== $type) {
             throw new \InvalidArgumentException('Cannot specify type option without an index.');
