@@ -196,7 +196,7 @@ class CascadeUpdateHelper
             if (!isset($arrayUris[$resource['uri']])) {
                 $arrayUris[$resource['uri']] = array();
             }
-            $arrayUris[$resource['uri']] = $resource['allTypes'];
+            $arrayUris[$resource['uri']][] = $resource['allTypes'];
         }
 
         return $arrayUris;
