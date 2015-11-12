@@ -220,6 +220,9 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
             if ($key !== '@context') {
                 $newFrame[$key] = $this->mergeContexts($subframe, $contexts, $currentDepth + 1);
             }
+            else {
+                $contexts = array_merge($contexts, $frame['@context']);
+            }
         }
 
         if ($currentDepth === 0) {
