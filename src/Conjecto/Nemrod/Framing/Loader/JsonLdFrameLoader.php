@@ -86,12 +86,12 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
                     $finalFrame = $this->array_merge_recursive($finalFrame, $frame);
                 }
             }
-
-            return $finalFrame;
         }
         else {
-            return $this->mergeWithIncludedFrames($this->getFrame($name), $assoc);
+            $finalFrame = $this->mergeWithIncludedFrames($this->getFrame($name), $assoc);
         }
+
+        return $this->mergeContexts($finalFrame);
     }
 
     /**
@@ -201,6 +201,32 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
 
         // recall recursive frame include if included frames have other included frames
         return $this->mergeWithIncludedFrames($frame);
+    }
+
+    protected function mergeContexts($frame, &$contexts = array(), $currentDepth = 0)
+    {
+        if (!is_array($frame) || empty($frame)) {
+            return $frame;
+        }
+
+        $newFrame = array();
+        if ($currentDepth === 0) {
+            $newFrame['@context'] = array();
+        }
+        foreach ($frame as $key => $subframe) {
+            if (isset($subframe['@context'])) {
+                $contexts = array_merge($contexts, $subframe['@context']);
+            }
+            if ($key !== '@context') {
+                $newFrame[$key] = $this->mergeContexts($subframe, $contexts, $currentDepth + 1);
+            }
+        }
+
+        if ($currentDepth === 0) {
+            $newFrame['@context'] = $contexts;
+        }
+
+        return $newFrame;
     }
 
     /**
