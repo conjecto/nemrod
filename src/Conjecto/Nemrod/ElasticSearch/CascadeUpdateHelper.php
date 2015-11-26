@@ -134,8 +134,8 @@ class CascadeUpdateHelper
             if ($qb !== null) {
                 $res = $qb->getQuery()->execute();
                 foreach ($res as $result) {
-                    $uri = $result->uri->getUri();
-                    $typeName = $result->typeName->getUri();
+                    $uri = $result['uri'];
+                    $typeName = $result['allTypes'];
                     $arrayResult[$uri] = $typeName;
                 }
             }
