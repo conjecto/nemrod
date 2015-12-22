@@ -30,7 +30,7 @@ class Value extends Base
 
     public function __construct($key, $value)
     {
-        parent::__construct($key.' { '.$value.'}');
+        parent::__construct($key.' { '.$value.' }');
     }
 
     /**
