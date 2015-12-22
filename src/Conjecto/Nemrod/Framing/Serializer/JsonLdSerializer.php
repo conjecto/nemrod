@@ -91,7 +91,7 @@ class JsonLdSerializer
 
     /**
      * Serialize resource to JsonLD frame
-     * @param $resource
+     * @param Resource|array $resource
      * @param null $frame
      * @param array $options
      * @return array
@@ -100,11 +100,11 @@ class JsonLdSerializer
     {
         $frame = $frame ? $frame : $this->frame;
         $options = $options ? $options : $this->options;
-        $parentClasses = array();
-        $typeResource = $this->typeMapperRegistry->getRdfClass(get_class($resource));
+        $_resource = is_array($resource) ? current($resource) : $resource;
 
+        $typeResource = $this->typeMapperRegistry->getRdfClass(get_class($_resource));
         if (!$frame) {
-            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($_resource));
             // if no frame provided try to find the default one in the resource metadata
             if (!$frame) {
                 $frame = $metadata->getFrame();
@@ -119,16 +119,10 @@ class JsonLdSerializer
             $options['context'] = $frame['@context'];
         }
 
-        // if the $data is a resource, add the @id in the frame
-        if ($resource instanceof Resource && $frame && !isset($frame['@id'])) {
-            $frame['@id'] = $resource->getUri();
-        }
-
         // get the graph form the GraphProvider
         $graph = $this->provider->getGraph($resource, $frame);
 
         $options['frame'] = json_encode($frame, JSON_FORCE_OBJECT);
-
         return $graph->serialise('jsonld', $options);
     }
 

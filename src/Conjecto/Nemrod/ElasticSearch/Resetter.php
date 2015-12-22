@@ -48,16 +48,16 @@ class Resetter
     /**
      *
      */
-    public function reset($index, $type = null, $output = null, $force = false)
+    public function reset($index, $type = null, $output = null)
     {
         if (null !== $type) {
             $output->writeln(sprintf('<info>Resetting</info> <comment>%s/%s</comment>', $index, $type));
             $this->resetType($index, $type);
         } else {
             if ($output) {
-                $output->writeln(sprintf('<info>Resetting</info> <comment>%s</comment>', $index));
+                $output->writeln(sprintf('<info>Resetting</info> <comment>%s/*</comment>', $index));
             }
-            $this->resetIndex($index, false, $force);
+            $this->resetIndex($index);
             $indexConfig = $this->configManager->getIndexConfiguration($index);
             foreach($indexConfig->getTypes() as $type => $typeConfig) {
                 $this->resetType($index, $type, $output);
@@ -72,7 +72,10 @@ class Resetter
     public function resetType($index, $type)
     {
         //creating index if not exists
-        $this->mappingBuilder->createIndexIfNotExists($index);
+        $indexObj = $this->indexRegistry->getIndex($index);
+        if(!$indexObj->exists()) {
+            $this->resetIndex($index);
+        }
 
         //building type mapping
         $this->mappingBuilder->buildMapping($index, $type);
@@ -82,17 +85,10 @@ class Resetter
      * @param $index
      * @param null $output
      */
-    public function resetIndex($index, $output = null)
+    public function resetIndex($index)
     {
         $indexObj = $this->indexRegistry->getIndex($index);
         $config = $this->configManager->getIndexConfiguration($index)->getSettings();
-
-        if (!$indexObj->exists()) {
-            $indexObj->create($config);
-        } else {
-            $indexObj->close();
-            $indexObj->setSettings($config);
-            $indexObj->open();
-        }
+        $indexObj->create($config, true);
     }
 }
