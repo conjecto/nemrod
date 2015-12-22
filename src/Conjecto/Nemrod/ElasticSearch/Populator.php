@@ -141,9 +141,10 @@ class Populator
         $done = 0;
         while ($done < $size) {
             $resources = $this->getResources($class, $options, $done);
+            $uris = array();
             $docs = array();
 
-            $uris = array();
+            // build uris
             foreach ($resources as $resource) {
                 $types = $resource->all('rdf:type');
                 $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $class);
@@ -153,6 +154,7 @@ class Populator
                 }
             }
 
+            // transform uris
             if(count($uris)) {
                 $docs = $trans->transform($uris, $index, $mostAccurateType);
             }
@@ -160,9 +162,11 @@ class Populator
             // send documents to elasticsearch
             if (count($docs)) {
                 $typeEs->addDocuments($docs);
-            } else {
-                $output->writeln("");
-                $output->writeln("nothing to index");
+            }
+
+            $diff = count($uris) - count($docs);
+            if($diff > 0) {
+                $output->writeln(sprintf("%s : %d/%d skipped resources", $type, $diff, count($uris)));
             }
 
             $done = $this->displayAvancement($options, $done, $size, $showProgress, $output, $progress);
