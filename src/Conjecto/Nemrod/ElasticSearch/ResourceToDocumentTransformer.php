@@ -89,11 +89,6 @@ class ResourceToDocumentTransformer
                 $resources[] = new $phpClass($uri);
             }
 
-            // if ask for a single resource, add @id to the frame
-            if($single && !isset($frame['@id'])) {
-                $frame['@id'] = current($uris);
-            }
-
             // serialize
             $jsonLd = $this->jsonLdSerializer->serialize($resources, $frame, array("includeParentClassFrame" => true));
             $graph = json_decode($jsonLd, true);
