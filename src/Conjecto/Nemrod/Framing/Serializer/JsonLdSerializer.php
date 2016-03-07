@@ -119,6 +119,10 @@ class JsonLdSerializer
             $options['context'] = $frame['@context'];
         }
 
+        if ((!is_array($resource) || count($resource) === 1) && $_resource instanceof Resource && $frame && !isset($frame['@id'])) {
+            $frame['@id'] = $_resource->getUri();
+        }
+
         // get the graph form the GraphProvider
         $graph = $this->provider->getGraph($resource, $frame);
 
