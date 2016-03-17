@@ -49,11 +49,11 @@ You can use all form types you want (text, integer, date, ...). You can also use
             'multiple' => true,
             'required' => false,
             'class' => 'ex:property',
-            'property' => 'rdf:label',
+            'property' => 'rdfs:label',
             'query_builder' => function (Repository $repo) {
                 $qb = $repo->getQueryBuilder();
                 $qb->construct();
-                $qb->where('?s a ex:Property');
+                $qb->where('?s a ex:Property; rdfs:label ?label');
                 return $qb;
             }
     ]);

@@ -28,9 +28,10 @@ Some examples :
        ->andWhere('?uri vcard:hasAddress ?o')
        ->bind("<uri>", '?uri');
 
-    $qb->select('rdf:type')
-       ->addSelect('vcard:hasAddress')
+    $qb->select('?uri')
+       ->addSelect('?type')
        ->where('?uri a foaf:Person')
+       ->andWhere('?uri rdf:type ?type')
        ->bind("<uri>", '?uri');
 
     $qb->ask('?uri a foaf:Person')

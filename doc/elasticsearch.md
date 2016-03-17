@@ -36,7 +36,9 @@ The content of this file could be:
       },
       "@explicit": "true",
       "@embed": "true",
+      "@omitDefault": true,
       "@type": "foaf:Person",
+      "@include": "pathToAnotherJsonLDFrame",
       "foaf:name": {
         "@default": "",
         "@mapping": {
