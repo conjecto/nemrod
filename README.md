@@ -33,7 +33,7 @@ Installation
 ------------
 Nemrod can be installed using composer :
 
-    composer require conjecto/nemrod:master easyrdf/easyrdf:@dev conjecto/json-ld:@dev
+    composer require conjecto/nemrod easyrdf/easyrdf:@dev conjecto/json-ld:@dev
 
 you can also add dependency directly in your composer.json file:
 
