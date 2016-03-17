@@ -194,7 +194,15 @@ class UnitOfWork
         $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
 
         if (!isset($this->registeredResources[$uri])) {
-            return;
+
+            //trying to find the resource through its bnode
+            if (!$this->isBNode($uri)) {
+                $uri = $this->uriCorrespondances->indexOf($uri);
+            }
+
+            if (!$uri || !isset($this->registeredResources[$uri])) {
+                return;
+            }
         }
 
         return $this->registeredResources[$uri];
@@ -267,10 +275,22 @@ class UnitOfWork
      */
     public function persist(BaseResource $resource)
     {
-        if (!empty($this->registeredResources[$resource->getUri()])) {
+        $status = $this->getStatus($resource);
+        //nothing to do for an already managed resource. just returning uri
+        if ($status == self::STATUS_MANAGED) {
+            return $resource->getUri();
         }
-        if (!$this->getStatus($resource)) {
+        else if (!$status) {
             $this->setStatus($resource, self::STATUS_NEW);
+
+            if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
+                /** @var ClassMetadata $metadata */
+                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
+                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+            } else if (isset($this->uriCorrespondances[$resource->getUri()])) {
+                //if uri is already set, we stop everything and return it.
+                return $this->uriCorrespondances[$resource->getUri()];
+            }
         }
 
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
@@ -298,6 +318,8 @@ class UnitOfWork
             }
         }
         $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+
+        return $this->uriCorrespondances[$resource->getUri()];
     }
 
     /**
@@ -320,7 +342,7 @@ class UnitOfWork
         /** @var BaseResource $resource */
         foreach ($concernedResources as $resource) {
             //generating an uri if resource is a blank node
-            if ($resource->isBNode()) {
+            if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
                 /** @var ClassMetadata $metadata */
                 $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
                 $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
@@ -346,6 +368,20 @@ class UnitOfWork
 
         //reseting unit of work
         $this->reset();
+    }
+
+    /**
+     * return the managed uri from a bnode
+     * @param string
+     *
+     * @return string
+     */
+    public function getManagedUri($bnode)
+    {
+        if (isset($this->uriCorrespondances[$bnode])) {
+            return $this->uriCorrespondances[$bnode];
+        }
+        return $bnode;
     }
 
     /**
@@ -412,15 +448,20 @@ class UnitOfWork
      */
     public function remove(BaseResource $resource)
     {
-        $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+        if (!$resource->isBNode()) {
+            $this->evd->dispatch(Events::PreRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
-        $this->snapshot($resource);
-        $this->removeUplinks($resource);
+            $this->snapshot($resource);
+            $this->removeUplinks($resource);
 
-        if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
+            if (isset($this->registeredResources[$this->_rm->getNamespaceRegistry()->expand($resource->getUri())])) {
+                $this->setStatus($resource, $this::STATUS_REMOVED);
+            }
+            $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
+        }
+        else {
             $this->setStatus($resource, $this::STATUS_REMOVED);
         }
-        $this->evd->dispatch(Events::PostRemove, new ResourceLifeCycleEvent(array('resources' => array($resource))));
     }
 
     /**
@@ -441,7 +482,7 @@ class UnitOfWork
 
         /** @var BaseResource $resource */
         $resource = new $className($this->nextBNode(), new Graph());
-        $resource->setType($type);
+        $resource->addType($type);
         $resource->setRm($this->_rm);
 
         //storing resource in temp resources array
@@ -497,7 +538,7 @@ class UnitOfWork
     {
         $uri = $this->_rm->getNamespaceRegistry()->expand($resource->getUri());
 
-        return (isset($this->registeredResources[$uri]));
+        return (isset($this->registeredResources[$uri]) || isset($this->registeredResources[$this->uriCorrespondances[$uri]]));
     }
 
     /**
@@ -779,18 +820,16 @@ class UnitOfWork
                 $snapshot[$resource->getUri()] = $bigSnapshot[$resource->getUri()];
 
                 //getting snapshots also for blank nodes
-                if (!empty($bigSnapshot)) {
-                    foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
-                        return $bigSnapshot;
-                        foreach ($values as $value) {
-                            $array[] = $value['value'];
+                if (!empty($bigSnapshot))
+                foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
+                    return $bigSnapshot;
+                    foreach ($values as $value) {
+                        $array[] = $value['value'];
 //                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
 //                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
 //                        }
-                        }
                     }
                 }
-
                 return $array;
             }
         }
@@ -832,7 +871,7 @@ class UnitOfWork
             ->construct('?s a ?t; ?p <'.$resource->getUri().'>')
             ->where('?s a ?t; ?p <'.$resource->getUri().'>')
             ->getQuery()
-        ->execute();
+            ->execute();
 
         $resources = $result->resources();
         /** @var \Conjecto\Nemrod\Resource $re */
@@ -865,7 +904,7 @@ class UnitOfWork
      *
      * @return string
      */
-    private function generateURI($options = array())
+    public function generateURI($options = array())
     {
         $prefix = (isset($options['prefix']) && $options['prefix'] !== '') ? $options['prefix'] : 'og_bd:';
 
@@ -883,6 +922,7 @@ class UnitOfWork
         $this->blackListedResources = new arrayCollection();
         $this->tempResources = new ArrayCollection();
         $this->uriCorrespondances = new ArrayCollection();
+        $this->status = new ArrayCollection();
 
         $this->evd->dispatch(Events::OnClear, new ClearEvent($this->_rm));
     }

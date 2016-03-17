@@ -12,7 +12,8 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\Framing\Provider\ConstructedGraphProvider;
-use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
+use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
+use EasyRdf\RdfNamespace;
 use EasyRdf\Resource;
 
 /**
@@ -56,6 +57,9 @@ class SerializerHelper
 
     public function getGraph($index, $uri, $type)
     {
+        if (!$this->cgp) {
+            throw new \Exception('The constructed graph provider is not setted');
+        }
         return $this->cgp->getGraph(new Resource($uri), $this->getTypeFrame($index, $type));
     }
 
@@ -72,6 +76,20 @@ class SerializerHelper
         }
 
         return in_array($properties, $this->requests[$index][$type]['properties']);
+    }
+
+    public function getIndexedTypes($types)
+    {
+        $indexedTypes = array();
+        foreach ($types as $type) {
+            foreach ($this->requests as $index => $indexTypes) {
+                if ($this->isTypeIndexed($index, $type)) {
+                    $indexedTypes[] = $type;
+                }
+            }
+        }
+
+        return $indexedTypes;
     }
 
     public function isTypeIndexed($index, $type, $properties = array())
@@ -94,6 +112,18 @@ class SerializerHelper
         return $this->getTypeKey($index, $type, 'frame');
     }
 
+    public function getAllTypes()
+    {
+        $array = array();
+        foreach ($this->requests as $index => $types) {
+            foreach ($types as $typeName => $type) {
+                $array[] = $type['type'];
+            }
+        }
+
+        return $array;
+    }
+
     public function getAllFrames()
     {
         $array = array();
@@ -108,7 +138,8 @@ class SerializerHelper
 
     public function getTypeFrame($index, $type)
     {
-        return $this->jsonLdFrameLoader->load($this->getTypeFramePath($index, $type));
+        $this->jsonLdFrameLoader->setEsIndex($index);
+        return $this->jsonLdFrameLoader->load($this->getTypeFramePath($index, $type), $type);
     }
 
     public function getTypeName($index, $type)
@@ -136,7 +167,7 @@ class SerializerHelper
             return $this->requests[$index][$type][$key];
         }
 
-        throw new \Exception('No matching found for index '.$index.' and type '.$type);
+        return null;
     }
 
     protected function guessRequests()
@@ -147,7 +178,7 @@ class SerializerHelper
             }
             foreach ($types['types'] as $type => $settings) {
                 if (!isset($settings['frame']) || empty($settings['frame'])) {
-                    throw new \Exception('You have to specify a frame for '.$type);
+                    throw new \Exception('You have to specify a frame for ' . $type);
                 }
                 $this->fillTypeRequests($index, $type, $settings);
             }
@@ -156,18 +187,21 @@ class SerializerHelper
 
     protected function fillTypeRequests($index, $typeName, $settings)
     {
-        $framePath = $settings['frame'];
-        $frame = $this->jsonLdFrameLoader->load($settings['frame']);
-
-        if (!isset($settings['type']) && !isset($frame['@type'])) {
-            throw new \Exception("You have to specify a type in your config or in the jsonLdFrame $framePath");
-        }
+        $type = null;
+        $this->jsonLdFrameLoader->setEsIndex($index);
+        $frame = $this->jsonLdFrameLoader->load($settings['frame'], $type, false);
 
         if (isset($settings['type'])) {
             $type = $settings['type'];
-        } elseif (isset($frame['@type'])) {
+        } else if (isset($frame['@type'])) {
             $type = $frame['@type'];
         }
+
+        if (!$type) {
+            throw new \Exception("You have to specify a type in your config or in the jsonLdFrame " . $settings['frame']);
+        }
+
+        $frame = $this->jsonLdFrameLoader->load($settings['frame'], $type);
         $this->requests[$index][$type]['name'] = $typeName;
         $this->requests[$index][$type]['type'] = $type;
         $this->requests[$index][$type]['frame'] = $settings['frame'];

@@ -707,7 +707,7 @@ class QueryBuilder
             return $this;
         }
 
-        if (strstr($delete, '[') || strstr($delete, ']') || strstr($delete, '_:')) {
+        if (substr($delete, 0, 2) == '_:') {
             throw new InvalidArgumentException('You can not use a blank node in deletion');
         }
 
@@ -866,7 +866,7 @@ class QueryBuilder
             throw new InvalidArgumentException('You must specify which property you want to group by');
         }
 
-        $groupBy = new GroupBy([$groupBy]);
+        $groupBy = new QueryBuilder\Expr\GroupBy([$groupBy]);
 
         return $this->add('groupBy', $groupBy, $append);
     }

@@ -11,10 +11,11 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
-use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
+use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Conjecto\Nemrod\Resource;
 use EasyRdf\Resource as BaseResource;
+use EasyRdf\TypeMapper;
 use Elastica\Document;
 
 class ResourceToDocumentTransformer
@@ -25,9 +26,9 @@ class ResourceToDocumentTransformer
     protected $serializerHelper;
 
     /**
-     * @var TypeRegistry
+     * @var ConfigManager
      */
-    protected $typeRegistry;
+    protected $configManager;
 
     /**
      * @var JsonLdSerializer
@@ -45,10 +46,10 @@ class ResourceToDocumentTransformer
      * @param TypeMapperRegistry $typeMapperRegistry
      * @param JsonLdSerializer   $jsonLdSerializer
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, TypeMapperRegistry $typeMapperRegistry, JsonLdSerializer $jsonLdSerializer)
     {
         $this->serializerHelper = $serializerHelper;
-        $this->typeRegistry = $typeRegistry;
+        $this->configManager = $configManager;
         $this->typeMapperRegistry = $typeMapperRegistry;
         $this->jsonLdSerializer = $jsonLdSerializer;
     }
@@ -57,29 +58,35 @@ class ResourceToDocumentTransformer
      * Transform a resource to an elastica document.
      *
      * @param $uri
+     * @param $index
      * @param $type
      *
      * @return Document|null
      */
-    public function transform($uri, $type)
+    public function transform($uri, $index, $type)
     {
-        $index = $this->typeRegistry->getType($type);
-        if (!$index) {
-            return;
-        }
-
-        $index = $index->getIndex()->getName();
         if ($index && $this->serializerHelper->isTypeIndexed($index, $type)) {
             $frame = $this->serializerHelper->getTypeFramePath($index, $type);
-            $jsonLd = $this->jsonLdSerializer->serialize(new BaseResource($uri), $frame);
+
+            $phpClass = TypeMapper::get($type);
+            if (!$phpClass) {
+                $phpClass = "EasyRdf\\Resource";
+            }
+
+            $jsonLd = $this->jsonLdSerializer->serialize(new $phpClass($uri), $frame, array("includeParentClassFrame" => true));
             $graph = json_decode($jsonLd, true);
             if (!isset($graph['@graph'][0])) {
                 return;
             }
-            $json = json_encode($graph['@graph'][0]);
+
+            $resource = $graph['@graph'][0];
+            $resource['@id'] = $uri;
+
+            $json = json_encode($resource);
             $json = str_replace('@id', '_id', $json);
             $json = str_replace('@type', '_type', $json);
 
+            $index = $this->configManager->getIndexConfiguration($index)->getElasticSearchName();
             return new Document($uri, $json, $type, $index);
         }
 

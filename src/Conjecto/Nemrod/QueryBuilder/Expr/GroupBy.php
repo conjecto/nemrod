@@ -11,7 +11,7 @@
 
 namespace Conjecto\Nemrod\QueryBuilder\Expr;
 
-class GroupExpr extends Base
+class GroupBy extends Base
 {
     /**
      * @var string

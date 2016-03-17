@@ -19,7 +19,7 @@ interface PersisterInterface
     /**
      * @return Resource
      */
-    public function constructUri($className, $uri);
+    public function constructUri($uri, $className = null);
 
     /**
      * @param array $criteria

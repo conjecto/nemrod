@@ -43,7 +43,7 @@ class Repository
     public function find($uri)
     {
         /** @var \EasyRdf_Sparql_Result $result */
-        $result = $this->_rm->find($this->className, $uri);
+        $result = $this->_rm->find($uri, $this->className);
 
         return $result;
     }
@@ -59,16 +59,7 @@ class Repository
     public function findBy(array $criterias, array $options = array())
     {
         //first add a type criteria if not found
-        if ($this->className) {
-            if (empty($criterias['rdf:type'])) {
-                $criterias['rdf:type'] = $this->className;
-            } elseif (is_array($criterias['rdfs:Class'])) {
-                $criterias['rdf:type'][] = $this->className;
-            } else {
-                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
-            }
-        }
-
+        $this->addClassCriterion($criterias);
         return $this->_rm->getUnitOfWork()->findBy($criterias, $options);
     }
 
@@ -80,16 +71,7 @@ class Repository
      */
     public function findOneBy(array $criterias, array $options = array())
     {
-        if ($this->className) {
-            if (empty($criterias['rdf:type'])) {
-                $criterias['rdf:type'] = $this->className;
-            } elseif (is_array($criterias['rdfs:Class'])) {
-                $criterias['rdf:type'][] = $this->className;
-            } else {
-                $criterias['rdf:type'] = array($criterias['rdf:type'], $this->className);
-            }
-        }
-
+        $this->addClassCriterion($criterias);
         return $this->_rm->getUnitOfWork()->findOneBy($criterias, $options);
     }
 
@@ -144,5 +126,22 @@ class Repository
         }
 
         return $qb;
+    }
+
+    /**
+     * Adds current repo class criterion to finBy criteria array
+     * @param $criterias
+     */
+    private function addClassCriterion(&$criterias)
+    {
+        if ($this->className) {
+            if (empty($criterias['rdf:type'])) {
+                $criterias['rdf:type'] = new Resource($this->className);
+            } elseif (is_array($criterias['rdfs:Class'])) {
+                $criterias['rdf:type'][] = new Resource($this->className);
+            } else {
+                $criterias['rdf:type'] = array($criterias['rdf:type'] => new Resource ($this->className));
+            }
+        }
     }
 }

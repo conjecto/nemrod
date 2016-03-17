@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 
 <container xmlns="http://symfony.com/schema/dic/services"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
         <parameter key="nemrod.namespace_registry.class">Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry</parameter>
@@ -31,6 +31,9 @@
 
         <!-- Nemrod resource class-->
         <parameter key="nemrod.resource.class">Conjecto\Nemrod\Resource</parameter>
+
+        <!-- Filiation builder class-->
+        <parameter key="nemrod.filiation.builder.class">Conjecto\Nemrod\ResourceManager\FiliationBuilder</parameter>
 
     </parameters>
 
@@ -91,14 +94,19 @@
             <argument type="service" id="nemrod.jsonld.frame.loader" />
             <argument type="service" id="nemrod.jsonld.graph_provider" />
             <argument type="service" id="nemrod.jsonld.metadata_factory" />
+            <argument type="service" id="nemrod.type_mapper" />
             <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" />
         </service>
-
 
         <!-- ParamConverter -->
         <service id="resource.param_converter" class="%nemrod.resource.param_convecter.class%">
             <tag name="request.param_converter" priority="1" converter="resource" />
             <argument type="service" id="service_container" />
+        </service>
+
+        <!-- FiliationBuilder -->
+        <service id="nemrod.filiation.builder" class="%nemrod.filiation.builder.class%">
+            <argument type="service" id="nemrod.jsonld.metadata_factory" />
         </service>
     </services>
 

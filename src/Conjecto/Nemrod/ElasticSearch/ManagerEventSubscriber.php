@@ -12,6 +12,7 @@
 namespace Conjecto\Nemrod\ElasticSearch;
 
 use Conjecto\Nemrod\ResourceManager\Event\Events;
+use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use EasyRdf\RdfNamespace;
 use Elastica\Document;
 use Elastica\Type;
@@ -20,47 +21,54 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ManagerEventSubscriber implements EventSubscriberInterface
 {
-    /**
-     * @var SerializerHelper
-     */
+    /** @var SerializerHelper */
     protected $serializerHelper;
 
-    /**
-     * @var TypeRegistry
-     */
-    protected $typeRegistry;
+    /** @var  ConfigManager */
+    protected $configManager;
 
-    /**
-     * @var Container
-     */
+    /** @var IndexRegistry */
+    protected $indexRegistry;
+
+    /** @var Container */
     protected $container;
 
-    /**
-     * @var CascadeUpdate
-     */
+    /** @var CascadeUpdate */
     protected $cascadeUpdateSearch;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $changesRequests;
 
-    /**
-     * @var
-     */
+    /** @var FiliationBuilder */
+    protected $filiationBuilder;
+
+    /** @var array */
     protected $arrayResourcesToUpdateAfterDeletion;
+
+    /** @var ResourceToDocumentTransformer */
+    protected $resourceToDocumentTransformer;
 
     /**
      * @param SerializerHelper $serializerHelper
-     * @param TypeRegistry     $typeRegistry
-     * @param Container        $container
+     * @param IndexRegistry $indexRegistry
+     * @param ConfigManager $configManager
+     * @param FiliationBuilder $filiationBuilder
+     * @param Container $container
      */
-    public function __construct(SerializerHelper $serializerHelper, TypeRegistry $typeRegistry, Container $container)
+    public function __construct(SerializerHelper $serializerHelper, ConfigManager $configManager, IndexRegistry $indexRegistry, FiliationBuilder $filiationBuilder, Container $container)
     {
         $this->serializerHelper = $serializerHelper;
-        $this->typeRegistry = $typeRegistry;
+        $this->configManager = $configManager;
+        $this->indexRegistry = $indexRegistry;
         $this->container = $container;
-        $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->container);
+        $this->filiationBuilder = $filiationBuilder;
+        $this->cascadeUpdateHelper = new CascadeUpdateHelper($this->serializerHelper, $this->configManager, $this->indexRegistry, $this->container);
+        $this->resourceToDocumentTransformer = new ResourceToDocumentTransformer(
+            $this->serializerHelper,
+            $this->configManager,
+            $this->container->get('nemrod.type_mapper'),
+            $this->container->get('nemrod.elastica.jsonld.serializer')
+        );
     }
 
     /**
@@ -89,11 +97,14 @@ class ManagerEventSubscriber implements EventSubscriberInterface
     {
         $arrayResourcesDeleted = array();
         $this->changesRequests = array();
-
         foreach ($event->getChanges() as $key => $change) {
             foreach (['insert', 'delete'] as $action) {
                 if ($change[$action] === 'all' && $action === 'delete') {
                     $arrayResourcesDeleted[$key] = $change['type'];
+                    $this->changesRequests[$key]['delete'] = true;
+                }
+                else {
+                    $this->changesRequests[$key]['delete'] = false;
                 }
                 if (isset($this->changesRequests[$key]['properties'])) {
                     $properties = $this->changesRequests[$key]['properties'];
@@ -112,7 +123,7 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             }
         }
 
-        $this->arrayResourcesToUpdateAfterDeletion = $this->cascadeUpdateHelper->searchResourcesToCascadeRemove($arrayResourcesDeleted, $event->getRm());
+        $this->arrayResourcesToUpdateAfterDeletion = $this->cascadeUpdateHelper->searchResourcesToCascadeRemove($arrayResourcesDeleted, $this->filiationBuilder, $event->getRm());
     }
 
     /**
@@ -130,84 +141,165 @@ class ManagerEventSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $resourceToDocumentTransformer = new ResourceToDocumentTransformer(
-            $this->serializerHelper, $this->typeRegistry, $this->container->get('nemrod.type_mapper'), $this->container->get('nemrod.jsonld.serializer')
-        );
+        $result = $this->getResourcesToUpdate($event->getRm());
+        $resourcesModified = $this->updateDocuments($result);
+        $this->cascadeUpdateDocuments($resourcesModified, $event->getRm());
+        $this->cascadeRemoveDocuments();
+    }
 
-        $qb = $event->getRm()->getQueryBuilder();
-        $qb->reset();
-        $qb->construct('?uri a ?t')->where('?uri a ?t');
+    /**
+     * Get the uri resources than have been changed
+     * @param $rm
+     * @return mixed
+     */
+    protected function getResourcesToUpdate($rm)
+    {
+        $qb = $rm->getQueryBuilder();
+        $qb->reset()
+            ->construct('?uri a ?t')
+            ->addConstruct('?uri rdf:type ?type')
+            ->where('?uri a ?t')
+            ->andWhere('?uri rdf:type ?type');
+
+        // set all resource uris
         $uris = '';
-
         foreach ($this->changesRequests as $uri => $infos) {
             $uris .= ' <'.$uri.'>';
         }
-
         $qb->value('?uri', $uris);
-        $result = $qb->getQuery()->execute();
-        $resourcesModified = array();
 
+        return $qb->getQuery()->execute();
+    }
+
+    /**
+     * Foreach changed resource, update the ES document
+     * @param $result
+     * @return array $resourcesModified
+     * @throws \Exception
+     */
+    protected function updateDocuments($result)
+    {
+        $resourcesModified = array();
         // foreach resources modified
         foreach ($this->changesRequests as $uri => $infos) {
             $types = $result->all($uri, 'rdf:type');
-            $newTypes = array();
-
-            // check all resource type to check if this type is indexed in ES
-            foreach ($types as $type) {
-                $newType = RdfNamespace::shorten($type->getUri());
-                $newTypes[] = $newType;
-
-                $index = $this->typeRegistry->getType($newType);
-                if ($index !== null) {
-                    $index = $index->getIndex()->getName();
-                }
-
-                // update the ES document
-                if ($index && $this->serializerHelper->isTypeIndexed($index, $newType, $infos['properties'])) {
-                    /*
-                     * @var Type
-                     **/
-                    $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $newType));
-                    $document = $resourceToDocumentTransformer->transform($uri, $newType);
-                    if ($document) {
-                        $resourcesModified[$uri][] = $newType;
-                        $esType->addDocument($document);
-                    }
-                }
+            $this->deleteOldDocument($uri, $types, $this->changesRequests[$uri]['type']);
+            if (!$infos['delete']) {
+                $mostAccurateType = $this->updateDocument($uri, $types, $this->resourceToDocumentTransformer);
+                $resourcesModified[$uri] = $mostAccurateType;
             }
+        }
 
-            $oldType = $this->changesRequests[$uri]['type'];
-            if (!in_array($oldType, $newTypes)) {
-                $index = $this->typeRegistry->getType($oldType);
+        return $resourcesModified;
+    }
+
+    /**
+     * @param $uri
+     * @param $types
+     * @param $trans
+     * @return null
+     * @throws \Exception
+     */
+    protected function updateDocument($uri, $types, $trans)
+    {
+        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types, $this->serializerHelper->getAllTypes());
+        $mostAccurateType = null;
+        // not specified in project ontology description
+        if (count($mostAccurateTypes) == 1) {
+            $mostAccurateType = $mostAccurateTypes[0];
+        } else {
+//            echo "Seems to not have to be indexed";
+        }
+
+        $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);
+        foreach($typesConfig as $typeConfig) {
+            $indexConfig = $typeConfig->getIndex();
+            $index = $indexConfig->getName();
+            $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
+            $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
+            $document = $trans->transform($uri, $index, $mostAccurateType);
+            if ($document) {
+                $esType->addDocument($document);
+            }
+        }
+
+        return $mostAccurateType;
+    }
+
+    /**
+     * If a types resource has changed and the new type is mapped to another document type, then the old document is removed
+     * @param $uri
+     * @param $types
+     * @param $oldType
+     * @return bool
+     */
+    protected function deleteOldDocument($uri, $types, $oldType)
+    {
+        $newTypes = array();
+        foreach ($types as $type) {
+            $type = (string)$type;
+            if ($type && !empty($type)) {
+                $newTypes[] = RdfNamespace::shorten($type);
+            }
+        }
+
+        // Get most accurtype of oldtype
+        $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType(array(RdfNamespace::expand($oldType)), $this->serializerHelper->getAllTypes());
+        $mostAccurateType = null;
+        // not specified in project ontology description
+        if (count($mostAccurateTypes) == 1) {
+            $mostAccurateType = $mostAccurateTypes[0];
+        } else {
+//            echo "Seems to not have to be indexed";
+        }
+
+        if (!in_array($mostAccurateType, $newTypes)) {
+            $typesConfig = $this->configManager->getTypesConfigurationByClass($mostAccurateType);
+            foreach($typesConfig as $typeConfig) {
+                $indexConfig = $typeConfig->getIndex();
+                $index = $indexConfig->getName();
+                $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
                 if ($index !== null) {
-                    $index = $index->getIndex()->getName();
-                    /*
-                     * @var Type
-                     **/
-                    $esType = $this->container->get('nemrod.elastica.type.'.$index.'.'.$this->serializerHelper->getTypeName($index, $oldType));
-
+                    $esType = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
                     // Trow an exeption if document does not exist
                     try {
-                        $esType->deleteDocument(new Document($uri, array(), $oldType, $index));
+                        $esType->deleteDocument(new Document($uri, array(), $mostAccurateType, $indexConfig->getElasticSearchName()));
+                        return true;
                     } catch (\Exception $e) {
                     }
                 }
             }
         }
+        return false;
+    }
 
+    /**
+     * @param $resourcesModified
+     * @param $rm
+     */
+    protected function cascadeUpdateDocuments($resourcesModified, $rm)
+    {
         // cascade update
-        foreach ($resourcesModified as $uri => $types) {
-            foreach ($types as $type) {
-                $this->cascadeUpdateHelper->cascadeUpdate($uri, $type, $this->changesRequests[$uri]['properties'], $resourceToDocumentTransformer, $event->getRm(), $resourcesModified);
-            }
+        foreach ($resourcesModified as $uri => $type) {
+            $this->cascadeUpdateHelper->cascadeUpdate($uri, $type, $this->changesRequests[$uri]['properties'], $this->filiationBuilder, $this->resourceToDocumentTransformer, $rm, $resourcesModified);
         }
+    }
 
+    /**
+     * @throws \Exception
+     */
+    protected function cascadeRemoveDocuments()
+    {
         // cascade remove
         foreach ($this->arrayResourcesToUpdateAfterDeletion as $uri => $type) {
-            $index = $this->typeRegistry->getType($type);
-            if ($index !== null) {
-                $index = $index->getIndex()->getName();
-                $this->cascadeUpdateHelper->updateDocument($uri, $type, $index, $resourceToDocumentTransformer);
+            $typesConfig = $this->configManager->getTypesConfigurationByClass($type);
+            foreach($typesConfig as $typeConfig) {
+                $indexConfig = $typeConfig->getIndex();
+                $index = $indexConfig->getName();
+                $this->container->get('nemrod.elastica.jsonld.frame.loader')->setEsIndex($index);
+                if ($index !== null) {
+                    $this->cascadeUpdateHelper->updateDocument($uri, array($type), $this->filiationBuilder, $this->resourceToDocumentTransformer);
+                }
             }
         }
     }

@@ -29,22 +29,22 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     }
 
     /**
-     * @param Resource $resource
+     * @param Resource|Graph $resourceOrGraph
      * @param array    $frame
      *
      * @return Graph
      */
-    public function getGraph(Resource $resource, $frame = null)
+    public function getGraph($resourceOrGraph, $frame = null)
     {
         if ($frame && $this->getProperties($frame)) {
             // if there is a qualified frame, build a new graph to integrate full
-            $qb = $this->getQueryBuilder($frame, $resource);
-            $qb->bind('<'.$resource->getUri().'>', '?uri');
+            $qb = $this->fillQueryBuilder($frame, $resourceOrGraph);
+            $qb->bind('<'.$resourceOrGraph->getUri().'>', '?uri');
 
             return $qb->getQuery()->execute();
         } else {
             // else return resource graph
-            return parent::getGraph($resource, $frame);
+            return parent::getGraph($resourceOrGraph, $frame);
         }
     }
 
@@ -70,69 +70,113 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     /**
      * @param $frame
      */
-    protected function getQueryBuilder($frame, $resource)
+    protected function fillQueryBuilder($frame, $resource)
+    {
+        $qb = $this->getQueryBuilder($resource);
+        $this->fillConstruct($frame, $qb);
+        $this->fillWhere($frame, $qb);
+
+        return $qb;
+    }
+
+    /**
+     * Get resource qb if defined or default manager qb
+     * @param $resource
+     * @return QueryBuilder
+     */
+    protected function getQueryBuilder($resource)
     {
         $rm = $this->rm;
         if ($resource instanceof \Conjecto\Nemrod\Resource && $resource->getRm() !== null) {
             $rm = $resource->getRm();
         }
+        return clone $rm->getQueryBuilder();
+    }
+
+    /**
+     * Add construct parts to qb
+     * @param array $frame
+     * @param QueryBuilder $qb
+     */
+    protected function fillConstruct($frame, $qb)
+    {
         $this->varCounter = 0;
-        $qb = clone $rm->getQueryBuilder();
         $qb->construct();
-        //add the construct part
-        $construct = '';
+        $arrayConstruct = array();
+        $arrayConstruct = $this->getArrayConstruct($frame, $arrayConstruct, '?uri');
+        $this->addConstructParts($arrayConstruct, $qb);
+        $this->varCounter = 0;
+    }
+
+    /**
+     * Add where parts to qb
+     * @param array $frame
+     * @param QueryBuilder $qb
+     */
+    protected function fillWhere($frame, $qb)
+    {
+        $constructUnionWhere = array('');
         foreach ($frame as $prop => $val) {
             if ($prop === '@type') {
-                if (is_array($val)) {
-                    foreach ($val as $key => $value) {
-                        $qb->addConstruct('?uri'.' a '.$key);
-                        $qb->andWhere('?uri'.' a '.$key);
-                    }
-                } else {
-                    $qb->addConstruct('?uri'.' a '.$val);
-                    $qb->andWhere('?uri'.' a '.$val);
-                }
+                $qb->andWhere("?uri a " . $val);
             }
 
             // union for optional trick
             if (substr($prop, 0, 1) !== '@' && is_array($val)) {
+                $uriChild = '?c' . (++$this->varCounter);
+                $constructUnionWhere[] =  "?uri $prop " . $this->addChild($val, $uriChild);
+            }
+        }
+        if(count($constructUnionWhere) > 1){
+            $qb->addUnion($constructUnionWhere);
+        }
+    }
+
+    /**
+     * Create an array of construct parts
+     * @param $frame
+     * @param $arrayConstruct
+     * @param $uriParent
+     * @return array
+     */
+    protected function getArrayConstruct($frame, $arrayConstruct, $uriParent)
+    {
+
+        foreach ($frame as $prop => $val) {
+            if ($prop === '@type') {
+                $arrayConstruct[] = "$uriParent a $val";
+            } else if (substr($prop, 0, 1) !== '@') {
                 $uriChild = '?c'.(++$this->varCounter);
-                $counter = $this->varCounter;
-                if ($this->addConstructChild($val, $uriChild) == $uriChild && !empty($construct)) {
-                    $construct .= '. ';
+                $arrayConstruct[] = "$uriParent $prop $uriChild";
+                if (is_array($val)) {
+                    $recursiveConstruct = array();
+                    $recursiveConstruct = $this->getArrayConstruct($val, array(), $uriChild);
+                    if (count($recursiveConstruct)) {
+                        $queryPart = $arrayConstruct[count($arrayConstruct) - 1];
+                        $arrayConstruct[count($arrayConstruct) - 1] = array(0 => $queryPart);
+                        $arrayConstruct[count($arrayConstruct) - 1][] = $recursiveConstruct;
+                    }
                 }
-                $this->varCounter = $counter;
-                $construct .= ('?uri'.' '.$prop.' '.$this->addConstructChild($val, $uriChild));
-                $this->varCounter = $counter;
-                $qb->addUnion(array('', '?uri'.' '.$prop.' '.$this->addChild($val, $uriChild)));
             }
         }
 
-        $qb->addConstruct($construct);
-
-        return $qb;
+        return $arrayConstruct;
     }
 
-    protected function addConstructChild($child, $uriChild)
+    /**
+     * Add array construct parts to qb
+     * @param array $arrayConstruct
+     * @param QueryBuilder $qb
+     */
+    protected function addConstructParts($arrayConstruct, $qb)
     {
-        // no child but in the frame for @explicit
-        if (!count($child)) {
-            return $uriChild;
-        } else {
-            $stringedChild = $uriChild.'.';
-
-            foreach ($child as $prop => $val) {
-                if ($prop === '@type') {
-                    $stringedChild .= ' '.$uriChild.' a '.$val.' . ';
-                }
-                // union for optional trick
-                if (substr($prop, 0, 1) !== '@' && is_array($val)) {
-                    $uriChildOfChild = '?c'.(++$this->varCounter);
-                    $stringedChild .= $uriChild.' '.$prop.' '.$this->addConstructChild($val, $uriChildOfChild).' ';
-                }
+        foreach ($arrayConstruct as $queryPart) {
+            if (is_string($queryPart)) {
+                $qb->addConstruct($queryPart);
             }
-
-            return $stringedChild;
+            else if (is_array($queryPart)) {
+                $this->addConstructParts($queryPart, $qb);
+            }
         }
     }
 
@@ -150,66 +194,21 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             return $uriChild;
         } else {
             $stringedChild = $uriChild.'.';
-
+            $typeString = "";
+            $firstProperty = ' {}'; // first open solution to simulate optional
             foreach ($child as $prop => $val) {
                 if ($prop === '@type') {
-                    $stringedChild = $stringedChild.' '.$uriChild.' a '.$val;
+                    $typeString = $uriChild . ' a ' . $val.' .';
                 }
                 // union for optional trick
                 if (substr($prop, 0, 1) !== '@' && is_array($val)) {
                     $uriChildOfChild = '?c'.(++$this->varCounter);
-                    $stringedChild = $stringedChild.' {} UNION {'.$uriChild.' '.$prop.' '.$this->addChild($val, $uriChildOfChild).'} ';
+                    $stringedChild = $stringedChild.$firstProperty.' UNION {' . $uriChild . ' ' . $prop . ' ' . $this->addChild($val, $uriChildOfChild) . '}';
+                    $firstProperty = '';
                 }
             }
 
-            return $stringedChild;
-        }
-    }
-
-    /**
-     * @param $uri
-     * @param $type
-     * @param $frame
-     *
-     * @return null|string
-     */
-    protected function createUnionPart($uri, $type, $frame)
-    {
-        // each found must show the path  "?s a type1found ; prop1/a type1found2 ; prop2 $uri . $uri a $type "
-        // if not found return null, { path1 } UNION ( path2 }  ... if some found
-        // must parse all the frame and contruct by pop and push the request part, when found one add to rez and continue
-
-        $this->onePossiblePlace = [];
-        $buildingUnion = '?s a '.$frame['@type'];
-
-        foreach ($frame as $prop => $val) {
-            // union for optional trick
-            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
-                $this->checkDeeper($uri, $type, $val, $buildingUnion.'; '.$prop);
-            }
-        }
-
-        return (count($this->onePossiblePlace)) ? '{ '.implode(' } UNION { ', $this->onePossiblePlace).' }' : null;
-    }
-
-    /**
-     * @param $uri
-     * @param $type
-     * @param $frame
-     * @param $buildingUnion
-     */
-    protected function checkDeeper($uri, $type, $frame, $buildingUnion)
-    {
-        foreach ($frame as $prop => $val) {
-            if ($prop === '@type') {
-                if ($val == $type) {
-                    $this->onePossiblePlace[] = $buildingUnion.' '.$uri.' .';
-                }
-            }
-            // union for optional trick
-            if (substr($prop, 0, 1) !== '@' && is_array($val) && count($val)) {
-                $this->checkDeeper($uri, $type, $val, $buildingUnion.'/'.$prop);
-            }
+            return $stringedChild . $typeString;
         }
     }
 }

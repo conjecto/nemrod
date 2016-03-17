@@ -43,45 +43,53 @@ class Configuration implements ConfigurationInterface
     private function addElasticaSearchConfigurationSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
-
             ->children()
+                ->scalarNode('default_client')
+                    ->info('Defaults to the first client defined')
+                ->end()
+                ->scalarNode('default_index')
+                    ->info('Defaults to the first index defined')
+                ->end()
+                ->scalarNode('default_manager')->defaultValue('rm')->end()
             //clients
-            ->arrayNode('clients')//node 'clients' is
-            ->prototype('array')//an array containing all clients definitions
-            ->children() //children for each array entries
-            //->arrayNode('servers')//node 'servers' is
-            //->prototype('array') //an array containing definitions of all possible servers
-            #->children() //children for each array entries are
-            ->scalarNode('host')  // a 'host' (scalar) node
+                ->arrayNode('clients')//node 'clients' is
+                ->isRequired()
+                ->prototype('array')//an array containing all clients definitions
+                    ->children()//children for each array entries
+                        ->scalarNode('host')// a 'host' (scalar) node
+                        ->end()
+                        ->scalarNode('port')// a 'port' (scalar) node
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
-            ->scalarNode('port')// a 'port' (scalar) node
-            ->end()
-            ->end()
-            //->end()
-            //->end()
-            //->end()
-            ->end()
-            ->end()
-
             //indexes
             ->arrayNode('indexes')
-            ->prototype('array')
-            ->children()
-            ->scalarNode('client')
-            ->end()
-            ->arrayNode('types')
-            ->prototype('array')
-            ->children()
-            ->scalarNode('type')
-            ->end()
-            ->scalarNode('frame')
-            ->end()
-            ->append($this->getPropertiesNode())
-            ->end()
-            ->end()
-            ->end()->end()
-            ->end()
-            ->end()
+                ->validate()
+                    ->ifNull()
+                    ->thenEmptyArray()
+                ->end()
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('index_name')
+                                ->info('Defaults to the name of the index, but can be modified if the index name is different in ElasticSearch')
+                            ->end()
+                            ->scalarNode('client')->end()
+                            ->variableNode('settings')->defaultValue(array())->end()
+                            ->arrayNode('types')
+                            ->prototype('array')
+                                ->children()
+                                ->scalarNode('type')
+                                ->end()
+                                ->scalarNode('frame')
+                                ->end()
+                                    ->append($this->getPropertiesNode())
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
     }
 

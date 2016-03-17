@@ -1,79 +1,109 @@
 <?php
 
-/*
- * This file is part of the Nemrod package.
- *
- * (c) Conjecto <contact@conjecto.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Conjecto\Nemrod\ElasticSearch;
-
 /**
- * Class ConfigManager stores and manages mainly (elastica) type mappings.
+ * Central manager for index and type configuration.
+ */
+/**
+ * Class ConfigManager
+ * @package Conjecto\Nemrod\Configuration
  */
 class ConfigManager
 {
     /**
-     * all types configs.
-     *
-     * @var array
+     * @var IndexConfig[]
      */
-    private $config;
+    private $indexes = array();
 
     /**
-     * @param $type
-     * @param $data
+     * @param $indexName
+     * @param $config
      */
-    public function setConfig($type, $data)
-    {
-        $properties = array();
-
-        foreach ($data['frame'] as $key => $property) {
-            if (!strstr($key, '@')) {
-                if (!isset($property['@mapping'])) {
-                    $property['@mapping'] = '~';
-                }
-                $properties[$key] = $property['@mapping'];
-            }
-        }
-
-        unset($data['frame']);
-        $data['properties'] = $properties;
-        $this->config[$type] = $data;
+    public function setIndexConfigurationArray($indexName, $config) {
+        $this->indexes[$indexName] =  new IndexConfig($config['name'], array(), array(
+            'elasticSearchName' => $config['elasticsearch_name'],
+            'settings' => $config['settings'],
+            //'useAlias' => $config['use_alias'],
+        ));
     }
 
     /**
-     * returns the [section (if provided) of a] config for a given type,.
-     *
+     * @param $indexName
+     * @param $typeName
      * @param $type
-     * @param null $section
-     *
-     * @return $array|null
+     * @param $frame
      */
-    public function getConfig($type, $section = null)
+    public function setTypeConfigurationArray($indexName, $typeName, $type, $frame) {
+        $index = $this->getIndexConfiguration($indexName);
+        $index->addType($typeName, new TypeConfig(
+            $typeName,
+            $type,
+            $frame
+        ));
+    }
+
+    /**
+     * @param $indexName
+     * @return IndexConfig
+     */
+    public function getIndexConfiguration($indexName)
     {
-        if (!$section) {
-            if (!isset($this->config[$type])) {
-                return;
-            }
-
-            return $this->config[$type];
-        }
-        if (!isset($this->config[$type][$section])) {
-            return;
+        if (!$this->hasIndexConfiguration($indexName)) {
+            throw new \InvalidArgumentException(sprintf('Index with name "%s" is not configured.', $indexName));
         }
 
-        return $this->config[$type][$section];
+        return $this->indexes[$indexName];
     }
 
     /**
      * @return array
      */
-    public function getTypes()
+    public function getIndexNames()
     {
-        return array_keys($this->config);
+        return array_keys($this->indexes);
+    }
+
+    /**
+     * @param $indexName
+     * @param $typeName
+     * @return TypeConfig
+     */
+    public function getTypeConfiguration($indexName, $typeName)
+    {
+        $index = $this->getIndexConfiguration($indexName);
+        $type = $index->getType($typeName);
+
+        if (!$type) {
+            throw new \InvalidArgumentException(sprintf('Type with name "%s" on index "%s" is not configured', $typeName, $indexName));
+        }
+
+        return $type;
+    }
+
+    /**
+     * @param $indexName
+     * @return bool
+     */
+    public function hasIndexConfiguration($indexName)
+    {
+        return isset($this->indexes[$indexName]);
+    }
+
+    /**
+     * Return all elastica types configured for a semantic class
+     * @param $class
+     * @return TypeConfig[]
+     */
+    public function getTypesConfigurationByClass($class)
+    {
+        $types = array();
+        foreach($this->indexes as $key => $index) {
+            foreach($index->getTypes() as $type) {
+                if($type->getType() == $class) {
+                    $types[] = $type;
+                }
+            }
+        }
+        return $types;
     }
 }

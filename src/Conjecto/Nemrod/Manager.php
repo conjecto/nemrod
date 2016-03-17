@@ -177,7 +177,7 @@ class Manager
      *
      * @return mixed
      */
-    public function find($className, $uri)
+    public function find($uri, $className = null)
     {
         //trying to find resource if already loaded
         $resource = $this->unitOfWork->retrieveResource($uri);
@@ -192,17 +192,29 @@ class Manager
         $persister = $this->unitOfWork->getPersister();
 
         /** @var Resource $res */
-        $res = $persister->constructUri($className, $uri);
+        $res = $persister->constructUri($uri, $className);
 
         return $res;
     }
 
     /**
      * @param Resource $resource
+     * @return the new uri of the resource.
      */
     public function persist(Resource $resource)
     {
-        $this->getUnitOfWork()->persist($resource);
+        return $this->getUnitOfWork()->persist($resource);
+    }
+
+    /**
+     * return the managed uri from a bnode
+     * @param string
+     *
+     * @return string
+     */
+    public function getManagedUri($bnode)
+    {
+        return $this->getUnitOfWork()->getManagedUri($bnode);
     }
 
     /**

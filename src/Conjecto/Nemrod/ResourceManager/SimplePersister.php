@@ -14,9 +14,11 @@ namespace Conjecto\Nemrod\ResourceManager;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
 use Conjecto\Nemrod\QueryBuilder;
+use Conjecto\Nemrod\Resource;
 use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
+use EasyRdf\Literal;
 use EasyRdf\Sparql\Result;
 use EasyRdf\TypeMapper;
 
@@ -52,7 +54,7 @@ class SimplePersister implements PersisterInterface
      *
      * @throws Exception
      */
-    public function constructUri($className, $uri)
+    public function constructUri($uri, $className = null)
     {
         $uri = $this->_rm->getNamespaceRegistry()->expand($uri);
 
@@ -175,93 +177,49 @@ class SimplePersister implements PersisterInterface
      */
     public function constructSet(array $criteria, array $options, $hydrate = Query::HYDRATE_ARRAY)
     {
-        //end statments for query (order by, etc)
-        $queryFinal = '';
-        $criteriaParts = array();
-        $criteriaUnionParts = array();
+        $qb = $this->_rm->getQueryBuilder();
 
-        if (!empty($criteria)) {
-            foreach ($criteria as $property => $value) {
-                if (is_array($value)) {
-                    if (!empty($value)) {
-                        foreach ($value as $val) {
-                            $criteriaParts[] = $property.' '.$val;
-                        }
-                    }
-                }
-                if ($value === '') {
-                    $criteriaParts[] = $property.' ""';
-                } else {
-                    $criteriaParts[] = $property.' '.$value;
-                }
+        //getting "SELECT" part of the query
+        $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
+
+        foreach ($criteria as $property => $value) {
+            if ($property !== 'uri') {
+                $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
             }
+        }
+
+        //binding uri if present
+        $this->bindVariableAsUri($select, "?uri",$criteria);
+
+        if (isset($options['offset'])) {
+            $select->setOffset($options['offset']);
         }
 
         if (isset($options['orderBy'])) {
-            $criteriaUnionParts[] = '?s '.$options['orderBy'].' ?orderingvar';
-            $queryFinal .= '?orderingvar';
-        }
-
-        $qb = $this->_rm->getQueryBuilder();
-        $qb->construct('?s ?p ?q');
-        $qb->where('?s ?p ?q');
-
-        foreach ($criteriaParts as $triple) {
-            $qb->addConstruct('?s '.$triple);
-            $qb->andWhere('?s '.$triple);
-        }
-
-        foreach ($criteriaUnionParts as $triple) {
-            $qb->addConstruct($triple);
-        }
-
-        if (count($criteriaUnionParts) === 1) {
-            $criteriaUnionParts[] = '';
-        }
-
-        if (count($criteriaUnionParts)) {
-            $qb->addUnion($criteriaUnionParts);
-        }
-
-        $qb->setOffset(0);
-        if ($queryFinal !== '') {
-            $qb->orderBy($queryFinal);
-        }
-
-        if (isset($options['limit']) && is_numeric($options['limit'])) {
-            $qb->setMaxResults($options['limit']);
-        }
-
-        $result = $qb->getQuery()->execute($hydrate, array('rdf:type' => $criteria['rdf:type']));
-
-        if ($result instanceof Result) {
-            $result = $this->resultToGraph($result);
-        }
-
-        if ($this->isEmpty($result)) {
-            return;
-        }
-
-        $output = null;
-
-        //extraction of collection is done by unit of work
-        if (!empty($criteria['rdf:type'])) {
-            if ($hydrate === Query::HYDRATE_COLLECTION) {
-                if (is_array($criteria['rdf:type'])) {
-                    $rdfTtype = $criteria['rdf:type'][0];
-                } else {
-                    $rdfTtype = $criteria['rdf:type'];
-                }
-                $output = $this->extractResources($result, $rdfTtype);
-            } elseif ($hydrate === Query::HYDRATE_ARRAY) {
-                foreach ($result as $re) {
-                    $this->declareResource($re);
-                }
-                $output = $result;
+            if ($options['orderBy'] == 'uri'){
+                $select->addOrderBy('?uri');
+            } else {
+                $select->andWhere('?uri '.$options['orderBy']. ' ?orderingVar' );
+                $select->addOrderBy('?orderingVar');
             }
         }
 
-        return $output;
+        $select = $select->setMaxResults(isset($options['limit']) ?$options['limit'] : null)->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
+
+        //getting whole "CONSTRUCT" query
+        $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
+            ->andWhere('{'.$selectStr.'}')
+            ->setOffset(0);
+
+        $result = $query->getQuery()->execute(Query::HYDRATE_ARRAY, array('rdf:type' => $criteria['rdf:type']));
+
+        if (count($result) === 0) {
+            return array();
+        }
+
+        return $result;
     }
 
     public function constructOne(array $criteria, array $options)
@@ -270,11 +228,17 @@ class SimplePersister implements PersisterInterface
 
         //getting "SELECT" part of the query
         $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
+
         foreach ($criteria as $property => $value) {
-            $select->andWhere('?uri '.$property.' '.$value);
+            if ($property !== 'uri') {
+                $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
+            }
         }
+        $this->bindVariableAsUri($select, "?uri",$criteria);
+
         $select = $select->setMaxResults(1)->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
+
         //getting whole "CONSTRUCT" query
         $query = $qb->setMaxResults(null)->construct('?uri ?p ?o; a '.$criteria['rdf:type'])
             ->where('?uri ?p ?o; a '.$criteria['rdf:type'])
@@ -374,12 +338,7 @@ class SimplePersister implements PersisterInterface
                     if (!empty($value)) {
                         foreach ($value as $val) {
                             if ($val['type'] === 'literal') {
-                                $tripleStr = '<'.$uri.'> <'.$property.'> "'.addcslashes($val['value'], '"').'"';
-                                if (!empty($val['lang'])) {
-                                    $tripleStr .= '@'.$val['lang'].'';
-                                } elseif (!empty($val['datatype'])) {
-                                    $tripleStr .= '^^<'.$val['datatype'].'>';
-                                }
+                                $tripleStr = '<'.$uri.'> <'.$property.'> '.$this->literalToSparqlExpr($val);
 
                                 $criteriaParts[] = $tripleStr;
                                 $whereParts[] = $tripleStr;
@@ -415,6 +374,30 @@ class SimplePersister implements PersisterInterface
         }
 
         return array($criteriaParts, $whereParts);
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    private function literalToSparqlExpr($value)
+    {
+        $expr = '"'.addcslashes($value['value'], '"').'"';
+
+        $expr = preg_replace('/\\n/', "\\n", $expr);
+
+        if (!empty($value['datatype'])) {
+            if($this->_rm->getNamespaceRegistry()->shorten($value['datatype']) == "xsd:boolean") {
+                $expr = '"'.( ( $value['value'] && ($value['value'] != "false") )? "true" : "false" ).'"^^<'.$value['datatype'].'>';
+            } else {
+                $expr = '"'.addcslashes($value['value'], '"').'"^^<'.$value['datatype'].'>';
+            }
+
+        } elseif (!empty($value['lang'])) {
+            $expr .= '@'.$value['lang'].'';
+        }
+
+        return $expr;
     }
 
     /**
@@ -552,6 +535,10 @@ class SimplePersister implements PersisterInterface
         return $this->bnodeMap[$bNode];
     }
 
+    /**
+     * @param $result
+     * @return bool
+     */
     private function isEmpty($result)
     {
         if ($result instanceof Graph) {
@@ -560,6 +547,47 @@ class SimplePersister implements PersisterInterface
             $cnt = count($result);
 
             return ($cnt === 0);
+        }
+    }
+
+    /**
+     * Construct a SPARQL term form a term (string or Literal)
+     * @param $term
+     * @return string
+     */
+    private function LiteralToSparqlTerm($term)
+    {
+        if (is_string($term)) {
+            return "\"".$term."\"";
+        } else if ($term instanceof Literal) {
+            $dataType = $term->getDataType();
+            if ($dataType) {
+                return "\"".$term."\"^^".$dataType;
+            }
+            $lang = $term->getLang();
+            if((!$dataType || ($dataType == "xsd:string") ) && $lang) {
+                return "\"".$term."\"@".$lang;
+            }
+        } else if ($term instanceof Resource) {
+            return "<".$this->_rm->getNamespaceRegistry()->expand($term->getUri()).">";
+        }
+
+    }
+
+    /**
+     * @param $query
+     * @param $variable
+     * @param $uri
+     */
+    private function bindVariableAsUri($query, $variable, $criteria)
+    {
+        if (isset ($criteria['uri'])) {
+            if (is_string($criteria['uri'])) {
+                $criteria['uri'] = array($criteria['uri']);
+            }
+            foreach ($criteria['uri'] as $uri) {
+                $query->andWhere("BIND (<".$this->_rm->getNamespaceRegistry()->expand($uri)."> AS $variable).");
+            }
         }
     }
 }

@@ -11,51 +11,74 @@
         <parameter key="nemrod.elastica_index.class">Elastica\Index</parameter>
         <parameter key="nemrod.elastica_type.class">Elastica\Type</parameter>
         <parameter key="nemrod.elastica_serializer_helper.class">Conjecto\Nemrod\ElasticSearch\SerializerHelper</parameter>
-        <parameter key="nemrod.elastica_search.class">Conjecto\Nemrod\ElasticSearch\Search</parameter>
         <parameter key="nemrod.elastica_config_manager.class">Conjecto\Nemrod\ElasticSearch\ConfigManager</parameter>
         <parameter key="nemrod.elastica_mapping_builder.class">Conjecto\Nemrod\ElasticSearch\MappingBuilder</parameter>
         <parameter key="nemrod.elastica_resetter.class">Conjecto\Nemrod\ElasticSearch\Resetter</parameter>
-        <parameter key="nemrod.elastica_type_registry.class">Conjecto\Nemrod\ElasticSearch\TypeRegistry</parameter>
         <parameter key="nemrod.elastica_index_registry.class">Conjecto\Nemrod\ElasticSearch\IndexRegistry</parameter>
         <parameter key="nemrod.elastica_populator.class">Conjecto\Nemrod\ElasticSearch\Populator</parameter>
         <parameter key="nemrod.elastica.manager_event_subscriber.class">Conjecto\Nemrod\ElasticSearch\ManagerEventSubscriber</parameter>
-
+        <parameter key="nemrod.elastica.jsonld.frame.loader.filesystem.class">Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader</parameter>
     </parameters>
 
     <services>
         <!-- elastica indexes, persisters, transformers... -->
-        <service id="nemrod.elastica.client" class="%nemrod.elastica_client.class%" abstract="true" />
-        <service id="nemrod.elastica.index" class="%nemrod.elastica_index.class%" abstract="true" />
-        <service id="nemrod.elastica.type" class="%nemrod.elastica_type.class%" abstract="true" />
-        <service id="nemrod.elastica.search" class="%nemrod.elastica_search.class%" abstract="true" />
+        <service id="nemrod.elastica.client.abstract" class="%nemrod.elastica_client.class%" abstract="true" >
+            <argument type="collection" /> <!-- configuration -->
+            <!-- tagged with nemrod.elastica.client in the Extension -->
+        </service>
+
+        <service id="nemrod.elastica.index.abstract" class="%nemrod.elastica_index.class%" abstract="true">
+            <factory class="nemrod.elastica.client" method="getIndex" />
+            <argument /> <!-- index name -->
+            <!-- tagged with nemrod.elastica.index in the Extension -->
+        </service>
+
+        <service id="nemrod.elastica.type.abstract" class="%nemrod.elastica_type.class%" abstract="true" >
+            <factory class="" method="getType" /> <!-- class will be injected in the extension -->
+            <argument /> <!-- type name -->
+            <!-- tagged with nemrod.elastica.type in the Extension -->
+        </service>
+
         <service id="nemrod.elastica.config_manager" class="%nemrod.elastica_config_manager.class%" />
         <service id="nemrod.elastica.mapping_builder" class="%nemrod.elastica_mapping_builder.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
-            <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
         <service id="nemrod.elastica.resetter" class="%nemrod.elastica_resetter.class%" >
             <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.mapping_builder"/>
+            <argument type="service" id="nemrod.elastica.index_registry" />
         </service>
-        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%" />
-        <service id="nemrod.elastica.type_registry" class="%nemrod.elastica_type_registry.class%" />
+        <service id="nemrod.elastica.serializer_helper" class="%nemrod.elastica_serializer_helper.class%"/>
         <service id="nemrod.elastica.index_registry" class="%nemrod.elastica_index_registry.class%" />
         <service id="nemrod.elastica.populator" class="%nemrod.elastica_populator.class%">
             <argument type="service" id="rm" />
+            <argument type="service" id="nemrod.elastica.config_manager"/>
             <argument type="service" id="nemrod.elastica.index_registry" />
-            <argument type="service" id="nemrod.elastica.type_registry" />
             <argument type="service" id="nemrod.elastica.resetter" />
             <argument type="service" id="nemrod.type_mapper" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />
-            <argument type="service" id="nemrod.jsonld.serializer" />
+            <argument type="service" id="nemrod.elastica.jsonld.serializer" />
+            <argument type="service" id="nemrod.filiation.builder" />
         </service>
         <service id="nemrod.elastica.manager_event_subscriber" class="%nemrod.elastica.manager_event_subscriber.class%">
             <tag name="nemrod.resource_event_subscriber" event="nemrod.pre_flush" />
             <argument type="service" id="nemrod.elastica.serializer_helper" />
-            <argument type="service" id="nemrod.elastica.type_registry" />
+            <argument type="service" id="nemrod.elastica.config_manager" />
+            <argument type="service" id="nemrod.elastica.index_registry" />
+            <argument type="service" id="nemrod.filiation.builder" />
             <argument type="service" id="service_container" />
         </service>
 
+        <service id="nemrod.elastica.jsonld.frame.loader.filesystem" class="%nemrod.elastica.jsonld.frame.loader.filesystem.class%" public="false"/>
+        <service id="nemrod.elastica.jsonld.frame.loader" alias="nemrod.elastica.jsonld.frame.loader.filesystem" />
+        <service id="nemrod.elastica.jsonld.serializer" class="%nemrod.jsonld.serializer.class%">
+            <argument type="service" id="nemrod.namespace_registry" />
+            <argument type="service" id="nemrod.elastica.jsonld.frame.loader" />
+            <argument type="service" id="nemrod.jsonld.graph_provider" />
+            <argument type="service" id="nemrod.jsonld.metadata_factory" />
+            <argument type="service" id="nemrod.type_mapper" />
+        </service>
     </services>
 
 </container>

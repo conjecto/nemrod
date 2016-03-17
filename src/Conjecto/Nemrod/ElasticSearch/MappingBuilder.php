@@ -22,17 +22,17 @@ class MappingBuilder
     /** @var ConfigManager */
     protected $configManager;
 
-    /** @var  TypeRegistry */
-    protected $typeRegistry;
+    /** @var  IndexRegistry */
+    protected $indexRegistry;
 
     /**
      * @param $configManager
      * @param $typeRegistry
      */
-    public function __construct($configManager, $typeRegistry)
+    public function __construct($configManager, $indexRegistry)
     {
         $this->configManager = $configManager;
-        $this->typeRegistry = $typeRegistry;
+        $this->indexRegistry = $indexRegistry;
     }
 
     /**
@@ -42,15 +42,16 @@ class MappingBuilder
      *
      * @throws \Exception
      */
-    public function buildMapping($type)
+    public function buildMapping($index, $type)
     {
-        $mappingData = $this->configManager->getConfig($type, 'properties');
+        $typeConfig = $this->configManager->getTypeConfiguration($index, $type);
+        $mappingData = $typeConfig->getProperties();
         if (!$mappingData) {
             throw new \Exception('no mapping for type');
         }
 
         /** @var Type $typeObj */
-        $typeObj = $this->typeRegistry->getType($type);
+        $typeObj = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
 
         try {
             $typeObj->delete();
@@ -61,4 +62,17 @@ class MappingBuilder
 
         return $typeObj->getMapping();
     }
+
+    /**
+     * @param $type
+     */
+    public function createIndexIfNotExists($index)
+    {
+        //$indexConfig = $this->configManager->getIndexConfiguration($index);
+        $index = $this->indexRegistry->getIndex($index);
+        if (!$index->exists()) {
+            $index->create();
+        }
+    }
+
 }

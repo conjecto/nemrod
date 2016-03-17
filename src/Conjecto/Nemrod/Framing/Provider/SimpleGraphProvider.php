@@ -17,13 +17,16 @@ use EasyRdf\Resource;
 class SimpleGraphProvider implements GraphProviderInterface
 {
     /**
-     * @param Resource $resource
+     * @param Resource|Graph $resourceOrGraph
      * @param array    $frame
      *
      * @return Graph
      */
-    public function getGraph(Resource $resource, $frame = null)
+    public function getGraph($resourceOrGraph, $frame = null)
     {
-        return $resource->getGraph();
+        if ($resourceOrGraph instanceof Graph) {
+            return $resourceOrGraph;
+        }
+        return $resourceOrGraph->getGraph();
     }
 }

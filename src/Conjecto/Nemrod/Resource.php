@@ -11,6 +11,8 @@
 
 namespace Conjecto\Nemrod;
 
+use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadataAccessor;
+use EasyRdf\Literal;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
@@ -34,6 +36,11 @@ class Resource extends BaseResource
     protected $isDirty = false;
 
     /**
+     * @var PropertyMetadataAccessor
+     */
+    protected $propertyMetadataAccessor;
+
+    /**
      *
      */
     const PROPERTY_PATH_SEPARATOR = '/';
@@ -49,6 +56,7 @@ class Resource extends BaseResource
     public function __construct($uri = null, $graph = null)
     {
         $uri = ($uri === null) ? 'e:-1' : $uri;
+        $this->propertyMetadataAccessor = new PropertyMetadataAccessor();
 
         return parent::__construct($uri, $graph);
     }
@@ -65,38 +73,47 @@ class Resource extends BaseResource
     public function all($property, $type = null, $lang = null)
     {
         list($first, $rest) = $this->split($property);
-
         $result = parent::all($property, $type, $lang);
 
         if (is_array($result)) {
             $llResult = array();
             foreach ($result as $res) {
                 if ($res instanceof self && (!empty($this->_rm))) {
-                    $llResult[] = $this->_rm->find(null, $res->getUri());
+                    if ($this->_rm->getUnitOfWork()->isManaged($res)) {
+                        $llResult[] = $this->_rm->getUnitOfWork()->retrieveResource($res->getUri());
+                    }
+                    else {
+                        $resLazyLoad = $this->_rm->find($res->getUri());
+                        $llResult[] = $resLazyLoad ? $resLazyLoad : $res;
+                    }
+                }
+                else if ($res instanceof Literal) {
+                    $llResult[] = $res;
                 }
             }
-
             return $llResult;
-        } elseif ($this->_rm->isResource($result)) {
+        }
+        else if ($this->_rm->isResource($result)) {
             try {
                 if ($result->isBNode()) {
                     $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
-                } else {
-                    $re = $this->_rm->find(null, $result->getUri());
+                }
+                else {
+                    $re = $this->_rm->find($result->getUri());
                 }
                 if (!empty($re)) {
                     if ($rest === '') {
                         return $re;
                     }
-
                     return $re->all($rest, $type, $lang);
                 }
-
-                return;
-            } catch (Exception $e) {
-                return;
+                return $re;
             }
-        } else {
+            catch (Exception $e) {
+                return $e->getMessage();
+            }
+        }
+        else {
             return $result;
         }
     }
@@ -112,8 +129,15 @@ class Resource extends BaseResource
     {
         list($first, $rest) = $this->split($property);
 
-        //first trrying to get first step value
+        //first trying to get first step value
         $result = parent::get($first, $type, $lang);
+        // if getProperty method is defined in RdfResource
+        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
+            $this->$key = $result;
+            if ($this->propertyMetadataAccessor->isReadable($this, $key)) {
+                $result = $this->propertyMetadataAccessor->getValue($this, $key);
+            }
+        }
 
         if (is_array($result)) {
             if (count($result)) {
@@ -122,13 +146,18 @@ class Resource extends BaseResource
 
             return;
         } elseif ($result instanceof self  && (!empty($this->_rm))) { //we get a resource
-
             try {
                 //"lazy load" part : we get the complete resource
                 if ($result->isBNode()) {
-                    $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                    if ($this->_rm->getUnitOfWork()->isManaged($result)) {
+                        $re = $this->_rm->getUnitOfWork()->retrieveResource($result->getUri());
+                    }
+                    else {
+                        $re = $this->_rm->getUnitOfWork()->getPersister()->constructBNode($this->uri, $first);
+                        $re->setRm($this->_rm);
+                    }
                 } else {
-                    $re = $this->_rm->find(null, $result->getUri());
+                    $re = $this->_rm->find($result->getUri());
                 }
 
                 if (!empty($re)) {
@@ -136,7 +165,7 @@ class Resource extends BaseResource
                         return $re;
                     }
                     //if rest of path is not empty, we get along it
-                     return $re->get($rest, $type, $lang);
+                    return $re->get($rest, $type, $lang);
                 }
 
                 return;
@@ -158,6 +187,14 @@ class Resource extends BaseResource
         //resource: check if managed (for further save
         if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
+        }
+
+        // if setProperty method is defined in RdfResource
+        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
+            if ($this->propertyMetadataAccessor->isWritable($this, $key)) {
+                $this->propertyMetadataAccessor->setValue($this, $key, $value);
+                $value = $this->$key;
+            }
         }
         $out = parent::set($property, $value);
 
@@ -248,5 +285,26 @@ class Resource extends BaseResource
     public function setReady()
     {
         $this->isReady = true;
+    }
+
+    /**
+     * Overloading ArrayAccess implementation methods
+     * @todo better existence check strategy
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return true;
+    }
+
+    /**
+     * Overloading ArrayAccess implementation methods
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
     }
 }

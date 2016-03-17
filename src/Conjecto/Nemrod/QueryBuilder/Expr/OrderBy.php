@@ -45,11 +45,7 @@ class OrderBy extends Base
      */
     public function add($sort, $order = null)
     {
-        if (strtoupper($order) !== 'DESC') {
-            $this->parts[] = $sort;
-        } else {
-            $this->parts[] = 'DESC('.$sort.')';
-        }
+        $this->parts[] = "$order($sort)";
     }
 
     /**

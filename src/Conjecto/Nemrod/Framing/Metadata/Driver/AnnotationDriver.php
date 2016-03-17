@@ -42,23 +42,47 @@ class AnnotationDriver implements DriverInterface
     public function loadMetadataForClass(\ReflectionClass $class)
     {
         $classMetadata = new ClassMetadata($class->getName());
-        $annotation = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd');
-        if (null !== $annotation) {
+        $jsonLdPath = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd');
+        if (null !== $jsonLdPath) {
             // frame
-            $classMetadata->setFrame($annotation->frame);
+            $classMetadata->setFrame($jsonLdPath->frame);
             // options
-            $classMetadata->setOptions($annotation->options);
+            $classMetadata->setOptions($jsonLdPath->options);
+        }
+        $subClassOfProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf');
+        if (null !== $subClassOfProperty) {
+            // ParentClass
+            $classMetadata->setParentClasses($subClassOfProperty->parentClasses);
+        }
+        $typeProperty = $this->reader->getClassAnnotation($class, 'Conjecto\\Nemrod\\ResourceManager\\Annotation\\Resource');
+        if (null !== $typeProperty) {
+            // rdf:type
+            $classMetadata->setTypes($typeProperty->types);
         }
 
         foreach ($class->getMethods() as $reflectionMethod) {
             $methodMetadata = new MethodMetadata($class->getName(), $reflectionMethod->getName());
-            $annotation = $this->reader->getMethodAnnotation(
-              $reflectionMethod,
-              'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd'
+            $jsonLdPath = $this->reader->getMethodAnnotation(
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\Framing\\Annotation\\JsonLd'
             );
-            if (null !== $annotation) {
-                $methodMetadata->setFrame($annotation->frame);
-                $methodMetadata->setOptions($annotation->options);
+            if (null !== $jsonLdPath) {
+                $methodMetadata->setFrame($jsonLdPath->frame);
+                $methodMetadata->setOptions($jsonLdPath->options);
+            }
+            $subClassOfProperty = $this->reader->getMethodAnnotation(
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\Framing\\Annotation\\SubClassOf'
+            );
+            if (null !== $subClassOfProperty) {
+                $methodMetadata->setParentClasses($subClassOfProperty->parentClasses);
+            }
+            $typeProperty = $this->reader->getMethodAnnotation(
+                $reflectionMethod,
+                'Conjecto\\Nemrod\\ResourceManager\\Annotation\\Resource'
+            );
+            if (null !== $typeProperty) {
+                $methodMetadata->setTypes($typeProperty->types);
             }
             $classMetadata->addMethodMetadata($methodMetadata);
         }

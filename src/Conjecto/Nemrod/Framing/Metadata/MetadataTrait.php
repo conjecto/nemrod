@@ -21,11 +21,24 @@ trait MetadataTrait
     public $frame;
 
     /**
+     * JsonLD: subClassOf
+     *
+     * @var array
+     */
+    public $parentClasses;
+
+    /**
      * JsonLD : options.
      *
      * @var
      */
     public $options = array();
+
+    /**
+     * Rdf types
+     * @var array
+     */
+    public $types;
 
     /**
      * @return mixed
@@ -44,6 +57,22 @@ trait MetadataTrait
     }
 
     /**
+     * @return array
+     */
+    public function getParentClasses()
+    {
+        return $this->parentClasses;
+    }
+
+    /**
+     * @param string $parentClasses
+     */
+    public function setParentClasses($parentClasses)
+    {
+        $this->parentClasses = $parentClasses;
+    }
+
+    /**
      * @return mixed
      */
     public function getOptions()
@@ -57,5 +86,21 @@ trait MetadataTrait
     public function setOptions($options)
     {
         $this->options = $options;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTypes()
+    {
+        return $this->types;
+    }
+
+    /**
+     * @param array $types
+     */
+    public function setTypes($types)
+    {
+        $this->types = $types;
     }
 }

@@ -11,6 +11,8 @@
 
 namespace Conjecto\Nemrod\ElasticSearch;
 
+use Elastica\Index;
+
 /**
  * Class IndexRegistry.
  */
@@ -32,6 +34,7 @@ class IndexRegistry
 
     /**
      * @param $name
+     * @return Index
      */
     public function getIndex($name)
     {

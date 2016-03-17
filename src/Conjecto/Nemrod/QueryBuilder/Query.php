@@ -251,29 +251,13 @@ class Query
 
         $this->result = $this->rm->getClient()->query($this->completeSparqlQuery);
 
-        if ($this->type === QueryBuilder::CONSTRUCT) {
+        if ($this->type === QueryBuilder::SELECT) {
+            $this->result = $this->resultToArray($this->result);
+        }
+        else if ($this->type === QueryBuilder::CONSTRUCT) {
             $this->result = $this->resultToGraph($this->result);
-        }
-
-        if (($hydrator = $this->newHydrator($hydratation)) !== null) {
-            $this->result = $hydrator->hydrateResources($options);
-        }
-
-        if ($hydratation === self::HYDRATE_COLLECTION) {
-            $this->rm->getUnitOfWork()->blackListCollection($this->result);
-            $count = count($this->result);
-            for ($cnt = 1; $cnt <= $count; $cnt++) {
-                $this->rm->getUnitOfWork()->replaceResourceInstance($this->result[$cnt]);
-            }
-        } elseif ($hydratation === self::HYDRATE_ARRAY) {
-
-            //if resources are not managed yet, we register them. Otherwise
-            foreach ($this->result as $k => $res) {
-                if (!$this->rm->getUnitOfWork()->isManaged($res)) {
-                    $this->rm->getUnitOfWork()->registerResource($res);
-                } else {
-                    $this->result[$k] = $this->rm->getUnitOfWork()->replaceResourceInstance($res);
-                }
+            if (($hydrator = $this->newHydrator($hydratation)) !== null) {
+                $this->result = $hydrator->hydrateResources($options);
             }
         }
 
@@ -431,5 +415,28 @@ class Query
         }
 
         return $graph;
+    }
+
+    /**
+     * @param Result $results
+     * @return array
+     */
+    private function resultToArray($results)
+    {
+        $arrayResult = array();
+        foreach ($results as $key => $result) {
+            foreach ($results->getFields() as $field) {
+                if ($result->$field instanceof \EasyRdf\Literal) {
+                    $arrayResult[$key][$field] = $result->$field->getValue();
+                }
+                else if ($result->$field instanceof \EasyRdf\Resource) {
+                    $arrayResult[$key][$field] = $result->$field->getUri();
+                }
+                else {
+                    $arrayResult[$key][$field] = $result->$field;
+                }
+            }
+        }
+        return $arrayResult;
     }
 }

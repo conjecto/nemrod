@@ -15,8 +15,8 @@
     "require": {
         "php": ">=5.3.3",
         "symfony/symfony": "~2.3",
+        "conjecto/json-ld": "dev-master",
         "easyrdf/easyrdf": "dev-master",
-		"ml/json-ld": "~1.0",
         "jms/serializer": "~0.11",
         "ruflin/elastica": "~1.4.3"
     },
@@ -33,6 +33,5 @@
         "psr-4": {
             "Conjecto\\Nemrod\\": "src/Conjecto/Nemrod/"
         }
-    },
-    "minimum-stability": "stable"
+    }
 }

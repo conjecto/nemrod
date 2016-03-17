@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
 
@@ -87,10 +88,10 @@ class NemrodExtension extends Extension
     {
         foreach ($config['endpoints'] as $name => $endpoint) {
             $container
-              ->setDefinition('nemrod.sparql.connection.'.$name, new DefinitionDecorator('nemrod.sparql.connection'))
-              ->setArguments(array(
-                  $endpoint['query_uri'],
-                  isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
+                ->setDefinition('nemrod.sparql.connection.'.$name, new DefinitionDecorator('nemrod.sparql.connection'))
+                ->setArguments(array(
+                    $endpoint['query_uri'],
+                    isset($endpoint['update_uri']) ? $endpoint['update_uri'] : null,
                 ));
             $container->setAlias('sparql.'.$name, 'nemrod.sparql.connection.'.$name);
             if ($name === $config['default_endpoint']) {
@@ -145,25 +146,27 @@ class NemrodExtension extends Extension
      */
     private function registerResourceMappings(array $config, ContainerBuilder $container)
     {
-        $paths = array();
-
-        // foreach bundle, get the rdf resource path
-        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
-            // building resource dir path
-            $refl = new \ReflectionClass($class);
-            $path = pathinfo($refl->getFileName());
-            $resourcePath = $path['dirname'].'\\RdfResource\\';
-            //adding dir path to driver known pathes
-            if (is_dir($resourcePath)) {
-                $paths[$refl->getNamespaceName()] = $resourcePath;
-            }
-        }
-
         // registering all annotation mappings.
         $service = $container->getDefinition('nemrod.type_mapper');
-
         //setting default resource
         $service->addMethodCall('setDefaultResourceClass', array($container->getParameter('nemrod.resource.class')));
+
+        // get bundles and classes
+        $finder = new Finder();
+        $classes = array();
+        $paths = array();
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
+            // in bundle
+            $reflection = new \ReflectionClass($class);
+            if (is_dir($dir = dirname($reflection->getFilename()) . DIRECTORY_SEPARATOR.'RdfResource')) {
+                $paths[$bundle] = dirname($reflection->getFilename()) . DIRECTORY_SEPARATOR.'RdfResource';
+                foreach($finder->in($dir) as $file) {
+                    if(is_file($file)) {
+                        $classes[] = $this->getClassRelativePath($file->getPathName());
+                    }
+                }
+            }
+        }
 
         $driver = new AnnotationDriver(new AnnotationReader(), $paths);
 
@@ -171,14 +174,16 @@ class NemrodExtension extends Extension
         $annDriver = $container->getDefinition('nemrod.metadata_annotation_driver');
         $annDriver->replaceArgument(1, $paths);
 
-        $classes = $driver->getAllClassNames();
-
         foreach ($classes as $class) {
             $metadata = $driver->loadMetadataForClass(new \ReflectionClass($class));
             foreach ($metadata->types as $type) {
                 $service->addMethodCall('set', array($type, $class));
             }
         }
+
+        // guess class filiation
+        $registry = $container->getDefinition('nemrod.filiation.builder');
+        $registry->addMethodCall('guessRdfClassFiliation', array($classes));
     }
 
     /**
@@ -191,20 +196,23 @@ class NemrodExtension extends Extension
         $jsonLdFilesystemLoaderDefinition = $container->getDefinition('nemrod.jsonld.frame.loader.filesystem');
         foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
             // in app
-            if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/'.$bundle.'/frames')) {
+            if (is_dir($dir = $container->getParameter('kernel.root_dir').DIRECTORY_SEPARATOR . 'Resources' . DIRECTORY_SEPARATOR.$bundle.DIRECTORY_SEPARATOR.'frames')) {
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
 
             // in bundle
             $reflection = new \ReflectionClass($class);
-            if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/frames')) {
+            if (is_dir($dir = dirname($reflection->getFilename()).DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'frames')) {
                 $this->addJsonLdFramePath($jsonLdFilesystemLoaderDefinition, $dir, $bundle);
             }
         }
 
-        if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/frames')) {
+        if (is_dir($dir = $container->getParameter('kernel.root_dir').DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'frames')) {
             $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir));
         }
+
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setFiliationBuilder', array(new Reference('nemrod.filiation.builder')));
+        $jsonLdFilesystemLoaderDefinition->addMethodCall('setMetadataFactory', array(new Reference('nemrod.jsonld.metadata_factory')));
     }
 
     /**
@@ -221,6 +229,14 @@ class NemrodExtension extends Extension
             $name = substr($name, 0, -6);
         }
         $jsonLdFilesystemLoaderDefinition->addMethodCall('addPath', array($dir, $name));
+    }
+
+    private function getClassRelativePath($filePath)
+    {
+        $cutName = strstr($filePath, DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR);
+        $cutName = substr($cutName, 5);
+        $name = substr($cutName, 0, strlen($cutName) - 4);
+        return str_replace(DIRECTORY_SEPARATOR, '\\', $name);
     }
 
     /**
