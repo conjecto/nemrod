@@ -27,7 +27,7 @@ A quick way to test Nemrod Abilities before installing it into your project is t
 
 Requirements
 ------------
-- Symfony > 2.3, [Begin a Symfony Project](http://symfony.com/get-started)
+- Symfony > 2.5, [Begin a Symfony Project](http://symfony.com/get-started)
 
 Installation
 ------------
