@@ -22,4 +22,13 @@ Nemrod 0.1.1
 Nemrod 0.1.2
 ============
 
-* Resource manager: finf(One)By manages datatypes & langs (through EasyRdf Literals), uris. 
+* Resource manager: finf(One)By manages datatypes & langs (through EasyRdf Literals), uris.
+
+Nemrod 0.1.3
+============
+
+* Nemrod now index resources in elasticsearch
+* RDF resources are cascade updated and deleted in elasticsearch
+* Elasticsearch indexed documents use polymorphism. You can search a document with all its rdf types 
+* Better JsonLD serialization
+* A lot of bug fixes
