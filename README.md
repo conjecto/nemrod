@@ -27,17 +27,17 @@ A quick way to test Nemrod Abilities before installing it into your project is t
 
 Requirements
 ------------
-- Symfony > 2.5, [Begin a Symfony Project](http://symfony.com/get-started)
+- Symfony > 2.5, [Begin a Symfony Project](https://symfony.com/download)
 
 Installation
 ------------
 Nemrod can be installed using composer :
 
-    composer require conjecto/nemrod:~0.1.0@dev easyrdf/easyrdf:@dev conjecto/json-ld:@dev
+    composer require conjecto/nemrod:master easyrdf/easyrdf:@dev conjecto/json-ld:@dev
 
 you can also add dependency directly in your composer.json file:
 
-    "conjecto/nemrod": "~0.1.0@dev"
+    "conjecto/nemrod": "master"
     "easyrdf/easyrdf": "@dev"
     "conjecto/json-ld": "@dev"
 
