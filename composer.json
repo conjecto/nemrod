@@ -14,7 +14,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "symfony/symfony": "~2.3",
+        "symfony/symfony": "~2.6",
         "conjecto/json-ld": "dev-master",
         "easyrdf/easyrdf": "dev-master",
         "jms/serializer": "~0.11",
