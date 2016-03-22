@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod\QueryBuilder\Internal\Hydratation;
 
+use Conjecto\Nemrod\Resource;
 use EasyRdf\Collection;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
@@ -30,13 +31,15 @@ class CollectionHydrator extends AbstractHydrator
 
         //building collection
         foreach ($resources as $resource) {
+            if (!$resource instanceof Resource) {
+                $resource = new Resource($resource->getUri(), $resource->getGraph());
+                $resource->setRm($this->rm);
+            }
+            $this->rm->getUnitOfWork()->registerResource($resource);
+            $this->rm->getUnitOfWork()->replaceResourceInstance($resource);
             $collection->append($resource);
         }
         $this->rm->getUnitOfWork()->blackListCollection($collection);
-
-        foreach ($resources as $resource) {
-            $this->rm->getUnitOfWork()->registerResource($resource);
-        }
 
         return $collection;
     }

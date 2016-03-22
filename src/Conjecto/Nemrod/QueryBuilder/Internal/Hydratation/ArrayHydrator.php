@@ -21,14 +21,16 @@ class ArrayHydrator extends AbstractHydrator
             throw new MissingOptionsException('Missing key rdf:type in options');
         }
 
-        $resources = $this->graph->allOfType($options['rdf:type']);
-
         $array = array();
-
-        //building array & registering resources
+        $resources = $this->graph->allOfType($options['rdf:type']);
         foreach ($resources as $resource) {
+            if (!$this->rm->getUnitOfWork()->isManaged($resource)) {
+                $this->rm->getUnitOfWork()->registerResource($resource);
+            }
+            else {
+                $resource = $this->rm->getUnitOfWork()->replaceResourceInstance($resource);
+            }
             $array[$resource->getUri()] = $resource;
-            $this->rm->getUnitOfWork()->registerResource($resource);
         }
 
         return $array;
