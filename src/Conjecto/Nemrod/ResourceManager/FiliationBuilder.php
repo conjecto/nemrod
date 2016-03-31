@@ -29,10 +29,14 @@ class FiliationBuilder
     /**
      * @param MetadataFactory $metadataFactory
      */
-    function __construct(MetadataFactory $metadataFactory)
+    function __construct()
+    {
+        $this->rdfFiliation = array();
+    }
+
+    function setMetadataFactory(MetadataFactory $metadataFactory)
     {
         $this->metadataFactory = $metadataFactory;
-        $this->rdfFiliation = array();
     }
 
     /**
@@ -42,11 +46,18 @@ class FiliationBuilder
     public function guessRdfClassFiliation($classes)
     {
         foreach ($classes as $class) {
-            $metadata = $this->metadataFactory->getMetadataForClass($class);
-            $types = $metadata->getTypes();
-            if (!empty($types)) {
-                $parentClasses = $metadata->getParentClasses();
-                $this->addParentClass($types, $parentClasses);
+            // for symfony2
+            if (is_string($class)) {
+                $metadata = $this->metadataFactory->getMetadataForClass($class);
+                $types = $metadata->getTypes();
+                if (!empty($types)) {
+                    $parentClasses = $metadata->getParentClasses();
+                    $this->addParentClass($types, $parentClasses);
+                }
+            }
+            // for drupal8
+            else if (is_array($class)) {
+                $this->addParentClass($class['types'], $class['parentClasses']);
             }
         }
         return $this->rdfFiliation;

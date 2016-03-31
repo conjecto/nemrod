@@ -25,6 +25,7 @@ use EasyRdf\Collection;
 use EasyRdf\Exception;
 use EasyRdf\Literal;
 use EasyRdf\Graph;
+use EasyRdf\RdfNamespace;
 use EasyRdf\TypeMapper;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -267,10 +268,8 @@ class UnitOfWork
     }
 
     /**
-     * @param $className
      * @param BaseResource $resource
-     *
-     * @throws Exception
+     * @return mixed|null|string
      */
     public function persist(BaseResource $resource)
     {
@@ -283,9 +282,8 @@ class UnitOfWork
             $this->setStatus($resource, self::STATUS_NEW);
 
             if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
-                /** @var ClassMetadata $metadata */
-                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+                $uriPattern = $this->_rm->getUriPatternStore()->getUriPattern($resource->types());
+                $this->uriCorrespondances[$resource->getUri()] = RdfNamespace::expand($this->generateURI(array('prefix' => $uriPattern)));
             } else if (isset($this->uriCorrespondances[$resource->getUri()])) {
                 //if uri is already set, we stop everything and return it.
                 return $this->uriCorrespondances[$resource->getUri()];
@@ -293,31 +291,25 @@ class UnitOfWork
         }
 
         $this->evd->dispatch(Events::PrePersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
-
         $this->registerResource($resource, false);
 
-        //getting entities to be cascade persisted
-        $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-        /** @var PropertyMetadata $pm */
-        foreach ($metadata->propertyMetadata as $pm) {
-            if (is_array($pm->cascade) && in_array('persist', $pm->cascade)) {
-                $cascadeResources = $resource->allResources($pm->value);
-
+        $propertiesToCascade = $this->_rm->getCascadePropertyRegistry()->getTypeCascadeProperties($resource->types());
+        foreach ($propertiesToCascade as $property => $cascadeOptions) {
+            if (in_array('persist', $cascadeOptions)) {
+                $cascadeResources = $resource->allResources($property);
                 foreach ($cascadeResources as $res2) {
-
                     //sub-resource may have been stored as a temporary resource -
                     // it becomes a managed resource
                     if (!empty($this->tempResources[$res2->getUri()])) {
                         $res2 = $this->tempResources[$res2->getUri()];
                         unset($this->tempResources[$res2->getUri()]);
                     }
-
-                    $this->persist($res2);
+                    var_dump($this->persist($res2));
                 }
             }
         }
-        $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
+        $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
         return $this->uriCorrespondances[$resource->getUri()];
     }
 
@@ -342,13 +334,11 @@ class UnitOfWork
         foreach ($concernedResources as $resource) {
             //generating an uri if resource is a blank node
             if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
-                /** @var ClassMetadata $metadata */
-                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+                $uriPattern = $this->_rm->getUriPatternStore()->getUriPattern($resource->types());
+                $this->uriCorrespondances[$resource->getUri()] = RdfNamespace::expand($this->generateURI(array('prefix' => $uriPattern)));
             }
         }
         $this->getSnapshotForResource($this->registeredResources, $array);
-
         $chSt = $this->diff(
             $this->getSnapshotForResource($this->registeredResources),
             $this->mergeRdfPhp($concernedResources),
@@ -356,7 +346,6 @@ class UnitOfWork
 
         //triggering pre-flush event
         $this->evd->dispatch(Events::PreFlush, new PreFlushEvent($this->getChangesetForEvent($chSt), $this->_rm));
-
         //update if needed
         if (!empty($chSt[0]) || !empty($chSt[1])) {
             $this->persister->update(null, $chSt[0], $chSt[1], null);

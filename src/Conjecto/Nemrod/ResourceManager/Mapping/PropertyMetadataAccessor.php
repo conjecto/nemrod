@@ -22,7 +22,7 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Component\PropertyAccess\StringUtil;
 
-class PropertyMetadataAccessor implements PropertyAccessorInterface
+class PropertyMetadataAccessor
 {
     const VALUE = 0;
     const IS_REF = 1;

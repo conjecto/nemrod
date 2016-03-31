@@ -12,9 +12,12 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\ResourceManager\PersisterInterface;
+use Conjecto\Nemrod\ResourceManager\Registry\CascadePropertyRegistry;
 use Conjecto\Nemrod\ResourceManager\RepositoryFactory;
 use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
+use Conjecto\Nemrod\ResourceManager\UriPatternStore;
 use EasyRdf\Sparql\Client;
 use EasyRdf\TypeMapper;
 use Metadata\MetadataFactory;
@@ -43,6 +46,12 @@ class Manager
 
     /** @var  Logger */
     private $logger;
+
+    /** @var UriPatternStore */
+    private $uriPatternStore;
+
+    /** @var CascadePropertyRegistry */
+    private $cascadePropertyRegistry;
 
     /** @var MetadataFactory */
     private $metadataFactory;
@@ -156,7 +165,7 @@ class Manager
     }
 
     /**
-     * @return \EasyRdf_Sparql_Client
+     * @return Client
      */
     public function getPersister()
     {
@@ -198,8 +207,10 @@ class Manager
     }
 
     /**
+     * the new uri of the resource
+     *
      * @param Resource $resource
-     * @return the new uri of the resource.
+     * @return string
      */
     public function persist(Resource $resource)
     {
@@ -285,6 +296,38 @@ class Manager
     }
 
     /**
+     * @param UriPatternStore $uriPatternStore
+     */
+    public function setUriPatternStore(UriPatternStore $uriPatternStore)
+    {
+        $this->uriPatternStore = $uriPatternStore;
+    }
+
+    /**
+     * @return UriPatternStore
+     */
+    public function getUriPatternStore()
+    {
+        return $this->uriPatternStore;
+    }
+
+    /**
+     * @return CascadePropertyRegistry
+     */
+    public function getCascadePropertyRegistry()
+    {
+        return $this->cascadePropertyRegistry;
+    }
+
+    /**
+     * @param CascadePropertyRegistry $cascadePropertyRegistry
+     */
+    public function setCascadePropertyRegistry($cascadePropertyRegistry)
+    {
+        $this->cascadePropertyRegistry = $cascadePropertyRegistry;
+    }
+
+    /**
      *
      */
     public function setMetadataFactory($metadataFactory)
@@ -298,22 +341,6 @@ class Manager
     public function getMetadataFactory()
     {
         return $this->metadataFactory;
-    }
-
-    /**
-     * @param $type
-     *
-     * @return \Metadata\ClassHierarchyMetadata|\Metadata\MergeableClassMetadata|null
-     */
-    public function getMetadata($type)
-    {
-        $class = TypeMapper::get($type);
-
-        if ($class) {
-            return $this->metadataFactory->getMetadataForClass($class);
-        }
-
-        return;
     }
 
     /**
@@ -346,15 +373,5 @@ class Manager
     public function setClient($sparqlClient)
     {
         $this->sparqlClient = $sparqlClient;
-    }
-
-    /**
-     * @param $phpClass
-     */
-    public function getRdfClass($phpClass)
-    {
-        $class = TypeMapper::get($phpClass);
-
-        return $class;
     }
 }
