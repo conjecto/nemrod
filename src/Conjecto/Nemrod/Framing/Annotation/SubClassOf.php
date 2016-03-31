@@ -15,7 +15,7 @@ namespace Conjecto\Nemrod\Framing\Annotation;
  * SubClassOf annotation for JsonLD serialization.
  *
  * @Annotation
- * @Target({"CLASS", "METHOD"})
+ * @Target({"CLASS"})
  */
 class SubClassOf
 {
