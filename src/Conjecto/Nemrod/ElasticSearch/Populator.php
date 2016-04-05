@@ -14,6 +14,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\Resource;
 use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\RdfNamespace;
@@ -211,20 +212,35 @@ class Populator
      */
     protected function getResources($class, $options, $done)
     {
-        $options['offset'] = $done;
-        $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $class);
-        $select->orderBy('?uri');
-        $select->setOffset($done);
-        $select->setMaxResults($options['slice']);
-        $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
-        $selectStr = $select->getCompleteSparqlQuery();
         $qb = $this->resourceManager->getRepository($class)->getQueryBuilder();
         $qb->reset()
             ->construct("?uri a $class")
-            ->addConstruct('?uri rdf:type ?type')
+            ->where('?uri a ' . $class);
+
+        $options['offset'] = $done;
+        $selectSubQuery = $this->resourceManager->getQueryBuilder()
+            ->select('?uri')
             ->where('?uri a ' . $class)
-            ->andWhere('?uri rdf:type ?type')
-            ->andWhere('{' . $selectStr . '}');
+            ->orderBy('?uri')
+            ->setOffset($done);
+
+        // get children $class rdf:types
+        $excludedClasses = $this->filiationBuilder->getChildrenClasses($class);
+        $excludedClasses = array_unique($excludedClasses);
+        // remove actual key
+        if ($excludedClasses[0] === $class) {
+            unset($excludedClasses[0]);
+        }
+        // remove not indexed types
+        foreach ($excludedClasses as $key => $value) {
+            if (in_array($value, $this->serializerHelper->getAllTypes())) {
+                // exclude sub types already populated in ES
+                $selectSubQuery->andWhere("MINUS{ ?uri a $value }");
+            }
+        }
+        $select = $selectSubQuery->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
+        $qb->andWhere('{' . $selectStr . '}');
 
         return $qb->getQuery()->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $class));
     }
@@ -258,6 +274,19 @@ class Populator
         $qb->reset()
             ->select('(COUNT(DISTINCT ?instance) AS ?count)')
             ->where('?instance a ' . $key);
+
+        $excludedClasses = $this->filiationBuilder->getChildrenClasses($key);
+        $excludedClasses = array_unique($excludedClasses);
+        // remove actual key
+        if ($excludedClasses[0] === $key) {
+            unset($excludedClasses[0]);
+        }
+        // remove not indexed types
+        foreach ($excludedClasses as $class) {
+            if (in_array($class, $this->serializerHelper->getAllTypes())) {
+                $qb->andWhere("MINUS{ ?instance a $class }");
+            }
+        }
 
         return $qb->getQuery()->execute();
     }
