@@ -138,44 +138,53 @@ class Populator
         }
 
         $size = current($size)['count'];
-        $progress = $this->displayInitialAvancement($size, $options, $showProgress, $output);
-        $done = 0;
-        while ($done < $size) {
-            $resources = $this->getResources($class, $options, $done);
-            $uris = array();
-            $docs = array();
+        $output->writeln($size . " entries");
 
-            // build uris
+        $progress = $this->displayInitialAvancement($size, $options['slice'], $showProgress, $output);
+        $doneQuery = 0;
+        $doneAll = 0;
+
+        while ($doneQuery < $size) {
+            $all_uris = array();
+            $resources = $this->getResources($class, $options, $doneQuery);
+
             foreach ($resources as $resource) {
-                $types = $resource->all('rdf:type');
-                $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $class);
-                // index only the current resource if the most accurate type is the key populating
-                if ($class === $mostAccurateType) {
-                    $uris[] = $resource->getUri();
+                $all_uris[] = $resource['uri'];
+            }
+
+            // $progress = $this->displayInitialAvancement($size, $options['slice'], $showProgress, $output);
+            $done = 0;
+            while ($done < count($all_uris)) {
+
+                $uris = array_slice($all_uris,$done,$options['slice']);
+                $docs = array();
+
+                // transform uris
+                if(count($uris)) {
+                    $docs = $trans->transform($uris, $index, $class);
                 }
+
+                // send documents to elasticsearch
+                if (count($docs)) {
+                    $typeEs->addDocuments($docs);
+                }
+
+                $diff = count($uris) - count($docs);
+                if($diff > 0) {
+                    $output->writeln(sprintf("%s : %d/%d skipped resources", $type, $diff, count($uris)));
+                }
+                $done += $options['slice'];
+                if ($done > $size) {
+                    $done = $size;
+                }
+                $doneAll = $this->displayAvancement($options['slice'], $doneAll, $size, $showProgress, $output, $progress);
+                //flushing manager for mem usage
+                $this->resourceManager->flush();
             }
-
-            // transform uris
-            if(count($uris)) {
-                $docs = $trans->transform($uris, $index, $mostAccurateType);
-            }
-
-            // send documents to elasticsearch
-            if (count($docs)) {
-                $typeEs->addDocuments($docs);
-            }
-
-            $diff = count($uris) - count($docs);
-            if($diff > 0) {
-                $output->writeln(sprintf("%s : %d/%d skipped resources", $type, $diff, count($uris)));
-            }
-
-            $done = $this->displayAvancement($options, $done, $size, $showProgress, $output, $progress);
-
-            //flushing manager for mem usage
-            $this->resourceManager->flush();
         }
         $progress->finish();
+
+
     }
 
     /**
@@ -214,7 +223,7 @@ class Populator
     {
         $qb = $this->resourceManager->getRepository($class)->getQueryBuilder();
         $qb->reset()
-            ->construct("?uri a $class")
+            ->select("?uri")
             ->where('?uri a ' . $class);
 
         $options['offset'] = $done;
@@ -238,7 +247,7 @@ class Populator
                 $selectSubQuery->andWhere("MINUS{ ?uri a $value }");
             }
         }
-        $select = $selectSubQuery->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
+        $select = $selectSubQuery->setMaxResults($options['slice-query'])->getQuery();
         $selectStr = $select->getCompleteSparqlQuery();
         $qb->andWhere('{' . $selectStr . '}');
 
@@ -298,12 +307,11 @@ class Populator
      * @param $output
      * @return null|ProgressBar
      */
-    protected function displayInitialAvancement($size, $options, $showProgress, $output)
+    protected function displayInitialAvancement($size, $limit, $showProgress, $output)
     {
         $progress = null;
-        $output->writeln($size . " entries");
         if ($showProgress) {
-            $progress = new ProgressBar($output, ceil($size / $options['slice']));
+            $progress = new ProgressBar($output, ceil($size / $limit));
             $progress->start();
             $progress->setFormat('debug');
         }
@@ -320,10 +328,10 @@ class Populator
      * @param $progress
      * @return mixed
      */
-    protected function displayAvancement($options, $done, $size, $showProgress, $output, $progress)
+    protected function displayAvancement($limit, $done, $size, $showProgress, $output, $progress)
     {
         //advance
-        $done += $options['slice'];
+        $done += $limit;
         if ($done > $size) {
             $done = $size;
         }
