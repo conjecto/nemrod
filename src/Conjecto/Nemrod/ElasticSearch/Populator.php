@@ -144,19 +144,19 @@ class Populator
         $doneQuery = 0;
         $doneAll = 0;
 
+        // loop on queries of $options['slice-query'] uris
         while ($doneQuery < $size) {
-            $all_uris = array();
+            $allUris = array();
             $resources = $this->getResources($class, $options, $doneQuery);
 
             foreach ($resources as $resource) {
-                $all_uris[] = $resource['uri'];
+                $allUris[] = $resource['uri'];
             }
 
-            // $progress = $this->displayInitialAvancement($size, $options['slice'], $showProgress, $output);
+            // Populate Elasticsearch
             $done = 0;
-            while ($done < count($all_uris)) {
-
-                $uris = array_slice($all_uris,$done,$options['slice']);
+            while ($done < count($allUris)) {
+                $uris = array_slice($allUris,$done,$options['slice']);
                 $docs = array();
 
                 // transform uris
@@ -174,17 +174,23 @@ class Populator
                     $output->writeln(sprintf("%s : %d/%d skipped resources", $type, $diff, count($uris)));
                 }
                 $done += $options['slice'];
-                if ($done > $size) {
-                    $done = $size;
+                $doneAll += $options['slice'];
+                if ($done > count($allUris)) {
+                    $done = count($allUris);
                 }
-                $doneAll = $this->displayAvancement($options['slice'], $doneAll, $size, $showProgress, $output, $progress);
+
+                $doneAll = $this->displayAvancement($doneAll, $size, $showProgress, $output, $progress);
                 //flushing manager for mem usage
                 $this->resourceManager->flush();
             }
+            $doneQuery += count($allUris);
+            if ($doneQuery > $size) {
+                $doneQuery = $size;
+            }
+
         }
         $progress->finish();
-
-
+        $output->writeln("");
     }
 
     /**
@@ -328,14 +334,8 @@ class Populator
      * @param $progress
      * @return mixed
      */
-    protected function displayAvancement($limit, $done, $size, $showProgress, $output, $progress)
+    protected function displayAvancement($done, $size, $showProgress, $output, $progress)
     {
-        //advance
-        $done += $limit;
-        if ($done > $size) {
-            $done = $size;
-        }
-
         //showing where we're at.
         if ($showProgress) {
             if ($output->isDecorated()) {

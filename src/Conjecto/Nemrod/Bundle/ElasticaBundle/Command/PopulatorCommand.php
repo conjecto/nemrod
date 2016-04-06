@@ -34,7 +34,7 @@ class PopulatorCommand extends ContainerAwareCommand
             ->setDescription('(Reset and) populate elastica indexes')
             ->addOption('index', null, InputOption::VALUE_OPTIONAL, 'The index to repopulate')
             ->addOption('type', null, InputOption::VALUE_OPTIONAL, 'The type to repopulate')
-            ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 50)
+            ->addOption('batch', null, InputOption::VALUE_OPTIONAL, 'batch size', 100)
             ->addOption('batch-query', null, InputOption::VALUE_OPTIONAL, 'batch query size', 10000)
             ->addOption('no-reset', null, InputOption::VALUE_NONE, 'populate without index reset')
             ->addOption('no-clear-cache', null, InputOption::VALUE_NONE, 'does not clear the cache')
@@ -44,6 +44,7 @@ class PopulatorCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $startPopulate = microtime(true);
         $reset = !$input->getOption('no-reset');
 
         $index         = $input->getOption('index');
@@ -111,5 +112,15 @@ class PopulatorCommand extends ContainerAwareCommand
         $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
 
         $this->getContainer()->get('nemrod.elastica.populator')->populate($index, $type, $reset, $options, $output);
+        $output->writeln(sprintf("Total time to populate : %s ",$this->secondsToTime(microtime(true)-$startPopulate)));
+    }
+
+    protected function secondsToTime($s)
+    {
+        $h = floor($s / 3600);
+        $s -= $h * 3600;
+        $m = floor($s / 60);
+        $s -= $m * 60;
+        return $h.':'.sprintf('%02d', $m).':'.sprintf('%02d', $s);
     }
 }
