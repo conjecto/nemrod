@@ -132,7 +132,7 @@ class Resource extends BaseResource
         //first trying to get first step value
         $result = parent::get($first, $type, $lang);
         // if getProperty method is defined in RdfResource, only available for Symfony2
-        if (!class_exists('Drupal\nemrod\Annotation\Resource')) {
+        if (!class_exists('Drupal\nemrod\Plugin\Annotation\Resource')) {
             if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
                 $this->$key = $result;
                 if ($this->propertyMetadataAccessor->isReadable($this, $key)) {
@@ -192,7 +192,7 @@ class Resource extends BaseResource
         }
 
         // if setProperty method is defined in RdfResource, only available for Symfony2
-        if (!class_exists('Drupal\nemrod\Annotation\Resource')) {
+        if (!class_exists('Drupal\nemrod\Plugin\Annotation\Resource')) {
             if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
                 if ($this->propertyMetadataAccessor->isWritable($this, $key)) {
                     $this->propertyMetadataAccessor->setValue($this, $key, $value);

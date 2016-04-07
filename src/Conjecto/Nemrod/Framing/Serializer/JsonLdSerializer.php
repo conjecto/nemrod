@@ -155,10 +155,11 @@ class JsonLdSerializer
     }
 
     /**
-     * Load the frame.
-     * @param string|null $frame
-     * @param string|null $parentClass
-     * @return array
+     * Load the frame
+     * @param null $frame
+     * @param $type
+     * @param $includeParentClassFrames
+     * @return array|null
      */
     protected function loadFrame($frame = null, $type, $includeParentClassFrames)
     {

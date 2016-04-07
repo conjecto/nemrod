@@ -262,9 +262,12 @@ class Manager
     /**
      * @param $className
      */
-    public function create($className)
+    public function create($className = null)
     {
-        return $this->getRepository($className)->create();
+        if ($className) {
+            return $this->getRepository($className)->create();
+        }
+        return $this->unitOfWork->create();
     }
 
     /**

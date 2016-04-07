@@ -57,7 +57,7 @@ class UriPatternStore
             $type = $types[0];
         }
         else if (is_array($types) && empty($types)) {
-            throw new \InvalidArgumentException('The types array is empty');
+            return 'nemrod_resource:';
         }
         else if (is_array($types) && count($types) > 1){
             $mostAccurateTypes = $this->filiationBuilder->getMostAccurateType($types);

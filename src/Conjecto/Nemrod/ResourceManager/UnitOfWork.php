@@ -304,7 +304,6 @@ class UnitOfWork
                         $res2 = $this->tempResources[$res2->getUri()];
                         unset($this->tempResources[$res2->getUri()]);
                     }
-                    var_dump($this->persist($res2));
                 }
             }
         }
@@ -470,7 +469,9 @@ class UnitOfWork
 
         /** @var BaseResource $resource */
         $resource = new $className($this->nextBNode(), new Graph());
-        $resource->addType($type);
+        if ($type) {
+            $resource->addType($type);
+        }
         $resource->setRm($this->_rm);
 
         //storing resource in temp resources array
@@ -581,7 +582,6 @@ class UnitOfWork
         foreach ($properties as $prop) {
             $values = $resource->getGraph()->all($resource->getUri(), $prop);
             foreach ($values as $value) {
-                //var_dump($managedInstance) ;
                 $status = $this->tripleStatus($managedInstance, $prop, $value);
 
                 //we have no trace of this triple. We can add it to resource AND snapshot
