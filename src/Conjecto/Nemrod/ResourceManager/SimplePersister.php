@@ -72,7 +72,9 @@ class SimplePersister implements PersisterInterface
         if (!$this->isEmpty($result)) {
             $resourceClass = null;
             foreach ($result->all($uri, 'rdf:type') as $type) {
-                $resourceClass = TypeMapper::get($type->getUri());
+                if (is_object($type) && $type instanceof \EasyRdf\Resource) {
+                    $resourceClass = TypeMapper::get($type->getUri());
+                }
                 if ($resourceClass !== null) {
                     break;
                 }
