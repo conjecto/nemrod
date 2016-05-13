@@ -9,10 +9,8 @@
  * file that was distributed with this source code.
  */
 
-namespace Conjecto\Nemrod\ResourceManager\Mapping;
+namespace Conjecto\Nemrod\PropertyAccess;
 
-
-use Conjecto\Nemrod\Resource;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyAccess\Exception\AccessException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -22,7 +20,12 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Component\PropertyAccess\StringUtil;
 
-class PropertyMetadataAccessor implements PropertyAccessorInterface
+/***
+ * Rewrited version of PropertyAccessor to remove $gettersetter option, incompatible with EasyRdf
+ *
+ * @package Conjecto\Nemrod\PropertyAccess
+ */
+class ResourcePropertyAccessor implements PropertyAccessorInterface
 {
     const VALUE = 0;
     const IS_REF = 1;
@@ -45,28 +48,6 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
     {
         $this->magicCall = $magicCall;
         $this->ignoreInvalidIndices = !$throwExceptionOnInvalidIndex;
-    }
-
-    /**
-     * @param Resource $object
-     * @param string $property
-     * @return bool|string
-     */
-    public function isPropertyMapped(Resource $object, $property)
-    {
-        if (get_class($object) != 'Conjecto\Nemrod\Resource') {
-            if ($rm = $object->getRm()) {
-                $metadata = $rm->getMetadataFactory()->getMetadataForClass(get_class($object));
-                foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
-                    if ($propertyMetadata->value == $property) {
-                        return $key;
-                    }
-                }
-            }
-            else {
-                return false;
-            }
-        }
     }
 
     /**
@@ -96,8 +77,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
 
         // Add the root object to the list
         array_unshift($propertyValues, array(
-            self::VALUE => &$objectOrArray,
-            self::IS_REF => true,
+          self::VALUE => &$objectOrArray,
+          self::IS_REF => true,
         ));
 
         for ($i = count($propertyValues) - 1; $i >= 0; --$i) {
@@ -115,7 +96,7 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
                 return;
             }
 
-            $value = & $objectOrArray;
+            $value = &$objectOrArray;
         }
     }
 
@@ -153,8 +134,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
 
             // Add the root object to the list
             array_unshift($propertyValues, array(
-                self::VALUE => $objectOrArray,
-                self::IS_REF => true,
+              self::VALUE => $objectOrArray,
+              self::IS_REF => true,
             ));
 
             for ($i = count($propertyValues) - 1; $i >= 0; --$i) {
@@ -213,18 +194,18 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
 
             // Create missing nested arrays on demand
             if ($isIndex &&
-                (
-                    ($objectOrArray instanceof \ArrayAccess && !isset($objectOrArray[$property])) ||
-                    (is_array($objectOrArray) && !array_key_exists($property, $objectOrArray))
-                )
+              (
+                ($objectOrArray instanceof \ArrayAccess && !isset($objectOrArray[$property])) ||
+                (is_array($objectOrArray) && !array_key_exists($property, $objectOrArray))
+              )
             ) {
                 if (!$ignoreInvalidIndices) {
                     if (!is_array($objectOrArray)) {
                         if (!$objectOrArray instanceof \Traversable) {
                             throw new NoSuchIndexException(sprintf(
-                                'Cannot read index "%s" while trying to traverse path "%s".',
-                                $property,
-                                (string) $propertyPath
+                              'Cannot read index "%s" while trying to traverse path "%s".',
+                              $property,
+                              (string) $propertyPath
                             ));
                         }
 
@@ -232,10 +213,10 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
                     }
 
                     throw new NoSuchIndexException(sprintf(
-                        'Cannot read index "%s" while trying to traverse path "%s". Available indices are "%s".',
-                        $property,
-                        (string) $propertyPath,
-                        print_r(array_keys($objectOrArray), true)
+                      'Cannot read index "%s" while trying to traverse path "%s". Available indices are "%s".',
+                      $property,
+                      (string) $propertyPath,
+                      print_r(array_keys($objectOrArray), true)
                     ));
                 }
 
@@ -279,8 +260,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
 
         // Use an array instead of an object since performance is very crucial here
         $result = array(
-            self::VALUE => null,
-            self::IS_REF => false,
+          self::VALUE => null,
+          self::IS_REF => false,
         );
 
         if (isset($array[$index])) {
@@ -313,8 +294,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
         // Use an array instead of an object since performance is
         // very crucial here
         $result = array(
-            self::VALUE => null,
-            self::IS_REF => false,
+          self::VALUE => null,
+          self::IS_REF => false,
         );
 
         if (!is_object($object)) {
@@ -324,15 +305,12 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
         $camelized = $this->camelize($property);
         $reflClass = new \ReflectionClass($object);
         $getter = 'get'.$camelized;
-        $getsetter = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
         $isser = 'is'.$camelized;
         $hasser = 'has'.$camelized;
         $classHasProperty = $reflClass->hasProperty($property);
 
         if ($reflClass->hasMethod($getter) && $reflClass->getMethod($getter)->isPublic()) {
             $result[self::VALUE] = $object->$getter();
-        } elseif ($this->isMethodAccessible($reflClass, $getsetter, 0)) {
-            $result[self::VALUE] = $object->$getsetter();
         } elseif ($reflClass->hasMethod($isser) && $reflClass->getMethod($isser)->isPublic()) {
             $result[self::VALUE] = $object->$isser();
         } elseif ($reflClass->hasMethod($hasser) && $reflClass->getMethod($hasser)->isPublic()) {
@@ -340,6 +318,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
         } elseif ($classHasProperty && $reflClass->getProperty($property)->isPublic()) {
             $result[self::VALUE] = &$object->$property;
             $result[self::IS_REF] = true;
+        } elseif ($reflClass->hasMethod('__get') && $reflClass->getMethod('__get')->isPublic()) {
+            $result[self::VALUE] = $object->$property;
         } elseif (!$classHasProperty && property_exists($object, $property)) {
             // Needed to support \stdClass instances. We need to explicitly
             // exclude $classHasProperty, otherwise if in the previous clause
@@ -352,17 +332,17 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
             // we call the getter and hope the __call do the job
             $result[self::VALUE] = $object->$getter();
         } else {
-            $methods = array($getter, $getsetter, $isser, $hasser, '__get');
+            $methods = array($getter, $isser, $hasser, '__get');
             if ($this->magicCall) {
                 $methods[] = '__call';
             }
 
             throw new NoSuchPropertyException(sprintf(
-                'Neither the property "%s" nor one of the methods "%s()" '.
-                'exist and have public access in class "%s".',
-                $property,
-                implode('()", "', $methods),
-                $reflClass->name
+              'Neither the property "%s" nor one of the methods "%s()" '.
+              'exist and have public access in class "%s".',
+              $property,
+              implode('()", "', $methods),
+              $reflClass->name
             ));
         }
 
@@ -424,14 +404,13 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
         }
 
         $setter = 'set'.$camelized;
-        $getsetter = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
         $classHasProperty = $reflClass->hasProperty($property);
 
         if ($this->isMethodAccessible($reflClass, $setter, 1)) {
             $object->$setter($value);
-        } elseif ($this->isMethodAccessible($reflClass, $getsetter, 1)) {
-            $object->$getsetter($value);
         } elseif ($classHasProperty && $reflClass->getProperty($property)->isPublic()) {
+            $object->$property = $value;
+        } elseif ($this->isMethodAccessible($reflClass, '__set', 2)) {
             $object->$property = $value;
         } elseif (!$classHasProperty && property_exists($object, $property)) {
             // Needed to support \stdClass instances. We need to explicitly
@@ -445,15 +424,14 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
             $object->$setter($value);
         } else {
             throw new NoSuchPropertyException(sprintf(
-                'Neither the property "%s" nor one of the methods %s"%s()", "%s()", '.
-                '"__set()" or "__call()" exist and have public access in class "%s".',
-                $property,
-                implode('', array_map(function ($singular) {
-                    return '"add'.$singular.'()"/"remove'.$singular.'()", ';
-                }, $singulars)),
-                $setter,
-                $getsetter,
-                $reflClass->name
+              'Neither the property "%s" nor one of the methods %s"%s()", '.
+              '"__set()" or "__call()" exist and have public access in class "%s".',
+              $property,
+              implode('', array_map(function ($singular) {
+                  return '"add'.$singular.'()"/"remove'.$singular.'()", ';
+              }, $singulars)),
+              $setter,
+              $reflClass->name
             ));
         }
     }
@@ -475,8 +453,10 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
         // see https://github.com/symfony/symfony/issues/4670
         $itemsToAdd = is_object($collection) ? iterator_to_array($collection) : $collection;
         $itemToRemove = array();
-        $propertyValue = $this->readProperty($object, $property);
+        $propertyValue = &$this->readProperty($object, $property);
         $previousValue = $propertyValue[self::VALUE];
+        // remove reference to avoid modifications
+        unset($propertyValue);
 
         if (is_array($previousValue) || $previousValue instanceof \Traversable) {
             foreach ($previousValue as $previousItem) {
@@ -522,14 +502,13 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
 
         $camelized = $this->camelize($property);
         $setter = 'set'.$camelized;
-        $getsetter = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
         $classHasProperty = $reflClass->hasProperty($property);
 
         if ($this->isMethodAccessible($reflClass, $setter, 1)
-            || $this->isMethodAccessible($reflClass, $getsetter, 1)
-            || ($classHasProperty && $reflClass->getProperty($property)->isPublic())
-            || (!$classHasProperty && property_exists($object, $property))
-            || ($this->magicCall && $this->isMethodAccessible($reflClass, '__call', 2))) {
+          || $this->isMethodAccessible($reflClass, '__set', 2)
+          || ($classHasProperty && $reflClass->getProperty($property)->isPublic())
+          || (!$classHasProperty && property_exists($object, $property))
+          || ($this->magicCall && $this->isMethodAccessible($reflClass, '__call', 2))) {
             return true;
         }
 
@@ -594,8 +573,8 @@ class PropertyMetadataAccessor implements PropertyAccessorInterface
             $method = $class->getMethod($methodName);
 
             if ($method->isPublic()
-                && $method->getNumberOfRequiredParameters() <= $parameters
-                && $method->getNumberOfParameters() >= $parameters) {
+              && $method->getNumberOfRequiredParameters() <= $parameters
+              && $method->getNumberOfParameters() >= $parameters) {
                 return true;
             }
         }

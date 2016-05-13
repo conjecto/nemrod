@@ -15,7 +15,10 @@ use Conjecto\Nemrod\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Conjecto\Nemrod\Manager;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
@@ -25,7 +28,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 class ResourceFormType extends FormType
 {
     /**
-     * @var RdfNamespaceRegistry
+     * @var Manager
      */
     protected $rm;
 
@@ -45,6 +48,7 @@ class ResourceFormType extends FormType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         parent::buildForm($builder, $options);
+
         // custom path mapper
         $builder
           ->setDataMapper($options['compound'] ? new ResourcePropertyPathMapper() : null);
@@ -55,11 +59,55 @@ class ResourceFormType extends FormType
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
+        // Derive "data_class" option from passed "data" object
+        $dataClass = function (Options $options) {
+            return isset($options['data']) && is_object($options['data']) ? get_class($options['data']) : 'Conjecto\Nemrod\Resource';
+        };
+
+        // Derive "empty_data" option from passed "data_class"
+        $emptyData = function (Options $options) {
+            $class = $options['data_class'];
+
+            if (null !== $class) {
+                $metadata = $this->rm->getMetadataFactory()->getMetadataForClass($class);
+                $types = $metadata->getTypes();
+                return function (FormInterface $form) use ($types) {
+                    if(!$form->isEmpty() || $form->isRequired()) {
+                        $class = count($types) ? $types[0] : 'rdfs:Resource'; // todo : rdfs:Resource ?
+                        return $this->rm->getRepository($class)->create();
+
+                    }
+                    return null;
+                };
+            }
+
+            return function (FormInterface $form) {
+                return $form->getConfig()->getCompound() ? array() : '';
+            };
+        };
+
+        // derive "error_mapping" option from passed "reference" object
+        $errorMapping = function (Options $options) {
+            $class = $options['data_class'];
+            $mapping = array();
+
+            if (null !== $class) {
+                $metadata = $this->rm->getMetadataFactory()->getMetadataForClass($class);
+                foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
+                    if($propertyMetadata->value) {
+                        $mapping[$key] = $propertyMetadata->value;
+                    }
+                }
+            }
+
+            return $mapping;
+        };
+
+        // set defaults
         $resolver->setDefaults(array(
-            'data_class' => 'Conjecto\Nemrod\Resource',
-            'empty_data' => function (FormInterface $form) {
-                return $this->rm->getRepository('rdfs:Resource')->create();
-            },
+            'data_class' => $dataClass,
+            'empty_data' => $emptyData,
+            'error_mapping' => $errorMapping
         ));
     }
 

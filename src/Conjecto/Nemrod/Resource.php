@@ -11,10 +11,12 @@
 
 namespace Conjecto\Nemrod;
 
+use Conjecto\Nemrod\PropertyAccess\ResourcePropertyAccessor;
 use Conjecto\Nemrod\ResourceManager\Mapping\PropertyMetadataAccessor;
 use EasyRdf\Literal;
 use EasyRdf\Resource as BaseResource;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * Class Resource.
@@ -36,9 +38,9 @@ class Resource extends BaseResource
     protected $isDirty = false;
 
     /**
-     * @var PropertyMetadataAccessor
+     * @var PropertyAccessor
      */
-    protected $propertyMetadataAccessor;
+    protected $propertyAccessor;
 
     /**
      *
@@ -56,7 +58,7 @@ class Resource extends BaseResource
     public function __construct($uri = null, $graph = null)
     {
         $uri = ($uri === null) ? 'e:-1' : $uri;
-        $this->propertyMetadataAccessor = new PropertyMetadataAccessor();
+        $this->propertyAccessor = new ResourcePropertyAccessor();
 
         return parent::__construct($uri, $graph);
     }
@@ -131,13 +133,6 @@ class Resource extends BaseResource
 
         //first trying to get first step value
         $result = parent::get($first, $type, $lang);
-        // if getProperty method is defined in RdfResource
-        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
-            $this->$key = $result;
-            if ($this->propertyMetadataAccessor->isReadable($this, $key)) {
-                $result = $this->propertyMetadataAccessor->getValue($this, $key);
-            }
-        }
 
         if (is_array($result)) {
             if (count($result)) {
@@ -180,39 +175,42 @@ class Resource extends BaseResource
     /**
      * @return int|void
      */
-    public function set($property, $value)
+    public function set($predicate, $value)
     {
-        $this->snapshot($property);
+        $this->snapshot($predicate);
 
         //resource: check if managed (for further save
         if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
             $this->_rm->persist($value);
         }
 
-        // if setProperty method is defined in RdfResource
-        if ($key = $this->propertyMetadataAccessor->isPropertyMapped($this, $property)) {
-            if ($this->propertyMetadataAccessor->isWritable($this, $key)) {
-                $this->propertyMetadataAccessor->setValue($this, $key, $value);
-                $value = $this->$key;
-            }
+        if($property = $this->getMappedProperty($predicate)) {
+            $this->propertyAccessor->setValue($this, $property, $value);
         }
-        $out = parent::set($property, $value);
 
+        $out = parent::set($predicate, $value);
         return $out;
     }
 
     /**
      * @return int|void
      */
-    public function add($property, $value)
+    public function add($predicate, $value)
     {
         $this->snapshot();
-        //resource: check if managed (for further save)
-        if ($property instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
-            $this->_rm->persist($property);
-        }
-        $out = parent::add($property, $value);
 
+        //resource: check if managed (for further save)
+        if ($value instanceof self && (!empty($this->_rm)) && $this->_rm->getUnitOfWork()->isManaged($this)) {
+            $this->_rm->persist($value);
+        }
+
+        if($property = $this->getMappedProperty($predicate)) {
+            if(!$this->propertyAccessor->getValue($property, $value)) {
+                $this->propertyAccessor->setValue($this, $property, $value);
+            }
+        }
+
+        $out = parent::add($predicate, $value);
         return $out;
     }
 
@@ -307,4 +305,69 @@ class Resource extends BaseResource
     {
         return $this->get($offset);
     }
+
+    /**
+     *  getMappedProperty
+     *
+     * @param string $predicate
+     * @return string
+     */
+    private function getMappedProperty($predicate)
+    {
+        $metadata = $this->getRm()->getMetadataFactory()->getMetadataForClass(get_class($this));
+        foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
+            if ($propertyMetadata->value == $predicate) {
+                return $key;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *  getMappedPredicate
+     *
+     * @param string $predicate
+     * @return string
+     */
+    private function getMappedPredicate($property)
+    {
+        $metadata = $this->getRm()->getMetadataFactory()->getMetadataForClass(get_class($this));
+        foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
+            if($key == $property) {
+                return $propertyMetadata->value;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *  Magic method to get the value for a property of a resource, mapped by metadata
+     *
+     * @param string $name
+     * @return string
+     */
+    public function __get($name)
+    {
+        if($predicate = $this->getMappedPredicate($name)) {
+            $this->get($predicate);
+        }
+    }
+
+    /**
+     *  Magic method to set the value for a property of a resource, mapped by metadata
+     *
+     * @param string $name
+     * @return string
+     */
+    public function __set($name, $value)
+    {
+        if($predicate = $this->getMappedPredicate($name)) {
+            $this->set($predicate, $value);
+        }
+        if(property_exists($this, $name)) {
+            $this->$name = $value;
+        }
+    }
+
+
 }
