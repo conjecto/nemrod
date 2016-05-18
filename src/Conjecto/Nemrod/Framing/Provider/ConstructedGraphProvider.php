@@ -29,17 +29,25 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     }
 
     /**
-     * @param Resource|Graph $resourceOrGraph
+     * @param Resource|Graph|array $resourceOrGraph
      * @param array    $frame
      *
      * @return Graph
      */
     public function getGraph($resourceOrGraph, $frame = null)
     {
+        $_resource = is_array($resourceOrGraph) ? current($resourceOrGraph) : $resourceOrGraph;
+
         if ($frame && $this->getProperties($frame)) {
             // if there is a qualified frame, build a new graph to integrate full
-            $qb = $this->fillQueryBuilder($frame, $resourceOrGraph);
-            $qb->bind('<'.$resourceOrGraph->getUri().'>', '?uri');
+            $qb = $this->fillQueryBuilder($frame, $_resource);
+
+            $resources = is_array($resourceOrGraph) ? $resourceOrGraph : array($resourceOrGraph);
+            $uris = array();
+            foreach($resources as $res) {
+                $uris[] = '<'.$res->getUri().'>';
+            }
+            $qb->value('?uri', $uris);
 
             return $qb->getQuery()->execute();
         } else {

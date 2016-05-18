@@ -756,13 +756,18 @@ class QueryBuilder
 
     protected function addValuesToQuery($key, $value, $append)
     {
-        if (is_array($value) && is_array($key)) {
-            foreach ($value as $valKey => $val) {
-                return $this->addValueToQuery($key[$valKey], $val, $append);
+        if (is_array($value)) {
+            foreach($value as &$val) {
+                if (is_array($val)) {
+                    $val = '(' . implode(" ", $val) . ')';
+                }
             }
-        } elseif (is_string($value) && is_string($key)) {
-            return $this->addValueToQuery($key, $value, $append);
+            $value = implode(" ", $value);
         }
+        if (is_array($key)) {
+            $key = '(' . implode(" ", $key) . ')';
+        }
+        return $this->addValueToQuery($key, $value, $append);
     }
 
     protected function addValueToQuery($key, $value, $append)
