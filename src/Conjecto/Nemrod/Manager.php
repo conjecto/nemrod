@@ -12,6 +12,7 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\ResourceManager\Repository;
 use Conjecto\Nemrod\ResourceManager\RepositoryFactory;
 use Conjecto\Nemrod\ResourceManager\UnitOfWork;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
@@ -98,7 +99,7 @@ class Manager
     /**
      * @param null|string $className
      *
-     * @return mixed
+     * @return Repository
      */
     public function getRepository($className = null)
     {
