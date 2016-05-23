@@ -14,6 +14,7 @@ namespace Conjecto\Nemrod\ElasticSearch;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\Resource;
 use Conjecto\Nemrod\ResourceManager\FiliationBuilder;
 use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\RdfNamespace;
@@ -22,6 +23,10 @@ use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
+/**
+ * Class Populator
+ * @package Conjecto\Nemrod\ElasticSearch
+ */
 class Populator
 {
     /** @var  Manager */
@@ -81,15 +86,26 @@ class Populator
      */
     public function populate($index, $type = null, $reset = true, $options = array(), $output, $showProgress = true)
     {
+        if($reset && !$type) {
+            $this->resetter->reset($index, null, $output);
+            $reset = false;
+        }
+
+        // check index existence
+        $indexObj = $this->indexRegistry->getIndex($index);
+        if(!$indexObj->exists()) {
+            $this->resetter->resetIndex($index);
+        }
+
+        // get types to populate
         $types = $this->getTypesToPopulate($index, $type);
         $trans = new ResourceToDocumentTransformer($this->serializerHelper, $this->configManager, $this->typeMapperRegistry, $this->jsonLdSerializer);
 
         $options['limit'] = $options['slice'];
         $options['orderBy'] = 'uri';
 
-        /** @var Type $typ */
-        foreach ($types as $key => $typ) {
-            $this->populateType($index, $key, $typ, $type, $options, $trans, $output, $reset, $showProgress);
+        foreach($types as $type) {
+            $this->populateType($index, $type, $options, $trans, $output, $reset, $showProgress);
         }
     }
 
@@ -104,15 +120,16 @@ class Populator
      * @param $reset
      * @param $showProgress
      */
-    protected function populateType($index, $key, Type $typ, $type, $options, $trans, $output, $reset, $showProgress)
+    protected function populateType($index, $type, $options, $trans, $output, $reset, $showProgress)
     {
-        if ($reset & $type) {
-            $this->resetter->reset($index, $type, $key, $output);
+        if($reset) {
+            $this->resetter->reset($index, $type, $output);
         }
-        $output->writeln("Populating " . $key);
+        $output->writeln("Populating " . $type);
 
         $this->jsonLdSerializer->getJsonLdFrameLoader()->setEsIndex($index);
-        $class = $this->configManager->getIndexConfiguration($index)->getType($key)->getType();
+        $class = $this->configManager->getIndexConfiguration($index)->getType($type)->getType();
+        $typeEs = $this->indexRegistry->getIndex($index)->getType($class);
         $size = $this->getSize($class);
 
         // no object in triplestore
@@ -121,40 +138,68 @@ class Populator
         }
 
         $size = current($size)['count'];
-        $progress = $this->displayInitialAvancement($size, $options, $showProgress, $output);
-        $done = 0;
-        while ($done < $size) {
-            $resources = $this->getResources($class, $options, $done);
-            $docs = array();
-            /* @var Resource $add */
+        $output->writeln($size . " entries");
+
+        $progress = $this->displayInitialAvancement($size, $options['slice'], $showProgress, $output);
+        $doneQuery = 0;
+        $doneAll = 0;
+
+        // loop on queries of $options['slice-query'] uris
+        while ($doneQuery < $size) {
+            $allUris = array();
+            $resources = $this->getResources($class, $options, $doneQuery);
+
             foreach ($resources as $resource) {
-                $types = $resource->all('rdf:type');
-                $mostAccurateType = $this->getMostAccurateType($types, $resource, $output, $class);
-                // index only the current resource if the most accurate type is the key populating
-                if ($class === $mostAccurateType) {
-                    $doc = $trans->transform($resource->getUri(), $index,  $mostAccurateType);
-                    if ($doc) {
-                        $docs[] = $doc;
-                    }
+                $allUris[] = $resource['uri'];
+            }
+
+            // Populate Elasticsearch
+            $done = 0;
+            while ($done < count($allUris)) {
+                $uris = array_slice($allUris,$done,$options['slice']);
+                $docs = array();
+
+                // transform uris
+                if(count($uris)) {
+                    $docs = $trans->transform($uris, $index, $class);
                 }
+
+                // send documents to elasticsearch
+                if (count($docs)) {
+                    $typeEs->addDocuments($docs);
+                }
+
+                $diff = count($uris) - count($docs);
+                if($diff > 0) {
+                    $output->writeln(sprintf("%s : %d/%d skipped resources", $type, $diff, count($uris)));
+                }
+                $done += $options['slice'];
+                $doneAll += $options['slice'];
+                if ($done > count($allUris)) {
+                    $done = count($allUris);
+                }
+
+                $doneAll = $this->displayAvancement($doneAll, $size, $showProgress, $output, $progress);
+                //flushing manager for mem usage
+                $this->resourceManager->flush();
+            }
+            $doneQuery += count($allUris);
+            if ($doneQuery > $size) {
+                $doneQuery = $size;
             }
 
-            // send documents to elasticsearch
-            if (count($docs)) {
-                $typ->addDocuments($docs);
-            } else {
-                $output->writeln("");
-                $output->writeln("nothing to index");
-            }
-
-            $done = $this->displayAvancement($options, $done, $size, $showProgress, $output, $progress);
-
-            //flushing manager for mem usage
-            $this->resourceManager->flush();
         }
         $progress->finish();
+        $output->writeln("");
     }
 
+    /**
+     * @param $types
+     * @param $resource
+     * @param $output
+     * @param $class
+     * @return null
+     */
     protected function getMostAccurateType($types, $resource, $output, $class)
     {
         $mostAccurateType = null;
@@ -174,22 +219,43 @@ class Populator
         return $mostAccurateType;
     }
 
+    /**
+     * @param $class
+     * @param $options
+     * @param $done
+     * @return mixed
+     */
     protected function getResources($class, $options, $done)
     {
-        $options['offset'] = $done;
-        $select = $this->resourceManager->getQueryBuilder()->select('?uri')->where('?uri a ' . $class);
-        $select->orderBy('?uri');
-        $select->setOffset($done);
-        $select->setMaxResults($options['slice']);
-        $select = $select->setMaxResults(isset($options['slice']) ? $options['slice'] : null)->getQuery();
-        $selectStr = $select->getCompleteSparqlQuery();
         $qb = $this->resourceManager->getRepository($class)->getQueryBuilder();
         $qb->reset()
-            ->construct("?uri a $class")
-            ->addConstruct('?uri rdf:type ?type')
+            ->select("?uri")
+            ->where('?uri a ' . $class);
+
+        $options['offset'] = $done;
+        $selectSubQuery = $this->resourceManager->getQueryBuilder()
+            ->select('?uri')
             ->where('?uri a ' . $class)
-            ->andWhere('?uri rdf:type ?type')
-            ->andWhere('{' . $selectStr . '}');
+            ->orderBy('?uri')
+            ->setOffset($done);
+
+        // get children $class rdf:types
+        $excludedClasses = $this->filiationBuilder->getChildrenClasses($class);
+        $excludedClasses = array_unique($excludedClasses);
+        // remove actual key
+        if ($excludedClasses[0] === $class) {
+            unset($excludedClasses[0]);
+        }
+        // remove not indexed types
+        foreach ($excludedClasses as $key => $value) {
+            if (in_array($value, $this->serializerHelper->getAllTypes())) {
+                // exclude sub types already populated in ES
+                $selectSubQuery->andWhere("MINUS{ ?uri a $value }");
+            }
+        }
+        $select = $selectSubQuery->setMaxResults($options['slice-query'])->getQuery();
+        $selectStr = $select->getCompleteSparqlQuery();
+        $qb->andWhere('{' . $selectStr . '}');
 
         return $qb->getQuery()->execute(Query::HYDRATE_COLLECTION, array('rdf:type' => $class));
     }
@@ -202,33 +268,21 @@ class Populator
      */
     protected function getTypesToPopulate($index, $type = null)
     {
-        $indexObj = $this->indexRegistry->getIndex($index);
-        if (!$indexObj) {
-            throw new \Exception("The index $index is not defined");
-        }
-
-        // creating index if not exists
-        if (!$indexObj->exists()) {
-            $this->resetter->resetIndex($index);
-        }
-
         $typesConfig = $this->configManager->getIndexConfiguration($index)->getTypes();
-        if ($type) {
-            if(!isset($typesConfig[$type])) {
-                throw new \Exception("The type $type is not defined in this index.");
+        $types = array_keys($typesConfig);
+        if($type) {
+            if(!in_array($type, $types)) {
+                throw new \Exception("The type $type is not defined");
             }
-            $typeConfig = $typesConfig[$type];
-            $types = array($type => $indexObj->getType($typeConfig->getType()));
-        } else {
-            $this->resetter->reset($index);
-            $types = array_combine(array_keys($typesConfig), array_map(function(TypeConfig $typeConfig) use ($indexObj) {
-                return $indexObj->getType($typeConfig->getType());
-            }, $typesConfig));
+            return array($type);
         }
-
         return $types;
     }
 
+    /**
+     * @param $key
+     * @return mixed
+     */
     protected function getSize($key)
     {
         $qb = $this->resourceManager->getRepository($key) ->getQueryBuilder();
@@ -236,15 +290,34 @@ class Populator
             ->select('(COUNT(DISTINCT ?instance) AS ?count)')
             ->where('?instance a ' . $key);
 
+        $excludedClasses = $this->filiationBuilder->getChildrenClasses($key);
+        $excludedClasses = array_unique($excludedClasses);
+        // remove actual key
+        if ($excludedClasses[0] === $key) {
+            unset($excludedClasses[0]);
+        }
+        // remove not indexed types
+        foreach ($excludedClasses as $class) {
+            if (in_array($class, $this->serializerHelper->getAllTypes())) {
+                $qb->andWhere("MINUS{ ?instance a $class }");
+            }
+        }
+
         return $qb->getQuery()->execute();
     }
 
-    protected function displayInitialAvancement($size, $options, $showProgress, $output)
+    /**
+     * @param $size
+     * @param $options
+     * @param $showProgress
+     * @param $output
+     * @return null|ProgressBar
+     */
+    protected function displayInitialAvancement($size, $limit, $showProgress, $output)
     {
         $progress = null;
-        $output->writeln($size . " entries");
         if ($showProgress) {
-            $progress = new ProgressBar($output, ceil($size / $options['slice']));
+            $progress = new ProgressBar($output, ceil($size / $limit));
             $progress->start();
             $progress->setFormat('debug');
         }
@@ -252,14 +325,17 @@ class Populator
         return $progress;
     }
 
-    protected function displayAvancement($options, $done, $size, $showProgress, $output, $progress)
+    /**
+     * @param $options
+     * @param $done
+     * @param $size
+     * @param $showProgress
+     * @param $output
+     * @param $progress
+     * @return mixed
+     */
+    protected function displayAvancement($done, $size, $showProgress, $output, $progress)
     {
-        //advance
-        $done += $options['slice'];
-        if ($done > $size) {
-            $done = $size;
-        }
-
         //showing where we're at.
         if ($showProgress) {
             if ($output->isDecorated()) {

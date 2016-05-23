@@ -158,7 +158,26 @@ class FiliationBuilder
     }
 
     /**
+     * Return all children types from a type
+     * @param $type
+     * @param bool $recursive
+     * @param bool $justNewTypes
+     * @return array
+     * @throws \Exception
+     */
+    public function getChildrenClasses($type, $recursive = true, $justNewTypes = false)
+    {
+        if (!is_string($type)) {
+            throw new \Exception('A string is attempted');
+        }
+
+        return $this->getRecursiveChildrenTypes(array($type), $recursive, $justNewTypes);
+    }
+
+    /**
      * @param $types
+     * @param $recursive
+     * @param $justNewTypes
      * @return array
      */
     protected function getRecursiveParentTypes($types, $recursive, $justNewTypes)
@@ -172,6 +191,31 @@ class FiliationBuilder
 
         if (!empty($newTypes) && $recursive) {
             return array_merge($types, $this->getRecursiveParentTypes($newTypes, $recursive, $justNewTypes));
+        }
+
+        if ($justNewTypes) {
+            return $newTypes;
+        }
+        return array_merge($types, $newTypes);
+    }
+
+    /**
+     * @param $types
+     * @param $recursive
+     * @param $justNewTypes
+     * @return array
+     */
+    protected function getRecursiveChildrenTypes($types, $recursive, $justNewTypes)
+    {
+        $newTypes = array();
+        foreach ($types as $type) {
+            if (isset($this->rdfFiliation[$type]['parentClassOf']) && !empty($this->rdfFiliation[$type]['parentClassOf'])) {
+                $newTypes = array_merge($newTypes, $this->rdfFiliation[$type]['parentClassOf']);
+            }
+        }
+
+        if (!empty($newTypes) && $recursive) {
+            return array_merge($types, $this->getRecursiveChildrenTypes($newTypes, $recursive, $justNewTypes));
         }
 
         if ($justNewTypes) {

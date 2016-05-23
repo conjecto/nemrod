@@ -52,27 +52,11 @@ class MappingBuilder
 
         /** @var Type $typeObj */
         $typeObj = $this->indexRegistry->getIndex($index)->getType($typeConfig->getType());
-
-        try {
+        if($typeObj->exists()) {
             $typeObj->delete();
-        } catch (ResponseException $e) {
         }
-
         $typeObj->setMapping($mappingData);
-
         return $typeObj->getMapping();
-    }
-
-    /**
-     * @param $type
-     */
-    public function createIndexIfNotExists($index)
-    {
-        //$indexConfig = $this->configManager->getIndexConfiguration($index);
-        $index = $this->indexRegistry->getIndex($index);
-        if (!$index->exists()) {
-            $index->create();
-        }
     }
 
 }
