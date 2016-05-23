@@ -65,7 +65,8 @@ class ResourceType extends AbstractType
             'rm' => $this->rm,
             'query_builder' => null,
             'property' => 'rdfs:label',
-            'group_by' => null
+            'group_by' => null,
+            'preferred_choices' => null
         ));
 
         $resolver->setRequired(array('class', 'property'));
