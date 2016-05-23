@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod\Form\Extension\Core\DataMapper;
 
+use Conjecto\Nemrod\Resource;
 use EasyRdf\Literal;
 use Symfony\Component\PropertyAccess\Exception;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -39,8 +40,8 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      *
      * If neither is found, an exception is thrown.
      *
-     * @param object|array                 $objectOrArray The object or array to modify
-     * @param string|PropertyPathInterface $propertyPath  The property path to modify
+     * @param object', 'array                 $objectOrArray The object or array to modify
+     * @param string', 'PropertyPathInterface $propertyPath  The property path to modify
      * @param mixed                        $value         The value to set at the end of the property path
      *
      * @throws Exception\NoSuchPropertyException If a property does not exist or is not public.
@@ -73,7 +74,7 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      *
      * If none of them are found, an exception is thrown.
      *
-     * @param object|array                 $objectOrArray The object or array to traverse
+     * @param object|array $objectOrArray The object or array to traverse
      * @param string|PropertyPathInterface $propertyPath  The property path to read
      *
      * @return mixed The value at the end of the property path
@@ -82,18 +83,41 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      */
     public function getValue($objectOrArray, $propertyPath)
     {
-        $value = $objectOrArray->get((string) $propertyPath);
+        $value = null;
+        
+        if ($objectOrArray instanceof Resource) {
+            $value = $objectOrArray->get((string) $propertyPath);
 
-        if ($value === null) {
-            $value = $objectOrArray->label();
+            if ($value === null) {
+                $value = $objectOrArray->label();
+            }
+        }
+        else if (is_array($objectOrArray)) {
+            $value = isset($objectOrArray[(string) $propertyPath]) ? $objectOrArray[(string) $propertyPath] : null;
+
+            if ($value === null) {
+                foreach (array('skos:prefLabel', 'rdfs:label', 'foaf:name', 'rss:title', 'dc:title', 'dc11:title') as $labelProperty) {
+                    $value = isset($objectOrArray[$labelProperty]) ? $objectOrArray[$labelProperty] : null;
+                    if ($value) {
+                        break;
+                    }
+                }
+            }
         }
 
         if ($value instanceof Literal) {
             return $value->getValue();
         }
 
-        if ($value === null) {
+        else if ($value instanceof Resource) {
+            return $value->getUri();
+        }
+
+        if ($objectOrArray instanceof Resource) {
             $value = $objectOrArray->getUri();
+        }
+        else if (is_array($objectOrArray)) {
+            $value = isset($objectOrArray['uri']) ? $objectOrArray['uri'] : null;
         }
 
         return $value;
@@ -105,8 +129,8 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      * Whenever this method returns true, {@link setValue()} is guaranteed not
      * to throw an exception when called with the same arguments.
      *
-     * @param object|array                 $objectOrArray The object or array to check
-     * @param string|PropertyPathInterface $propertyPath  The property path to check
+     * @param object', 'array                 $objectOrArray The object or array to check
+     * @param string', 'PropertyPathInterface $propertyPath  The property path to check
      *
      * @return bool Whether the value can be set
      *
@@ -123,8 +147,8 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      * Whenever this method returns true, {@link getValue()} is guaranteed not
      * to throw an exception when called with the same arguments.
      *
-     * @param object|array                 $objectOrArray The object or array to check
-     * @param string|PropertyPathInterface $propertyPath  The property path to check
+     * @param object', 'array                 $objectOrArray The object or array to check
+     * @param string', 'PropertyPathInterface $propertyPath  The property path to check
      *
      * @return bool Whether the property path can be read
      *
