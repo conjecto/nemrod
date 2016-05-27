@@ -314,10 +314,12 @@ class Resource extends BaseResource
      */
     private function getMappedProperty($predicate)
     {
-        $metadata = $this->getRm()->getMetadataFactory()->getMetadataForClass(get_class($this));
-        foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
-            if ($propertyMetadata->value == $predicate) {
-                return $key;
+        if(method_exists($this, "getRm") && $this->getRm()) {
+            $metadata = $this->getRm()->getMetadataFactory()->getMetadataForClass(get_class($this));
+            foreach ($metadata->propertyMetadata as $key => $propertyMetadata) {
+                if ($propertyMetadata->value == $predicate) {
+                    return $key;
+                }
             }
         }
         return false;
