@@ -37,19 +37,26 @@ class ResourceChoiceList extends ArrayChoiceList
         if ($queryBuilder === null) {
             $queryBuilder = $this->getDefaultQueryBuilder($rm, $class, $labelPath);
         }
-        $resources = empty($choices) ? (new NemrodQueryBuilderLoader($queryBuilder, $rm, $class))->getResources(Query::HYDRATE_ARRAY, ['rdf:type' => $class]) : $choices;
 
-        // construct label => value array of choice
-        $choices = array();
-        foreach ($resources as $resource) {
-            $label = $resource->get($labelPath);
-            if ($label) {
-                $choices[$resource->get($labelPath)->getValue()] = $resource;
-            }
-            else {
-                $choices[$resource->getUri()] = $resource;
+        if($queryBuilder) {
+            if(empty($choices)) {
+                $loader = new NemrodQueryBuilderLoader($queryBuilder, $rm, $class);
+                $resources = $loader->getResources(Query::HYDRATE_ARRAY, ['rdf:type' => $class]);
+            } else {
+                $resources = $choices;
             }
 
+            // construct label => value array of choice
+            $choices = array();
+            foreach ($resources as $resource) {
+                $label = $resource->get($labelPath);
+                if ($label) {
+                    $choices[$resource->get($labelPath)->getValue()] = $resource;
+                }
+                else {
+                    $choices[$resource->getUri()] = $resource;
+                }
+            }
         }
 
         // construct choice list
@@ -63,19 +70,20 @@ class ResourceChoiceList extends ArrayChoiceList
 
     /**
      * Construct a query builder to get Uri and label property for a specific class
-     * @param $rm
+     * @param Manager $rm
      * @param $class
      * @param $propertyLabel
      * @return mixed
      */
-    protected function getDefaultQueryBuilder($rm, $class, $propertyLabel)
+    protected function getDefaultQueryBuilder($rm, $class, $labelPath)
     {
         return $rm->getQueryBuilder()->reset()
             ->construct('?s a ?type')
             ->addConstruct('?s ?propertyLabel ?label')
             ->where('?s a ?type')
             ->andWhere('?s ?propertyLabel ?label')
+            ->addOrderBy('?label')
             ->bind($class, '?type')
-            ->addBind($propertyLabel, '?propertyLabel');
+            ->addBind($labelPath, '?propertyLabel');
     }
 }

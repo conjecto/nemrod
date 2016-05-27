@@ -49,8 +49,6 @@ class ResourceType extends AbstractType
             if (!$options['rm'] && $options['query_builder']) {
                 throw new MissingOptionsException('You have to specify a resource manager or a query builder');
             }
-
-
             return new ResourceChoiceList(
                 $options['rm'],
                 $options['choices'],
@@ -64,9 +62,7 @@ class ResourceType extends AbstractType
             'choice_list' => $choiceList,
             'rm' => $this->rm,
             'query_builder' => null,
-            'property' => 'rdfs:label',
-            'group_by' => null,
-            'preferred_choices' => null
+            'property' => 'rdfs:label'
         ));
 
         $resolver->setRequired(array('class', 'property'));
