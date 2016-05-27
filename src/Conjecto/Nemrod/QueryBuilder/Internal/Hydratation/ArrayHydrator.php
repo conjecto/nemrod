@@ -27,8 +27,7 @@ class ArrayHydrator extends AbstractHydrator
 
         //building array & registering resources
         foreach ($resources as $resource) {
-            $array[$resource->getUri()] = $resource;
-            $this->rm->getUnitOfWork()->registerResource($resource);
+            $array[$resource->getUri()] = $this->rm->getUnitOfWork()->registerResource($resource);
         }
 
         return $array;

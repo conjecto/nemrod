@@ -30,13 +30,9 @@ class CollectionHydrator extends AbstractHydrator
 
         //building collection
         foreach ($resources as $resource) {
-            $collection->append($resource);
+            $collection->append($this->rm->getUnitOfWork()->registerResource($resource));
         }
         $this->rm->getUnitOfWork()->blackListCollection($collection);
-
-        foreach ($resources as $resource) {
-            $this->rm->getUnitOfWork()->registerResource($resource);
-        }
 
         return $collection;
     }

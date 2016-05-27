@@ -11,6 +11,7 @@
 
 namespace Conjecto\Nemrod\ResourceManager;
 
+use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\Resource;
 use Doctrine\Common\Collections\ArrayCollection;
 

@@ -122,9 +122,7 @@ class UnitOfWork
 
             return $resource;
         } else {
-            $tmp = $this->retrieveResource($resource->getUri());
-
-            return $tmp;
+            return $this->retrieveResource($resource->getUri());
         }
     }
 
