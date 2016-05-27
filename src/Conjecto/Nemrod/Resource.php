@@ -205,7 +205,7 @@ class Resource extends BaseResource
         }
 
         if($property = $this->getMappedProperty($predicate)) {
-            if(!$this->propertyAccessor->getValue($property, $value)) {
+            if(!$this->propertyAccessor->getValue($this, $property)) {
                 $this->propertyAccessor->setValue($this, $property, $value);
             }
         }
