@@ -43,21 +43,20 @@ class ResourceType extends AbstractType
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
+        $preferred_resources = array();
+
         $choiceList = function (Options $options) {
-            if (!$options['rm'] && $options['qb']) {
+            if (!$options['rm'] && $options['query_builder']) {
                 throw new MissingOptionsException('You have to specify a resource manager or a query builder');
             }
+
 
             return new ResourceChoiceList(
                 $options['rm'],
                 $options['choices'],
                 $options['class'],
                 $options['query_builder'],
-                $options['property'],
-                $options['preferred_choices'],
-                $options['group_by'],
-                null,
-                new ResourceLabelAccessor()
+                $options['property']
             );
         };
 
@@ -67,6 +66,7 @@ class ResourceType extends AbstractType
             'query_builder' => null,
             'property' => 'rdfs:label',
             'group_by' => null,
+            'preferred_choices' => null
         ));
 
         $resolver->setRequired(array('class', 'property'));

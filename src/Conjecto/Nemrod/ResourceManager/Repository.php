@@ -88,6 +88,8 @@ class Repository
 
     /**
      * Create a new entity.
+     *
+     * @return Resource
      */
     public function create()
     {

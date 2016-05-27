@@ -31,7 +31,7 @@ class RepositoryFactory
      * @param $className
      * @param $resourceManager
      *
-     * @return ResourceRepository
+     * @return Repository
      */
     public function getRepository($className, $resourceManager)
     {

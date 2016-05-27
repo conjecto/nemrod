@@ -73,7 +73,7 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      *
      * If none of them are found, an exception is thrown.
      *
-     * @param object|array                 $objectOrArray The object or array to traverse
+     * @param object|array $objectOrArray The object or array to traverse
      * @param string|PropertyPathInterface $propertyPath  The property path to read
      *
      * @return mixed The value at the end of the property path
@@ -82,18 +82,41 @@ class ResourceLabelAccessor  implements PropertyAccessorInterface
      */
     public function getValue($objectOrArray, $propertyPath)
     {
-        $value = $objectOrArray->get((string) $propertyPath);
+        $value = null;
 
-        if ($value === null) {
-            $value = $objectOrArray->label();
+        if ($objectOrArray instanceof Resource) {
+            $value = $objectOrArray->get((string) $propertyPath);
+
+            if ($value === null) {
+                $value = $objectOrArray->label();
+            }
+        }
+        else if (is_array($objectOrArray)) {
+            $value = isset($objectOrArray[(string) $propertyPath]) ? $objectOrArray[(string) $propertyPath] : null;
+
+            if ($value === null) {
+                foreach (array('skos:prefLabel', 'rdfs:label', 'foaf:name', 'rss:title', 'dc:title', 'dc11:title') as $labelProperty) {
+                    $value = isset($objectOrArray[$labelProperty]) ? $objectOrArray[$labelProperty] : null;
+                    if ($value) {
+                        break;
+                    }
+                }
+            }
         }
 
         if ($value instanceof Literal) {
             return $value->getValue();
         }
 
-        if ($value === null) {
+        else if ($value instanceof Resource) {
+            return $value->getUri();
+        }
+
+        if ($objectOrArray instanceof Resource) {
             $value = $objectOrArray->getUri();
+        }
+        else if (is_array($objectOrArray)) {
+            $value = isset($objectOrArray['uri']) ? $objectOrArray['uri'] : null;
         }
 
         return $value;
