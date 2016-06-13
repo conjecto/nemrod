@@ -98,7 +98,8 @@ class ConstructedGraphProvider extends SimpleGraphProvider
         if ($resource instanceof \Conjecto\Nemrod\Resource && $resource->getRm() !== null) {
             $rm = $resource->getRm();
         }
-        return clone $rm->getQueryBuilder();
+        $qb = clone $rm->getQueryBuilder();
+        return $qb->reset();
     }
 
     /**

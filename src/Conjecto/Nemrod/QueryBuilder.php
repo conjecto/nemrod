@@ -582,6 +582,7 @@ class QueryBuilder
         $this->offset = -1;
         $this->maxResults = 0;
         $this->type = self::CONSTRUCT;
+        $this->sparqlQuery = null;
 
         foreach ($this->sparqlParts as $key => $part) {
             $this->sparqlParts[$key] = is_array($this->sparqlParts[$key]) ? array() : null;
