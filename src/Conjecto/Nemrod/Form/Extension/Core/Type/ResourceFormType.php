@@ -15,11 +15,9 @@ use Conjecto\Nemrod\Form\Extension\Core\DataMapper\ResourcePropertyPathMapper;
 use Conjecto\Nemrod\Manager;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\Options;
-use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
@@ -55,9 +53,9 @@ class ResourceFormType extends FormType
     }
 
     /**
-     * @param OptionsResolverInterface $resolver
+     * @param OptionsResolver $resolver
      */
-    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    public function configureOptions(OptionsResolver $resolver)
     {
         // Derive "data_class" option from passed "data" object
         $dataClass = function (Options $options) {
@@ -71,11 +69,10 @@ class ResourceFormType extends FormType
             if (null !== $class) {
                 $metadata = $this->rm->getMetadataFactory()->getMetadataForClass($class);
                 $types = $metadata->getTypes();
-                return function (FormInterface $form) use ($types) {
+                return function (FormInterface $form) use ($class, $types) {
                     if(!$form->isEmpty() || $form->isRequired()) {
-                        $class = count($types) ? $types[0] : 'rdfs:Resource'; // todo : rdfs:Resource ?
+                        $class = count($types) ? end($types) : 'rdfs:Resource'; // todo : rdfs:Resource ?
                         return $this->rm->getRepository($class)->create();
-
                     }
                     return null;
                 };
@@ -107,7 +104,8 @@ class ResourceFormType extends FormType
         $resolver->setDefaults(array(
             'data_class' => $dataClass,
             'empty_data' => $emptyData,
-            'error_mapping' => $errorMapping
+            'error_mapping' => $errorMapping,
+            'rm' => $this->rm
         ));
     }
 
@@ -116,7 +114,7 @@ class ResourceFormType extends FormType
      */
     public function getParent()
     {
-        return 'form';
+        return FormType::class;
     }
 
     /**
