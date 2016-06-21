@@ -230,7 +230,7 @@ class SimplePersister implements PersisterInterface
         $select = $qb->select('?uri')->where('?uri a '.$criteria['rdf:type']);
 
         foreach ($criteria as $property => $value) {
-            if ($property !== 'uri') {
+            if ($property !== 'uri' && $property !== 'rdf:type') {
                 $select->andWhere('?uri '.$property.' '.$this->LiteralToSparqlTerm($value));
             }
         }
