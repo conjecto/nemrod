@@ -229,8 +229,6 @@ class Manager
     /**
      * @param string $sparqlQuery
      *
-     * @internal param string $dql
-     *
      * @return Query
      */
     public function createQuery($sparqlQuery = '')

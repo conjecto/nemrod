@@ -12,6 +12,8 @@
 namespace Conjecto\Nemrod;
 
 use Conjecto\Nemrod\QueryBuilder\Query;
+use Conjecto\Nemrod\QueryBuilder\SPARQLParserUtils;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Query\Expr\GroupBy;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -99,17 +101,133 @@ class QueryBuilder
     protected $rm;
 
     /**
+     * The query parameters.
+     *
+     * @var \Doctrine\Common\Collections\ArrayCollection
+     */
+    private $parameters = array();
+
+    /**
      * Initializes a new QueryBuilder that uses the given RdfNamespaceRegistry.
      *
-     * @param string      $endpointUri
-     * @param string|null $updatedEndPointUri
+     * @param Manager      $rm
      */
     public function __construct(Manager $rm = null)
     {
         $this->rm = $rm;
         $this->maxResults = 0;
         $this->offset = -1;
+        $this->parameters = new ArrayCollection();
     }
+
+    /**
+     * Sets a query parameter for the query being constructed.
+     *
+     * <code>
+     *     $qb = $rm->createQueryBuilder()
+     *         ->contruct()
+     *         ->where('{uri} a foaf:Person')
+     *         ->setParameter('uri', "http://me.com");
+     * </code>
+     *
+     * @param string|integer $key   The parameter position or name.
+     * @param mixed          $value The parameter value.
+     * @param string|null    $type  PDO::PARAM_* or \Doctrine\DBAL\Types\Type::* constant
+     *
+     * @return QueryBuilder This QueryBuilder instance.
+     */
+    public function setParameter($key, $value, $type = null)
+    {
+        $filteredParameters = $this->parameters->filter(
+          function ($parameter) use ($key)
+          {
+              // Must not be identical because of string to integer conversion
+              return ($key == $parameter->getName());
+          }
+        );
+
+        if (count($filteredParameters)) {
+            $parameter = $filteredParameters->first();
+            $parameter->setValue($value, $type);
+
+            return $this;
+        }
+
+        $parameter = new Query\Parameter($key, $value, $type);
+
+        $this->parameters->add($parameter);
+
+        return $this;
+    }
+
+    /**
+     * Sets a collection of query parameters for the query being constructed.
+     *
+     * <code>
+     *     $qb = $em->createQueryBuilder()
+     *         ->select('u')
+     *         ->from('User', 'u')
+     *         ->where('u.id = :user_id1 OR u.id = :user_id2')
+     *         ->setParameters(new ArrayCollection(array(
+     *             new Parameter('user_id1', 1),
+     *             new Parameter('user_id2', 2)
+     *        )));
+     * </code>
+     *
+     * @param \Doctrine\Common\Collections\ArrayCollection|array $parameters The query parameters to set.
+     *
+     * @return QueryBuilder This QueryBuilder instance.
+     */
+    public function setParameters($parameters)
+    {
+        // BC compatibility with 2.3-
+        if (is_array($parameters)) {
+            $parameterCollection = new ArrayCollection();
+
+            foreach ($parameters as $key => $value) {
+                $parameter = new Query\Parameter($key, $value);
+
+                $parameterCollection->add($parameter);
+            }
+
+            $parameters = $parameterCollection;
+        }
+
+        $this->parameters = $parameters;
+
+        return $this;
+    }
+
+    /**
+     * Gets all defined query parameters for the query being constructed.
+     *
+     * @return \Doctrine\Common\Collections\ArrayCollection The currently defined query parameters.
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * Gets a (previously set) query parameter of the query being constructed.
+     *
+     * @param mixed $key The key (index or name) of the bound parameter.
+     *
+     * @return Query\Parameter|null The value of the bound parameter.
+     */
+    public function getParameter($key)
+    {
+        $filteredParameters = $this->parameters->filter(
+          function ($parameter) use ($key)
+          {
+              // Must not be identical because of string to integer conversion
+              return ($key == $parameter->getName());
+          }
+        );
+
+        return count($filteredParameters) ? $filteredParameters->first() : null;
+    }
+
 
     /**
      * Specifies triplet for construct query
@@ -557,6 +675,12 @@ class QueryBuilder
 
         $this->state = self::STATE_CLEAN;
         $this->sparqlQuery = $sparqlQuery;
+
+
+
+        $sparqlQuery = SPARQLParserUtils::expandListParameters($sparqlQuery, $this->parameters);
+
+        var_dump($sparqlQuery);
 
         return $sparqlQuery;
     }
