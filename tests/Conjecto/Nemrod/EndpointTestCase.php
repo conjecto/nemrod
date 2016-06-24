@@ -1,21 +1,28 @@
 <?php
 namespace Tests\Conjecto\Nemrod;
 
+use Conjecto\Nemrod\ElasticSearch\JsonLdFrameLoader;
 use Conjecto\Nemrod\Manager;
 use Conjecto\Nemrod\ResourceManager\Mapping\Driver\AnnotationDriver;
 use Conjecto\Nemrod\ResourceManager\Registry\RdfNamespaceRegistry;
+use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use Conjecto\Nemrod\ResourceManager\RepositoryFactory;
 use Conjecto\Nemrod\ResourceManager\SimplePersister;
 use Doctrine\Common\Annotations\AnnotationReader;
 use EasyRdf\Sparql\Client;
 use Metadata\MetadataFactory;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class EndpointTest extends TestCase
+class EndpointTestCase extends BaseTestCase
 {
     /** @var Manager */
     protected static $manager;
+
+    protected $jsonLdFrameLoader;
+    protected $typeMapperRegistry;
+    protected $nsRegistry;
+    protected $jsonLdMetadataFactory;
 
     public static function setUpBeforeClass()
     {
@@ -45,5 +52,15 @@ class EndpointTest extends TestCase
     public static function tearDownAfterClass()
     {
         self::$manager = null;
+    }
+
+    public function setUp() {
+        $this->jsonLdFrameLoader = new JsonLdFrameLoader();
+        $this->typeMapperRegistry = new TypeMapperRegistry();
+        $this->nsRegistry = self::$manager->getNamespaceRegistry();
+
+        // json metadata factory
+        $driver = new \Conjecto\Nemrod\Framing\Metadata\Driver\AnnotationDriver(new AnnotationReader(), []);
+        $this->jsonLdMetadataFactory = new MetadataFactory($driver);
     }
 }

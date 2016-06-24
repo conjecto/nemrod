@@ -21,24 +21,30 @@ use Conjecto\Nemrod\ResourceManager\Registry\TypeMapperRegistry;
 use EasyRdf\Graph;
 use Metadata\MetadataFactory;
 use PHPUnit\Framework\TestCase;
-use Tests\Conjecto\Nemrod\EndpointTest;
+use Tests\Conjecto\Nemrod\EndpointTestCase;
 
 /**
  * Class JsonLdSerializerTest.
  */
-class JsonLdSerializerTest extends EndpointTest
+class JsonLdSerializerTest extends EndpointTestCase
 {
-    private $jsonLdFrameLoader;
-    private $typeMapperRegistry;
-
+    /**
+     * setUp
+     */
     public function setUp() {
-        $this->jsonLdFrameLoader = new JsonLdFrameLoader();
+        parent::setUp();
         $this->jsonLdFrameLoader->addPath(__DIR__.'/Fixtures', 'fixtures');
-        $this->typeMapperRegistry = new TypeMapperRegistry();
     }
 
+    /**
+     * testRemoteSerialize
+     */
     public function testRemoteSerialize()
     {
+        $provider = new ConstructedGraphProvider();
+        $provider->setRm(self::$manager);
+
+
         $resource = self::$manager->getRepository('foaf:Person')->find('nemrod:576d38d0486a9');
         if(!$resource) {
             $resource =  self::$manager->getRepository('foaf:Person')->create('nemrod:576d38d0486a9');
@@ -48,14 +54,7 @@ class JsonLdSerializerTest extends EndpointTest
 
         $resource->set("foaf:name", "newName");
 
-
-        $provider = new ConstructedGraphProvider();
-        $provider->setRm(self::$manager);
-
-        $nsRegistry = self::$manager->getNamespaceRegistry();
-        $metadataFactory = self::$manager->getMetadataFactory();
-
-        $serializer = new JsonLdSerializer($nsRegistry, $this->jsonLdFrameLoader, $provider, $metadataFactory, $this->typeMapperRegistry);
+        $serializer = new JsonLdSerializer($this->nsRegistry, $this->jsonLdFrameLoader, $provider, $this->jsonLdMetadataFactory, $this->typeMapperRegistry);
         $jsonLd = $serializer->serialize($resource, "@fixtures/frame.jsonld");
         $decoded = json_decode($jsonLd, true);
 
