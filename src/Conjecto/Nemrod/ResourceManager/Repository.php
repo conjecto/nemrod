@@ -91,9 +91,9 @@ class Repository
      *
      * @return Resource
      */
-    public function create()
+    public function create($uri = null)
     {
-        return $this->_rm->getUnitOfWork()->create($this->className);
+        return $this->_rm->getUnitOfWork()->create($this->className, $uri);
     }
 
     /**

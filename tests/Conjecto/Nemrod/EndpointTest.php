@@ -26,18 +26,18 @@ class EndpointTest extends TestCase
         $client = new Client($endpoint, null);
 
         // metadata factory
-        //$driver = new AnnotationDriver(new AnnotationReader(), []);
-        //$metadataFactory = new MetadataFactory($driver);
+        $driver = new AnnotationDriver(new AnnotationReader(), []);
+        $metadataFactory = new MetadataFactory($driver);
         // dispatcher
-        //$dispatcher = new EventDispatcher();
+        $dispatcher = new EventDispatcher();
         // namespace registry
-        //$registry = new RdfNamespaceRegistry();
+        $registry = new RdfNamespaceRegistry();
 
         $manager = new Manager($repositoryFactory, null);
         $manager->setClient($client);
-        //$manager->setMetadataFactory($metadataFactory);
-        //$manager->setEventDispatcher($dispatcher);
-        //$manager->setNamespaceRegistry($registry);
+        $manager->setMetadataFactory($metadataFactory);
+        $manager->setEventDispatcher($dispatcher);
+        $manager->setNamespaceRegistry($registry);
 
         self::$manager = $manager;
     }

@@ -92,12 +92,12 @@ class UnitOfWork
      * @param $manager
      * @param $clientUrl
      */
-    public function __construct(Manager $manager, $clientUrl)
+    public function __construct(Manager $manager)
     {
         $this->_rm = $manager;
         $this->evd = $manager->getEventDispatcher();
         $this->metadataFactory = $manager->getMetadataFactory();
-        $this->persister = new SimplePersister($manager, $clientUrl);
+        $this->persister = new SimplePersister($manager);
         $this->registeredResources = new arrayCollection();
         $this->initialSnapshots = new SnapshotContainer($this);
         $this->blackListedResources = new arrayCollection();
@@ -484,7 +484,9 @@ class UnitOfWork
             $className = TypeMapper::getDefaultResourceClass();
         }
 
-        $uri = $this->generateURI($className);
+        if(!$uri) {
+            $uri = $this->generateURI($className);
+        }
 
         /** @var BaseResource $resource */
         $resource = new $className($uri, new Graph());

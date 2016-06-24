@@ -1,5 +1,8 @@
 {
     "@explicit": true,
-    "@type": {},
-    "foaf:name": {}
+    "@type": "foaf:Person",
+    "foaf:name": {},
+    "foaf:knows": {
+        "foaf:name": {}
+    }
 }

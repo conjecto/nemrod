@@ -12,6 +12,7 @@
 namespace Tests\Conjecto\Nemrod\Framing\Serializer;
 
 use Conjecto\Nemrod\Framing\Loader\JsonLdFrameLoader;
+use Conjecto\Nemrod\Framing\Provider\ConstructedGraphProvider;
 use Conjecto\Nemrod\Framing\Provider\SimpleGraphProvider;
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
@@ -27,49 +28,37 @@ use Tests\Conjecto\Nemrod\EndpointTest;
  */
 class JsonLdSerializerTest extends EndpointTest
 {
+    private $jsonLdFrameLoader;
+    private $typeMapperRegistry;
 
     public function setUp() {
-
+        $this->jsonLdFrameLoader = new JsonLdFrameLoader();
+        $this->jsonLdFrameLoader->addPath(__DIR__.'/Fixtures', 'fixtures');
+        $this->typeMapperRegistry = new TypeMapperRegistry();
     }
 
-    /**
-     * @throws \Twig_Error_Loader
-     */
-    /*public function testSerialize()
+    public function testRemoteSerialize()
     {
-        $loader = new JsonLdFrameLoader();
-        $loader->addPath(__DIR__.'/Fixtures', 'fixtures');
+        $resource = self::$manager->getRepository('foaf:Person')->find('nemrod:576d38d0486a9');
+        if(!$resource) {
+            $resource =  self::$manager->getRepository('foaf:Person')->create('nemrod:576d38d0486a9');
+            self::$manager->persist($resource);
+            self::$manager->flush();
+        }
 
-        $registry = new RdfNamespaceRegistry();
-        $foaf = new Graph('http://njh.me/foaf.rdf');
-        $foaf->parseFile(__DIR__.'/Fixtures/foaf.rdf');
+        $resource->set("foaf:name", "newName");
 
-        $graphProvider = new SimpleGraphProvider();
-        $metadataFactory = $this->getMockBuilder('Metadata\\MetadataFactory')->disableOriginalConstructor()->getMock();
-        $typeMapperRegistry = $this->getMockBuilder(TypeMapperRegistry::class)->getMock();
-        $serializer = new JsonLdSerializer($registry, $loader, $graphProvider, $metadataFactory, $typeMapperRegistry);
 
-        $resource = $foaf->primaryTopic();
-        $serialized = $serializer->serialize($resource, '@fixtures/frame.jsonld');
-        $decoded = json_decode($serialized, true);
+        $provider = new ConstructedGraphProvider();
+        $provider->setRm(self::$manager);
+
+        $nsRegistry = self::$manager->getNamespaceRegistry();
+        $metadataFactory = self::$manager->getMetadataFactory();
+
+        $serializer = new JsonLdSerializer($nsRegistry, $this->jsonLdFrameLoader, $provider, $metadataFactory, $this->typeMapperRegistry);
+        $jsonLd = $serializer->serialize($resource, "@fixtures/frame.jsonld");
+        $decoded = json_decode($jsonLd, true);
 
         $this->assertEquals($resource->get('foaf:name'), $decoded['@graph'][0]['foaf:name']);
-    }*/
-
-    public function testRemoteSerialize() {
-        $resource = self::$manager->getRepository('foaf:Person')->create();
-        self::$manager->persist($resource);
-        $resource->set("rdfs:label", "popo");
-        self::$manager->flush();
-
-        $resource->delete("rdfs:label");
-        self::$manager->flush();
-
-
-//        $resource->set("rdfs:label", "popo");
-//        self::$manager->persist($resource);
-//        self::$manager->flush();
-//        print $resource->getUri();
-
     }
 }
