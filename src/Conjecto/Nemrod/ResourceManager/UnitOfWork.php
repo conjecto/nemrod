@@ -369,7 +369,7 @@ class UnitOfWork
         $this->evd->dispatch(Events::PostFlush, new ResourceLifeCycleEvent(array('rm' => $this->_rm, 'uris' => $uris)));
 
         //reseting unit of work
-        $this->reset();
+        //$this->reset();
     }
 
     /**
@@ -468,10 +468,12 @@ class UnitOfWork
 
     /**
      * @param $type
+     * @param $uri
+     * @param $bnode
      *
      * @return BaseResource
      */
-    public function create($type = null)
+    public function create($type = null, $uri = null, $bnode = false)
     {
         $className = null;
         if ($type) {
@@ -482,8 +484,10 @@ class UnitOfWork
             $className = TypeMapper::getDefaultResourceClass();
         }
 
+        $uri = $this->generateURI($className);
+
         /** @var BaseResource $resource */
-        $resource = new $className($this->nextBNode(), new Graph());
+        $resource = new $className($uri, new Graph());
         $resource->addType($type);
         $resource->setRm($this->_rm);
 
@@ -825,12 +829,6 @@ class UnitOfWork
                 if (!empty($bigSnapshot))
                 foreach ($bigSnapshot[$resource->getUri()] as $property => $values) {
                     return $bigSnapshot;
-                    foreach ($values as $value) {
-                        $array[] = $value['value'];
-//                        if ((!$this->isManagementBlackListed($value['value'])) && $value['type'] === 'bnode' && isset($bigSnapshot[$value['value']])) {
-//                            $snapshot[$value['value']] = $bigSnapshot[$value['value']];
-//                        }
-                    }
                 }
                 return $array;
             }
@@ -906,11 +904,14 @@ class UnitOfWork
      *
      * @return string
      */
-    public function generateURI(\Conjecto\Nemrod\Resource $resource)
+    public function generateURI($class)
     {
+        if(!is_string($class)) {
+            $class = get_class($class);
+        }
         $prefix = null;
         if($this->metadataFactory) {
-            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
+            $metadata = $this->metadataFactory->getMetadataForClass($class);
             $prefix = $metadata->uriPattern;
         }
         if(!$prefix) {

@@ -58,10 +58,18 @@ class JsonLdSerializerTest extends EndpointTest
 
     public function testRemoteSerialize() {
         $resource = self::$manager->getRepository('foaf:Person')->create();
-        $resource->set("rdfs:label", "popo");
         self::$manager->persist($resource);
+        $resource->set("rdfs:label", "popo");
         self::$manager->flush();
-        print $resource->getUri();
+
+        $resource->delete("rdfs:label");
+        self::$manager->flush();
+
+
+//        $resource->set("rdfs:label", "popo");
+//        self::$manager->persist($resource);
+//        self::$manager->flush();
+//        print $resource->getUri();
 
     }
 }

@@ -62,7 +62,7 @@ class Manager
         $this->repositoryFactory = $repositoryFactory;
         $this->evd = new EventDispatcher();
         $this->namespaceRegistry = new RdfNamespaceRegistry();
-        $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
+        $this->unitOfWork = new UnitOfWork($this);
     }
 
     /**
