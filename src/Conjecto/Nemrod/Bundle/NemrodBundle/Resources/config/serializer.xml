@@ -5,26 +5,26 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="nemrod.serialization_visitor.class">Conjecto\Nemrod\Serializer\RdfSerializationVisitor</parameter>
-        <parameter key="nemrod.deserialization_visitor.class">Conjecto\Nemrod\Serializer\RdfDeserializationVisitor</parameter>
-        <parameter key="nemrod.serialization_visitor.jsonld.class">Conjecto\Nemrod\Framing\Serializer\JsonLdSerializationVisitor</parameter>
+        <parameter key="nemrod.serializer.handler.resource">Conjecto\Nemrod\Serializer\JMSResourceHandler</parameter>
+        <parameter key="nemrod.serializer.visitor.class">Conjecto\Nemrod\Serializer\RdfSerializationVisitor</parameter>
+        <parameter key="nemrod.serializer.visitor.class">Conjecto\Nemrod\Serializer\RdfDeserializationVisitor</parameter>
     </parameters>
 
     <services>
-        <!-- JsonLD -->
-        <service id="nemrod.serialization_visitor.jsonld" class="%nemrod.serialization_visitor.jsonld.class%">
-            <argument type="service" id="nemrod.jsonld.serializer" />
-            <tag name="jms_serializer.serialization_visitor" format="jsonld" />
+        <!-- Resource JSON Handler -->
+        <service id="nemrod.serializer.handler.resource" class="%nemrod.serializer.handler.resource.class%">
+            <argument type="service" id="nemrod.jsonld.serializer"/>
+            <tag name="jms_serializer.subscribing_handler" />
         </service>
 
         <!-- Ntriples -->
-        <service id="nemrod.serialization_visitor.n3" class="%nemrod.serialization_visitor.class%">
+        <service id="nemrod.serializer.visitor.n3" class="%nemrod.serializer.visitor.class%">
             <argument type="string">ntriples</argument>
             <tag name="jms_serializer.serialization_visitor" format="n3" />
         </service>
 
         <!-- Turtle -->
-        <service id="nemrod.serialization_visitor.ttl" class="%nemrod.serialization_visitor.class%">
+        <service id="nemrod.serializer.visitor.ttl" class="%nemrod.serializer.visitor.class%">
             <argument type="string">turtle</argument>
             <tag name="jms_serializer.serialization_visitor" format="ttl" />
         </service>
