@@ -60,6 +60,8 @@ class Manager
     public function __construct(RepositoryFactory $repositoryFactory, $sparqlClientUrl)
     {
         $this->repositoryFactory = $repositoryFactory;
+        $this->evd = new EventDispatcher();
+        $this->namespaceRegistry = new RdfNamespaceRegistry();
         $this->unitOfWork = new UnitOfWork($this, $sparqlClientUrl);
     }
 
@@ -308,13 +310,11 @@ class Manager
      */
     public function getMetadata($type)
     {
-        $class = TypeMapper::get($type);
-
-        if ($class) {
-            return $this->metadataFactory->getMetadataForClass($class);
+        if($this->metadataFactory) {
+            if ($class = TypeMapper::get($type)) {
+                return $this->metadataFactory->getMetadataForClass($class);
+            }
         }
-
-        return;
     }
 
     /**

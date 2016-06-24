@@ -11,11 +11,13 @@
         <ini name="intl.default_locale" value="en" />
         <ini name="intl.error_level" value="0" />
         <ini name="memory_limit" value="-1" />
+
+        <var name="SPARQL_ENDPOINT" value="http://dev.conjecto:8580/bigdata/namespace/nemrod-test/sparql" />
     </php>
 
     <testsuites>
         <testsuite name="Nemrod Test Suite">
-            <directory>./src/Conjecto/Nemrod/*/Tests/</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
@@ -28,10 +30,11 @@
 
     <filter>
         <whitelist>
-            <directory>./src/Conjecto/RAL/</directory>
+            <directory>src</directory>
             <exclude>
-                <directory>./src/Conjecto/Nemrod/*/Tests</directory>
-                <directory>./src/Conjecto/Nemrod/*/Resources</directory>
+                <directory>src/*Bundle/Resources</directory>
+                <directory>src/*/*Bundle/Resources</directory>
+                <directory>src/*/Bundle/*Bundle/Resources</directory>
             </exclude>
         </whitelist>
     </filter>

@@ -1,0 +1,22 @@
+{
+  "@type": "terms:LaureateAward",
+  "rdfs:label": {},
+  "terms:category": {
+    "rdfs:label": {}
+  },
+  "terms:comment": {},
+  "terms:laureate": {
+    "rdfs:label": {},
+    "dbpediaowl:birthPlace": {
+      "rdfs:label": {}
+    },
+    "dbpediaowl:deathPlace": {
+      "rdfs:label": {}
+    }
+  },
+  "terms:motivation": {},
+  "terms:university": {
+    "rdfs:label": {}
+  },
+  "terms:year": {}
+}

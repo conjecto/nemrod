@@ -64,6 +64,9 @@ class UnitOfWork
     /** @var  EventDispatcher */
     private $evd;
 
+    /** @var MetadataFactory */
+    private $metadataFactory;
+
     /**
      * Initial snapshots of registered resources.
      *
@@ -93,6 +96,7 @@ class UnitOfWork
     {
         $this->_rm = $manager;
         $this->evd = $manager->getEventDispatcher();
+        $this->metadataFactory = $manager->getMetadataFactory();
         $this->persister = new SimplePersister($manager, $clientUrl);
         $this->registeredResources = new arrayCollection();
         $this->initialSnapshots = new SnapshotContainer($this);
@@ -282,9 +286,7 @@ class UnitOfWork
             $this->setStatus($resource, self::STATUS_NEW);
 
             if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
-                /** @var ClassMetadata $metadata */
-                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI($resource);
             } else if (isset($this->uriCorrespondances[$resource->getUri()])) {
                 //if uri is already set, we stop everything and return it.
                 return $this->uriCorrespondances[$resource->getUri()];
@@ -296,25 +298,29 @@ class UnitOfWork
         $this->registerResource($resource, false);
 
         //getting entities to be cascade persisted
-        $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-        /** @var PropertyMetadata $pm */
-        foreach ($metadata->propertyMetadata as $pm) {
-            if (is_array($pm->cascade) && in_array('persist', $pm->cascade)) {
-                $cascadeResources = $resource->allResources($pm->value);
+        if($this->metadataFactory) {
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
 
-                foreach ($cascadeResources as $res2) {
+            /** @var PropertyMetadata $pm */
+            foreach ($metadata->propertyMetadata as $pm) {
+                if (is_array($pm->cascade) && in_array('persist', $pm->cascade)) {
+                    $cascadeResources = $resource->allResources($pm->value);
 
-                    //sub-resource may have been stored as a temporary resource -
-                    // it becomes a managed resource
-                    if (!empty($this->tempResources[$res2->getUri()])) {
-                        $res2 = $this->tempResources[$res2->getUri()];
-                        unset($this->tempResources[$res2->getUri()]);
+                    foreach ($cascadeResources as $res2) {
+
+                        //sub-resource may have been stored as a temporary resource -
+                        // it becomes a managed resource
+                        if (!empty($this->tempResources[$res2->getUri()])) {
+                            $res2 = $this->tempResources[$res2->getUri()];
+                            unset($this->tempResources[$res2->getUri()]);
+                        }
+
+                        $this->persist($res2);
                     }
-
-                    $this->persist($res2);
                 }
             }
         }
+
         $this->evd->dispatch(Events::PostPersist, new ResourceLifeCycleEvent(array('resources' => array($resource))));
 
         return $this->uriCorrespondances[$resource->getUri()];
@@ -341,9 +347,7 @@ class UnitOfWork
         foreach ($concernedResources as $resource) {
             //generating an uri if resource is a blank node
             if ($resource->isBNode() && !isset($this->uriCorrespondances[$resource->getUri()])) {
-                /** @var ClassMetadata $metadata */
-                $metadata = $this->_rm->getMetadataFactory()->getMetadataForClass(get_class($resource));
-                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI(array('prefix' => $metadata->uriPattern));
+                $this->uriCorrespondances[$resource->getUri()] = $this->generateURI($resource);
             }
         }
         $this->getSnapshotForResource($this->registeredResources, $array);
@@ -902,10 +906,16 @@ class UnitOfWork
      *
      * @return string
      */
-    public function generateURI($options = array())
+    public function generateURI(\Conjecto\Nemrod\Resource $resource)
     {
-        $prefix = (isset($options['prefix']) && $options['prefix'] !== '') ? $options['prefix'] : 'og_bd:';
-
+        $prefix = null;
+        if($this->metadataFactory) {
+            $metadata = $this->metadataFactory->getMetadataForClass(get_class($resource));
+            $prefix = $metadata->uriPattern;
+        }
+        if(!$prefix) {
+            $prefix = 'nemrod:';
+        }
         return uniqid($prefix);
     }
 
