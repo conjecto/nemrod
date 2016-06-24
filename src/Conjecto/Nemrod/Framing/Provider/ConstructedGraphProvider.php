@@ -29,7 +29,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
     }
 
     /**
-     * @param Resource|Graph|array $resourceOrGraph
+     * @param \Conjecto\Nemrod\Resource|Graph|array $resourceOrGraph
      * @param array    $frame
      *
      * @return Graph
@@ -48,12 +48,46 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 $uris[] = '<'.$res->getUri().'>';
             }
             $qb->value('?uri', $uris);
+            $graph = $qb->getQuery()->execute();
 
-            return $qb->getQuery()->execute();
+            // merge graph to get the last resource values
+            $_graph = $resourceOrGraph instanceof Graph ? $resourceOrGraph : $resourceOrGraph->getGraph();
+            return $this->mergeGraphs($graph, $_graph);
         } else {
             // else return resource graph
             return parent::getGraph($resourceOrGraph, $frame);
         }
+    }
+
+    /**
+     * Merge a source graph with a modified graph to handle update
+     *
+     * @param Graph $source
+     * @param Graph $modif
+     * @return Graph
+     */
+    protected function mergeGraphs($source, $modif) {
+        $uri = $source->getUri();
+        $source = $source->toRdfPhp();
+        $modif = $modif->toRdfPhp();
+
+        $merged = [];
+        foreach($source as $uri => $properties) {
+            if(isset($modif[$uri])) {
+                foreach($properties as $prop => $value) {
+                    if(!isset($modif[$uri][$prop])) {
+                        unset($properties[$prop]);
+                    }
+                }
+                $merged[$uri] = array_merge($properties, $modif[$uri]);
+            } else {
+                $merged[$uri] = $properties;
+            }
+        }
+
+        $new = new Graph($uri);
+        $new->parse($merged, 'php');
+        return $new;
     }
 
     /**
@@ -150,7 +184,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
      */
     protected function getArrayConstruct($frame, $arrayConstruct, $uriParent)
     {
-
         foreach ($frame as $prop => $val) {
             if ($prop === '@type') {
                 $arrayConstruct[] = "$uriParent a $val";
@@ -158,7 +191,6 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 $uriChild = '?c'.(++$this->varCounter);
                 $arrayConstruct[] = "$uriParent $prop $uriChild";
                 if (is_array($val)) {
-                    $recursiveConstruct = array();
                     $recursiveConstruct = $this->getArrayConstruct($val, array(), $uriChild);
                     if (count($recursiveConstruct)) {
                         $queryPart = $arrayConstruct[count($arrayConstruct) - 1];
