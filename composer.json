@@ -17,14 +17,14 @@
         "symfony/symfony": "~2.8",
         "conjecto/json-ld": "dev-master",
         "easyrdf/easyrdf": "dev-master",
-        "jms/serializer": "~0.11",
+        "jms/serializer": "^1.1",
         "ruflin/elastica": "~1.4.3"
     },
     "suggest": {
-        "jms/serializer-bundle": "~0.13"
+        "jms/serializer-bundle": "^1.1"
     },
     "require-dev": {
-        "jms/serializer-bundle": "~0.13",
+        "jms/serializer-bundle": "^1.1",
         "phpunit/phpunit": "4.3.*",
         "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
         "fabpot/php-cs-fixer": "~1.5"
