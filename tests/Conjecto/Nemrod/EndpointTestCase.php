@@ -13,6 +13,7 @@ use EasyRdf\Sparql\Client;
 use Metadata\MetadataFactory;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Tests\Conjecto\Nemrod\Fixtures\RdfResource\FoafPerson;
 
 class EndpointTestCase extends BaseTestCase
 {
@@ -33,8 +34,9 @@ class EndpointTestCase extends BaseTestCase
         $client = new Client($endpoint, null);
 
         // metadata factory
-        $driver = new AnnotationDriver(new AnnotationReader(), []);
+        $driver = new AnnotationDriver(new AnnotationReader(), [__DIR__. '/Fixtures/RdfResource']);
         $metadataFactory = new MetadataFactory($driver);
+
         // dispatcher
         $dispatcher = new EventDispatcher();
         // namespace registry
@@ -63,4 +65,5 @@ class EndpointTestCase extends BaseTestCase
         $driver = new \Conjecto\Nemrod\Framing\Metadata\Driver\AnnotationDriver(new AnnotationReader(), []);
         $this->jsonLdMetadataFactory = new MetadataFactory($driver);
     }
+
 }
