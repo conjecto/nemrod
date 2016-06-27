@@ -58,7 +58,6 @@ class JMSResourceHandlerTest extends EndpointTestCase
 
         $serializer = $builder->build();
         $jsonContent = $serializer->serialize($data, 'json');
-
         $this->assertJson($jsonContent);
     }
 }

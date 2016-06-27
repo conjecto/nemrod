@@ -40,13 +40,13 @@ class JMSResourceHandler implements SubscribingHandlerInterface
             array(
                 'direction' => GraphNavigator::DIRECTION_SERIALIZATION,
                 'format' => 'json',
-                'type' => 'Conjecto\\Nemrod\\Resource',
+                'type' => "Conjecto\\Nemrod\\Resource",
                 'method' => 'serializeResourceToJsonLd',
             ),
             array(
                 'direction' => GraphNavigator::DIRECTION_SERIALIZATION,
                 'format' => 'json',
-                'type' => 'EasyRdf\Graph',
+                'type' => "EasyRdf\\Graph",
                 'method' => 'serializeResourceToJsonLd',
             ),
         );
@@ -60,7 +60,7 @@ class JMSResourceHandler implements SubscribingHandlerInterface
      *
      * @return mixed
      */
-    public function serializeResourceToJsonLd(JsonSerializationVisitor $visitor, Resource $resource, array $type, SerializationContext $context)
+    public function serializeResourceToJsonLd(JsonSerializationVisitor $visitor, $resource, array $type, SerializationContext $context)
     {
         $jsonLd = $this->jsonLdSerializer->serialize($resource);
         return $visitor->getNavigator()->accept(json_decode($jsonLd, true), ['name' => 'array'], $context);
