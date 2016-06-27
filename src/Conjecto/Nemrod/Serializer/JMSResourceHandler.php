@@ -11,6 +11,7 @@ namespace Conjecto\Nemrod\Serializer;
 
 use Conjecto\Nemrod\Framing\Serializer\JsonLdSerializer;
 use Conjecto\Nemrod\Resource;
+use EasyRdf\Graph;
 use JMS\Serializer\GraphNavigator;
 use JMS\Serializer\Handler\SubscribingHandlerInterface;
 use JMS\Serializer\JsonSerializationVisitor;
@@ -40,13 +41,13 @@ class JMSResourceHandler implements SubscribingHandlerInterface
             array(
                 'direction' => GraphNavigator::DIRECTION_SERIALIZATION,
                 'format' => 'json',
-                'type' => "Conjecto\\Nemrod\\Resource",
+                'type' => Resource::class,
                 'method' => 'serializeResourceToJsonLd',
             ),
             array(
                 'direction' => GraphNavigator::DIRECTION_SERIALIZATION,
                 'format' => 'json',
-                'type' => "EasyRdf\\Graph",
+                'type' => Graph::class,
                 'method' => 'serializeResourceToJsonLd',
             ),
         );

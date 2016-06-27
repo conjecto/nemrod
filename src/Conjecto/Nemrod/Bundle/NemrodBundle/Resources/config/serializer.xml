@@ -19,13 +19,13 @@
 
         <!-- Ntriples -->
         <service id="nemrod.serializer.visitor.n3" class="%nemrod.serializer.visitor.class%">
-            <argument type="string">ntriples</argument>
+            <argument type="service" id="jms_serializer.naming_strategy" on-invalid="null" />
             <tag name="jms_serializer.serialization_visitor" format="n3" />
         </service>
 
         <!-- Turtle -->
         <service id="nemrod.serializer.visitor.ttl" class="%nemrod.serializer.visitor.class%">
-            <argument type="string">turtle</argument>
+            <argument type="service" id="jms_serializer.naming_strategy" on-invalid="null" />
             <tag name="jms_serializer.serialization_visitor" format="ttl" />
         </service>
     </services>

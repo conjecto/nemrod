@@ -12,6 +12,8 @@
 namespace Conjecto\Nemrod\Bundle\NemrodBundle;
 
 use Conjecto\Nemrod\Bundle\NemrodBundle\DependencyInjection\CompilerPass\EventListenerRegistrationPass;
+use Conjecto\Nemrod\Bundle\NemrodBundle\DependencyInjection\CompilerPass\JMSSerializerResourceHandlerPass;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -27,5 +29,6 @@ class NemrodBundle extends Bundle
     {
         parent::build($container);
         $container->addCompilerPass(new EventListenerRegistrationPass());
+        $container->addCompilerPass(new JMSSerializerResourceHandlerPass(), PassConfig::TYPE_REMOVE);
     }
 }
