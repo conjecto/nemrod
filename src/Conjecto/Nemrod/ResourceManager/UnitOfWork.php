@@ -467,7 +467,7 @@ class UnitOfWork
      *
      * @return BaseResource
      */
-    public function create($type = null)
+    public function create($type = null, $uri = null)
     {
         $className = null;
         if ($type) {
@@ -478,8 +478,10 @@ class UnitOfWork
             $className = TypeMapper::getDefaultResourceClass();
         }
 
+        $uri = $uri ? $uri : $this->nextBNode();
+
         /** @var BaseResource $resource */
-        $resource = new $className($this->nextBNode(), new Graph());
+        $resource = new $className($uri, new Graph());
         $resource->addType($type);
         $resource->setRm($this->_rm);
 
