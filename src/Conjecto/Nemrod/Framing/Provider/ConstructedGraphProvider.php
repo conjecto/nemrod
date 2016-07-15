@@ -51,8 +51,12 @@ class ConstructedGraphProvider extends SimpleGraphProvider
             $graph = $qb->getQuery()->execute();
 
             // merge graph to get the last resource values
-            $_graph = $resourceOrGraph instanceof Graph ? $resourceOrGraph : $resourceOrGraph->getGraph();
-            return $this->mergeGraphs($graph, $_graph);
+            $_graph = $_resource instanceof Graph ? $_resource : $_resource->getGraph();
+            if($_graph) {
+                return $this->mergeGraphs($graph, $_graph);
+            } else {
+                return $graph;
+            }
         } else {
             // else return resource graph
             return parent::getGraph($resourceOrGraph, $frame);
