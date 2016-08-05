@@ -193,7 +193,7 @@ class ConstructedGraphProvider extends SimpleGraphProvider
                 $arrayConstruct[] = "$uriParent a $val";
             } else if (substr($prop, 0, 1) !== '@') {
                 $uriChild = '?c'.(++$this->varCounter);
-                $arrayConstruct[] = "$uriParent $prop $uriChild";
+                $arrayConstruct[] = (substr(trim($prop), -1) === "*") ? "" : "$uriParent $prop $uriChild";
                 if (is_array($val)) {
                     $recursiveConstruct = $this->getArrayConstruct($val, array(), $uriChild);
                     if (count($recursiveConstruct)) {
