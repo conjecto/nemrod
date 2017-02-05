@@ -18,7 +18,7 @@
         "conjecto/json-ld": "dev-master",
         "easyrdf/easyrdf": "dev-master",
         "jms/serializer": "~1.4",
-        "ruflin/elastica": "~1.4.3"
+        "ruflin/elastica": "~3.2.3"
     },
     "suggest": {
         "jms/serializer-bundle": "~1.1"
