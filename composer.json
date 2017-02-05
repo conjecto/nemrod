@@ -14,18 +14,17 @@
     ],
     "require": {
         "php": ">=5.3.9",
-        "symfony/symfony": "~2.8",
+        "symfony/symfony": "~3.2",
         "conjecto/json-ld": "dev-master",
         "easyrdf/easyrdf": "dev-master",
-        "jms/serializer": "^1.1",
+        "jms/serializer": "~1.4",
         "ruflin/elastica": "~1.4.3"
     },
     "suggest": {
-        "jms/serializer-bundle": "^1.1"
+        "jms/serializer-bundle": "~1.1"
     },
     "require-dev": {
-        "jms/serializer-bundle": "^1.1",
-        "phpunit/phpunit": "4.3.*",
+        "jms/serializer-bundle": "~1.1",
         "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
         "fabpot/php-cs-fixer": "~1.5"
     },
