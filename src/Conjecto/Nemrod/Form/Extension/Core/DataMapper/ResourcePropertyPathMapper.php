@@ -14,6 +14,16 @@ namespace Conjecto\Nemrod\Form\Extension\Core\DataMapper;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\PercentType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PropertyAccess\PropertyPath;
@@ -115,7 +125,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
-        } elseif ($formConfig->getType()->getInnerType() === CollectionType::class) {
+        } elseif (get_class($formConfig->getType()->getInnerType()) === CollectionType::class) {
             $resources = $objectOrArray->all($property);
         } else {
             $resources = $objectOrArray->get($property);
@@ -148,8 +158,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
 
         $property = (string) $propertyPath;
 
-        $formConfig->getType()->getName();
-        $literalClass = $this->getClassForType($formConfig->getType()->getName());
+        $literalClass = $this->getClassForType($formConfig->getType()->getInnerType());
 
         if (is_array($value) || $value instanceof \Traversable) {
             $itemsToAdd = is_object($value) ? iterator_to_array($value) : $value;
@@ -237,20 +246,21 @@ class ResourcePropertyPathMapper implements DataMapperInterface
      */
     protected function getClassForType($type)
     {
+        $type = get_class($type);
         switch ($type) {
-            case 'date':
+            case DateType::class:
                 return 'EasyRdf\\Literal\\Date';
-            case 'number':
-            case 'money':
-            case 'percent':
+            case NumberType::class:
+            case MoneyType::class:
+            case PercentType::class:
                 return 'EasyRdf\\Literal\\Decimal';
-            case 'integer':
+            case IntegerType::class:
                 return 'EasyRdf\\Literal\\Integer';
-            case 'text':
-            case 'textarea':
-            case 'email':
-            case 'password':
-            case 'url':
+            case TextType::class:
+            case TextAreaType::class:
+            case EmailType::class:
+            case PasswordType::class:
+            case UrlType::class:
                 return 'EasyRdf\\Literal';
         }
 
