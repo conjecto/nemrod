@@ -13,6 +13,7 @@ namespace Conjecto\Nemrod\Form\Extension\Core\DataMapper;
 
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Exception;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PropertyAccess\PropertyPath;
@@ -114,7 +115,7 @@ class ResourcePropertyPathMapper implements DataMapperInterface
         $resources = null;
         if ($formConfig->getOption('multiple')) {
             $resources = $objectOrArray->all($property);
-        } elseif ($formConfig->getType()->getName() === 'collection') {
+        } elseif ($formConfig->getType()->getInnerType() === CollectionType::class) {
             $resources = $objectOrArray->all($property);
         } else {
             $resources = $objectOrArray->get($property);
