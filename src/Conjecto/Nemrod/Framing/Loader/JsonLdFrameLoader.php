@@ -53,7 +53,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
      */
     public function getFrame($name, $assoc = true)
     {
-        $decoded = json_decode($this->getSource($name), $assoc);
+        $decoded = json_decode($this->getSourceContext($name)->getCode(), $assoc);
         if ($decoded === null) {
             throw new \Twig_Error_Loader(sprintf('Unable to decode frame "%s".', $name));
         }
@@ -245,7 +245,7 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
      *
      * @throws \Twig_Error_Loader if the template could not be found
      */
-    protected function findTemplate($template)
+    protected function findTemplate($template, $throw = true)
     {
         $logicalName = (string) $template;
 
@@ -259,6 +259,9 @@ class JsonLdFrameLoader extends \Twig_Loader_Filesystem
         try {
             $file = parent::findTemplate($logicalName);
         } catch (\Twig_Error_Loader $e) {
+            if (!$throw) {
+                return false;
+            }
             throw new \Twig_Error_Loader(sprintf('Unable to find frame "%s".', $logicalName), -1, null, $previous);
         }
 
